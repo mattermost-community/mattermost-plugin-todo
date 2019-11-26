@@ -9,12 +9,12 @@ module.exports = {
             'src',
             'node_modules',
         ],
-        extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
+        extensions: ['*', '.js', '.jsx'],
     },
     module: {
         rules: [
             {
-                test: /\.(js|jsx|ts|tsx)$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
@@ -22,8 +22,6 @@ module.exports = {
                         plugins: [
                             '@babel/plugin-proposal-class-properties',
                             '@babel/plugin-syntax-dynamic-import',
-                            '@babel/proposal-object-rest-spread',
-                            'babel-plugin-typescript-to-proptypes',
                         ],
                         presets: [
                             ['@babel/preset-env', {
@@ -41,13 +39,24 @@ module.exports = {
                             ['@babel/preset-react', {
                                 useBuiltIns: true,
                             }],
-                            ['@babel/typescript', {
-                                allExtensions: true,
-                                isTSX: true,
-                            }],
                         ],
                     },
                 },
+            },
+            {
+                test: /\.scss$/,
+                use: [
+                    'style-loader',
+                    {
+                        loader: 'css-loader',
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            includePaths: ['node_modules/compass-mixins/lib', 'sass'],
+                        },
+                    },
+                ],
             },
         ],
     },
@@ -57,6 +66,7 @@ module.exports = {
         'react-redux': 'ReactRedux',
         'prop-types': 'PropTypes',
         'react-bootstrap': 'ReactBootstrap',
+        'react-dom': 'ReactDOM',
     },
     output: {
         path: path.join(__dirname, '/dist'),
