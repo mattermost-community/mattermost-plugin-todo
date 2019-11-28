@@ -83,7 +83,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	item.ID = model.NewId()
 	item.CreateAt = model.GetMillis()
 
-	err = p.addItem(userID, item)
+	err = p.storeItemForUser(userID, item)
 	if err != nil {
 		p.API.LogError("Unable to add item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)

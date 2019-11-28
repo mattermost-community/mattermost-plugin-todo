@@ -94,7 +94,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		Message:  message,
 	}
 
-	err := p.addItem(extra.UserId, item)
+	err := p.storeItemForUser(extra.UserId, item)
 	if err != nil {
 		return nil, false, err
 	}
@@ -109,7 +109,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "\n\n"
+	responseMessage += "To Do List:\n\n"
 	responseMessage += itemsListToString(items)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
@@ -123,7 +123,10 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 
 	p.sendRefreshEvent(extra.UserId)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, itemsListToString(items)), false, nil
+	responseMessage := "To Do List:\n\n"
+	responseMessage += itemsListToString(items)
+
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
@@ -142,7 +145,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "\n\n"
+	responseMessage += "To Do List:\n\n"
 	responseMessage += itemsListToString(items)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil

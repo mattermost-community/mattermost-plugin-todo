@@ -12,31 +12,16 @@ type Item struct {
 	CreateAt int64  `json:"create_at"`
 }
 
-func (p *Plugin) addItem(userID string, item *Item) error {
-	err := p.storeItem(item)
-	if err != nil {
-		return err
-	}
-
-	p.addToOrderForUser(userID, item.ID)
-	if err != nil {
-		p.deleteItem(item.ID)
-		return err
-	}
-
-	return nil
-}
-
 func itemsListToString(items []*Item) string {
-	str := "To Do List:\n\n"
-
 	if len(items) == 0 {
-		return str + "Nothing to do!"
+		return "Nothing to do!"
 	}
+
+	str := "\n\n"
 
 	for _, item := range items {
 		createAt := time.Unix(item.CreateAt/1000, 0)
-		str += fmt.Sprintf("* %s (added %s)\n", item.Message, createAt.Format("January 2, 2006"))
+		str += fmt.Sprintf("* %s\n  * (%s)\n", item.Message, createAt.Format("January 2, 2006 at 15:04"))
 	}
 
 	return str

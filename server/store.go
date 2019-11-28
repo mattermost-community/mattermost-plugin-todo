@@ -47,6 +47,21 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	return reminderAt, nil
 }
 
+func (p *Plugin) storeItemForUser(userID string, item *Item) error {
+	err := p.storeItem(item)
+	if err != nil {
+		return err
+	}
+
+	p.addToOrderForUser(userID, item.ID)
+	if err != nil {
+		p.deleteItem(item.ID)
+		return err
+	}
+
+	return nil
+}
+
 func (p *Plugin) storeItem(item *Item) error {
 	jsonItem, jsonErr := json.Marshal(item)
 	if jsonErr != nil {
