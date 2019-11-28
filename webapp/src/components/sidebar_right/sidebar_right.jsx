@@ -7,6 +7,8 @@ import Scrollbars from 'react-custom-scrollbars';
 
 import ToDoItems from './todo_items';
 
+import './sidebar_right.scss';
+
 export function renderView(props) {
     return (
         <div
@@ -58,12 +60,12 @@ export default class SidebarRight extends React.PureComponent {
                     renderThumbHorizontal={renderThumbHorizontal}
                     renderThumbVertical={renderThumbVertical}
                     renderView={renderView}
+                    className='SidebarRight'
                 >
-                    <a href='#' style={style.sectionHeader} onClick={() => this.props.actions.openRootModal('')}>
-                        <strong>
-                            {'+ Add a new item'}
-                        </strong>
-                    </a>
+                    <div className='section-header' onClick={() => this.props.actions.openRootModal('')}>
+                        {'Add new item '}
+                        <i className='icon fa fa-plus-circle'/>
+                    </div>
                     <div>
                         <ToDoItems
                             items={todos}
@@ -76,9 +78,3 @@ export default class SidebarRight extends React.PureComponent {
         );
     }
 }
-
-const style = {
-    sectionHeader: {
-        padding: '15px',
-    },
-};

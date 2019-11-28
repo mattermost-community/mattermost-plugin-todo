@@ -22,6 +22,7 @@ function ToDoItems(props) {
         const seconds = "0" + date.getSeconds();
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
+
         return (
             <div
                 key={item.id}
@@ -34,7 +35,7 @@ function ToDoItems(props) {
                 >
                     {'X'}
                 </a>
-                <div>
+                <div style={style.message}>
                     <strong>
                         {item.message}
                     </strong>
@@ -70,6 +71,9 @@ const getStyle = makeStyleFromTheme((theme) => {
             margin: '5px 0 0 0',
             fontSize: '13px',
         },
+        message: {
+            width: '95%',
+        }
     };
 });
 
