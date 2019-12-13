@@ -2,6 +2,8 @@
 
 A plugin to track to do items in a list and send you daily reminders about your to do list.
 
+**[Help Wanted](https://github.com/mattermost/mattermost-plugin-todo/issues?utf8=%E2%9C%93&q=is%3Aopen+label%3A%22up+for+grabs%22+label%3A%22help+wanted%22+sort%3Aupdated-desc)**
+
 ## Install
 
 1. Go the releases page and download the latest release.
