@@ -25,7 +25,7 @@ export default class Plugin {
         const {showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), "To Do", "Open your list of to do items.")
+        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do items.');
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, () => store.dispatch(list()));
 
@@ -46,6 +46,5 @@ export default class Plugin {
         document.removeEventListener('click', activityFunc);
     }
 }
-
 
 window.registerPlugin(pluginId, new Plugin());

@@ -49,7 +49,7 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     render() {
-        let todos = this.props.todos || [];
+        const todos = this.props.todos || [];
 
         return (
             <React.Fragment>
@@ -62,7 +62,10 @@ export default class SidebarRight extends React.PureComponent {
                     renderView={renderView}
                     className='SidebarRight'
                 >
-                    <div className='section-header' onClick={() => this.props.actions.openRootModal('')}>
+                    <div
+                        className='section-header'
+                        onClick={() => this.props.actions.openRootModal('')}
+                    >
                         {'Add new item '}
                         <i className='icon fa fa-plus-circle'/>
                     </div>
