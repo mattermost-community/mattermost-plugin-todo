@@ -1,4 +1,4 @@
-# Mattermost To Do Plugin
+# Mattermost To Do Plugin [![CircleCI](https://circleci.com/gh/mattermost/mattermost-plugin-todo.svg?style=svg)](https://circleci.com/gh/mattermost/mattermost-plugin-todo)
 
 A plugin to track to do items in a list and send you daily reminders about your to do list.
 
