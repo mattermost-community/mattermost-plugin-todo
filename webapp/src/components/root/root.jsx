@@ -27,6 +27,7 @@ export default class Root extends React.Component {
     static getDerivedStateFromProps(props, state) {
         if (props.visible && state.message == null) {
             return {message: props.message};
+            // return {message: props.message + ' (' + createPermalink(props.postID) + ')'};
         }
         if (!props.visible && state.message != null) {
             return {message: null};

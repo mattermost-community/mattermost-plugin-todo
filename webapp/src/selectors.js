@@ -1,5 +1,7 @@
 import {id as pluginId} from './manifest';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
 export const isRootModalVisible = (state) => getPluginState(state).rootModalVisible;
@@ -17,3 +19,34 @@ export const getMessage = (state) => {
     return post.message;
 };
 export const getItems = (state) => getPluginState(state).items;
+export const getCurrentTeamRoute = (state) => {
+    const config = getConfig(state);
+
+    const basePath = getSiteURL();
+    const teamName = state.entities.teams.teams[state.entities.teams.currentTeamId].name;
+
+    return basePath + '/' + teamName + '/';
+}
+
+function getSiteURL() {
+    let siteURL = '';
+    if (window.location.origin) {
+        siteURL = window.location.origin;
+    } else {
+        siteURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
+    }
+
+    if (siteURL[siteURL.length - 1] === '/') {
+        siteURL = siteURL.substring(0, siteURL.length - 1);
+    }
+
+    if (window.basename) {
+        siteURL += window.basename;
+    }
+
+    if (siteURL[siteURL.length - 1] === '/') {
+        siteURL = siteURL.substring(0, siteURL.length - 1);
+    }
+
+    return siteURL;
+}
