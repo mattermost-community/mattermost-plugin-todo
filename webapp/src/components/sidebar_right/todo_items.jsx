@@ -23,17 +23,18 @@ function ToDoItems(props) {
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
-        const urlRegex = /(\(https?:\/\/[^\s]+\))/g;
-        let i = 0;
-        let urls = [];
-        const formattedMessage = item.message.replace(urlRegex, (url) => {
-            i++;
-            urls.push(url.substring(1, url.length - 1));
-            return '(link' + i + ')';
-        })
-        const links = urls.map((v, i) => {
-            return (<div><a href={v}>link {i + 1}</a></div>);
-        });
+        const urlRegex = /(\(https?:\/\/[^\s]+\/pl\/[^\s]+\))/g;
+        const text = item.message.split(urlRegex);
+
+        const formattedMessage = (<span>{text.map((v,i) => {
+            if (v.length === 0) {
+                return null;
+            }
+            if (i%2 === 0) {
+                return (<span>{v}</span>);
+            }
+            return (<a href={v.substring(1,v.length-1)}>(permalink)</a>);
+        })}</span>);
 
         return (
             <div
@@ -51,9 +52,6 @@ function ToDoItems(props) {
                     <strong>
                         {formattedMessage}
                     </strong>
-                    <div>
-                        {links}
-                    </div>
                 </div>
                 <div
                     className='light'
