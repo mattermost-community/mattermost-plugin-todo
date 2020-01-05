@@ -53,6 +53,7 @@ function ToDoItems(props) {
 ToDoItems.propTypes = {
     items: PropTypes.array.isRequired,
     theme: PropTypes.object.isRequired,
+    remove: PropTypes.func.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {

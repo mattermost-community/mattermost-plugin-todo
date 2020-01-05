@@ -1,11 +1,11 @@
 import React from 'react';
 
-import {id as pluginId} from './manifest';
+import { id as pluginId } from './manifest';
 
 import Root from './components/root';
 import SidebarRight from './components/sidebar_right';
 
-import {openRootModal, list, setShowRHSAction} from './actions';
+import { openRootModal, list, setShowRHSAction } from './actions';
 import reducer from './reducer';
 
 let activityFunc;
@@ -22,7 +22,7 @@ export default class Plugin {
             (postID) => store.dispatch(openRootModal(postID)),
         );
 
-        const {showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
+        const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
         registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do items.');
