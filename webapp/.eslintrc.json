@@ -394,10 +394,6 @@
     "no-whitespace-before-property": 2,
     "no-with": 2,
     "object-curly-newline": 0,
-    "object-curly-spacing": [
-      2,
-      "never"
-    ],
     "object-property-newline": [
       2,
       {
@@ -476,7 +472,15 @@
       2,
       "never"
     ],
-    "react/jsx-filename-extension": 2,
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [
+          ".js",
+          ".jsx"
+        ]
+      }
+    ],
     "react/jsx-first-prop-new-line": [
       2,
       "multiline"
