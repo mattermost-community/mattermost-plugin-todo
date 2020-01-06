@@ -48,7 +48,7 @@ export default class Root extends React.Component {
             return null;
         }
 
-        const {message, type, title} = this.state;
+        const {message} = this.state;
 
         const style = getStyle(theme);
 
@@ -76,7 +76,7 @@ export default class Root extends React.Component {
                     <div className='todoplugin-button-container'>
                         <button
                             className={'btn btn-primary'}
-                            style={!message ? style.inactiveButton : style.button}
+                            style={message ? style.button : style.inactiveButton}
                             onClick={this.submit}
                             disabled={!message}
                         >
