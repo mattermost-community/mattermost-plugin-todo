@@ -88,6 +88,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	message := strings.Join(args, " ")
 
+	if message == "" {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
+	}
+
 	item := &Item{
 		ID:       model.NewId(),
 		CreateAt: model.GetMillis(),
