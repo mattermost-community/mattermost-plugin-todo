@@ -58,7 +58,8 @@ export const add = (message) => async (dispatch, getState) => {
 };
 
 export const list = (reminder = false) => async (dispatch, getState) => {
-    let resp, data;
+    let resp;
+    let data;
     try {
         resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder, {
             method: 'GET',
@@ -69,7 +70,7 @@ export const list = (reminder = false) => async (dispatch, getState) => {
         });
         data = await resp.json();
     } catch (error) {
-        return {error}
+        return {error};
     }
 
     dispatch({

@@ -6,11 +6,10 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function ToDoItems(props) {
     const style = getStyle(props.theme);
-
 
     return props.items.length > 0 ? props.items.map((item) => {
         const date = new Date(item.create_at);
@@ -18,8 +17,8 @@ function ToDoItems(props) {
         const month = MONTHS[date.getMonth()];
         const day = date.getDate();
         const hours = date.getHours();
-        const minutes = "0" + date.getMinutes();
-        const seconds = "0" + date.getSeconds();
+        const minutes = '0' + date.getMinutes();
+        const seconds = '0' + date.getSeconds();
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
@@ -54,6 +53,7 @@ function ToDoItems(props) {
 ToDoItems.propTypes = {
     items: PropTypes.array.isRequired,
     theme: PropTypes.object.isRequired,
+    remove: PropTypes.func.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {
@@ -73,7 +73,7 @@ const getStyle = makeStyleFromTheme((theme) => {
         },
         message: {
             width: '95%',
-        }
+        },
     };
 });
 

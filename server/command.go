@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 func getHelp() string {
@@ -33,7 +33,7 @@ func getCommand() *model.Command {
 		DisplayName:      "To Do Bot",
 		Description:      "Interact with your to do list.",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: add, list",
+		AutoCompleteDesc: "Available commands: add, list, pop",
 		AutoCompleteHint: "[command]",
 	}
 }

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
 )
 
@@ -106,7 +106,8 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(items) > 0 && r.URL.Query().Get("reminder") == "true" {
-		lastReminderAt, err := p.getLastReminderTimeForUser(userID)
+		var lastReminderAt int64
+		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to send reminder err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
