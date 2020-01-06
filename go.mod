@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-plugin-todo
 
-go 1.12
+go 1.13
 
 require (
 	github.com/mattermost/mattermost-server/v5 v5.18.0

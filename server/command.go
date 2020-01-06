@@ -33,7 +33,7 @@ func getCommand() *model.Command {
 		DisplayName:      "To Do Bot",
 		Description:      "Interact with your to do list.",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: add, list",
+		AutoCompleteDesc: "Available commands: add, list, pop",
 		AutoCompleteHint: "[command]",
 	}
 }
