@@ -291,7 +291,9 @@ describe('stripMarkdown | RemoveMarkdown', () => {
         },
     ];
 
-    testCases.forEach((testCase) => it(testCase.description, () => {
-        expect(stripMarkdown(testCase.inputText)).toEqual(testCase.outputText);
-    }));
+    testCases.forEach(testSingleCase);
+});
+
+const testSingleCase = (testCase) => it(testCase.description, () => {
+    expect(stripMarkdown(testCase.inputText)).toEqual(testCase.outputText);
 });

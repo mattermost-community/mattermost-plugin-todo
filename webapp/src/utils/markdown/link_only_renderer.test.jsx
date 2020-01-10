@@ -285,9 +285,11 @@ describe('formatWithRenderer | LinkOnlyRenderer', () => {
         },
     ];
 
-    const linkOnlyRenderer = new LinkOnlyRenderer();
+    testCases.forEach(testSingleCase);
+});
 
-    testCases.forEach((testCase) => it(testCase.description, () => {
-        expect(formatWithRenderer(testCase.inputText, linkOnlyRenderer)).toEqual(testCase.outputText);
-    }));
+const linkOnlyRenderer = new LinkOnlyRenderer();
+
+const testSingleCase = (testCase) => it(testCase.description, () => {
+    expect(formatWithRenderer(testCase.inputText, linkOnlyRenderer)).toEqual(testCase.outputText);
 });

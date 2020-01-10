@@ -7,7 +7,7 @@ import {Parser, ProcessNodeDefinitions} from 'html-to-react';
 /*
  * Converts HTML to React components using html-to-react.
  */
-export function messageHtmlToComponent(html, isRHS, options = {}) {
+export function messageHtmlToComponent(html) {
     if (!html) {
         return null;
     }

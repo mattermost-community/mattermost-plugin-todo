@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import RemoveMarkdown from './remove_markdown';
 import {getScheme} from 'utils/url';
+
+import RemoveMarkdown from './remove_markdown';
 
 export default class LinkOnlyRenderer extends RemoveMarkdown {
     link(href, title, text) {
@@ -22,10 +23,4 @@ export default class LinkOnlyRenderer extends RemoveMarkdown {
 
         return output;
     }
-}
-
-function getScheme(url) {
-    const match = (/([a-z0-9+.-]+):/i).exec(url);
-
-    return match && match[1];
 }

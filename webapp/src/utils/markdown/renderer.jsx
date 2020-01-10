@@ -35,19 +35,14 @@ export default class Renderer extends marked.Renderer {
         className += ' post-code--wrap';
         codeClassName = 'hljs';
 
-        let header = '';
-
         // if we have to apply syntax highlighting AND highlighting of search terms, create two copies
         // of the code block, one with syntax highlighting applied and another with invisible text, but
         // search term highlighting and overlap them
         const content = code;
-        let searchedContent = '';
 
         return (
             '<div class="' + className + '">' +
-                header +
                 '<code class="' + codeClassName + '">' +
-                    searchedContent +
                     content +
                 '</code>' +
             '</div>'

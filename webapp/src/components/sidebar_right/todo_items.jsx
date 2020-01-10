@@ -5,6 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+
 import messageHtmlToComponent from 'utils/message_html_to_component';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
@@ -25,7 +26,7 @@ function ToDoItems(props) {
         const formattedDate = month + ' ' + day + ', ' + year;
 
         const htmlFormattedText = TextFormatting.formatText(item.message);
-        const itemComponent = messageHtmlToComponent(htmlFormattedText, true);
+        const itemComponent = messageHtmlToComponent(htmlFormattedText);
 
         return (
             <div
