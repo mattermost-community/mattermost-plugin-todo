@@ -5,6 +5,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as TextFormatting from 'utils/text_formatting.jsx';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -22,6 +24,9 @@ function ToDoItems(props) {
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
+        const htmlFormattedText = TextFormatting.formatText(item.message);
+        const itemComponent = messageHtmlToComponent(htmlFormattedText, true);
+
         return (
             <div
                 key={item.id}
@@ -35,9 +40,7 @@ function ToDoItems(props) {
                     {'X'}
                 </a>
                 <div style={style.message}>
-                    <strong>
-                        {item.message}
-                    </strong>
+                    {itemComponent}
                 </div>
                 <div
                     className='light'

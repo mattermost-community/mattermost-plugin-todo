@@ -37,11 +37,15 @@
     "webpack-cli": "3.3.5"
   },
   "dependencies": {
+    "html-to-react": "^1.4.2",
+    "marked": "^0.8.0",
     "mattermost-redux": "5.14.0",
+    "mattermost-webapp": "5.14.0",
     "react": "16.8.6",
     "react-custom-scrollbars": "^4.2.1",
     "react-redux": "5.0.7",
     "react-transition-group": "4.2.2",
-    "redux": "4.0.1"
+    "redux": "4.0.1",
+    "xregexp": "^4.2.4"
   }
 }
