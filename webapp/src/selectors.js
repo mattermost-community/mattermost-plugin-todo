@@ -1,6 +1,6 @@
-import {id as pluginId} from './manifest';
-
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
+import {id as pluginId} from './manifest';
 
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
@@ -20,13 +20,11 @@ export const getMessage = (state) => {
 };
 export const getItems = (state) => getPluginState(state).items;
 export const getCurrentTeamRoute = (state) => {
-    const config = getConfig(state);
-
     const basePath = getSiteURL();
     const teamName = state.entities.teams.teams[state.entities.teams.currentTeamId].name;
 
     return basePath + '/' + teamName + '/';
-}
+};
 
 function getSiteURL() {
     let siteURL = '';
