@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-const PostUtils = window['PostUtils']; // import the post utilities
+const PostUtils = window.PostUtils; // import the post utilities
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
