@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
+const PostUtils = window.PostUtils; // import the post utilities
+
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function ToDoItems(props) {
@@ -22,6 +24,9 @@ function ToDoItems(props) {
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
+        const htmlFormattedText = PostUtils.formatText(item.message);
+        const itemComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
+
         return (
             <div
                 key={item.id}
@@ -35,9 +40,7 @@ function ToDoItems(props) {
                     {'X'}
                 </a>
                 <div style={style.message}>
-                    <strong>
-                        {item.message}
-                    </strong>
+                    {itemComponent}
                 </div>
                 <div
                     className='light'
