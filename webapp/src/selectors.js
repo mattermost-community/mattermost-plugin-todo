@@ -25,11 +25,9 @@ export const getCurrentTeamRoute = (state) => {
 };
 
 function getSiteURL() {
-    let siteURL = '';
+    let siteURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
     if (window.location.origin) {
         siteURL = window.location.origin;
-    } else {
-        siteURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
     }
 
     if (siteURL[siteURL.length - 1] === '/') {
