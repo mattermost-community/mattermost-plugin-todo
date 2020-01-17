@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -21,9 +20,8 @@ func itemsListToString(items []*Item) string {
 	str := "\n\n"
 
 	for _, item := range items {
-		message := strings.ReplaceAll(item.Message, "\n", "\n>")
 		createAt := time.Unix(item.CreateAt/1000, 0)
-		str += fmt.Sprintf("> %s\n\n* (%s)\n", message, createAt.Format("January 2, 2006 at 15:04"))
+		str += fmt.Sprintf("* %s\n  * (%s)\n", item.Message, createAt.Format("January 2, 2006 at 15:04"))
 	}
 
 	return str
