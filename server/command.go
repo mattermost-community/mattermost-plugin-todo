@@ -62,7 +62,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	switch command {
 	case "add":
 		handler = p.runAddCommand
-	case "list":
+	case "list", "":
 		handler = p.runListCommand
 	case "pop":
 		handler = p.runPopCommand
