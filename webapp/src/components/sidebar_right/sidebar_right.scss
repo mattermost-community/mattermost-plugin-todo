@@ -10,4 +10,21 @@
             color: var(--center-channel-color-90);
         }
     }
+    .header-menu {
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        display: flex;
+        div {
+            flex-grow: 1;
+            text-align: center;
+            height: 100%;
+            &:hover {
+                background-color: var(--button-bg-10);
+            }
+            &.selected {
+                background-color: var(--button-bg-10);
+            }
+        }
+    }
 }

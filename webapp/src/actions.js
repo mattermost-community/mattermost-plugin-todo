@@ -1,7 +1,7 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {id as pluginId} from './manifest';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS, GET_INBOX_ITEMS, GET_SENT_ITEMS} from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -57,11 +57,11 @@ export const add = (message) => async (dispatch, getState) => {
     dispatch(list());
 };
 
-export const list = (reminder = false) => async (dispatch, getState) => {
+export const list = (reminder = false, listName = 'own') => async (dispatch, getState) => {
     let resp;
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder, {
+        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -73,8 +73,21 @@ export const list = (reminder = false) => async (dispatch, getState) => {
         return {error};
     }
 
+    let actionType = GET_ITEMS;
+    switch (listName) {
+    case 'own':
+        actionType = GET_ITEMS;
+        break;
+    case 'inbox':
+        actionType = GET_INBOX_ITEMS;
+        break;
+    case 'sent':
+        actionType = GET_SENT_ITEMS;
+        break;
+    }
+
     dispatch({
-        type: GET_ITEMS,
+        type: actionType,
         data,
     });
 
@@ -92,5 +105,39 @@ export const remove = (id) => async (dispatch, getState) => {
         body: JSON.stringify({id}),
     });
 
-    dispatch(list());
+    dispatch(list(false, 'own'));
+    dispatch(list(false, 'inbox'));
+    dispatch(list(false, 'sent'));
+};
+
+export const complete = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/complete', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({id}),
+    });
+
+    dispatch(list(false, 'own'));
+    dispatch(list(false, 'inbox'));
+    dispatch(list(false, 'sent'));
+};
+
+export const enqueue = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/enqueue', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({id}),
+    });
+
+    dispatch(list(false, 'own'));
+    dispatch(list(false, 'inbox'));
+    dispatch(list(false, 'sent'));
 };
