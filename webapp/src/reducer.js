@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ITEMS, GET_INBOX_ITEMS, GET_SENT_ITEMS, RECEIVED_SHOW_RHS_ACTION} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ITEMS, GET_IN_ITEMS, GET_OUT_ITEMS, RECEIVED_SHOW_RHS_ACTION} from './action_types';
 
 const rootModalVisible = (state = false, action) => {
     switch (action.type) {
@@ -33,18 +33,18 @@ const items = (state = [], action) => {
     }
 };
 
-const inboxItems = (state = [], action) => {
+const inItems = (state = [], action) => {
     switch (action.type) {
-    case GET_INBOX_ITEMS:
+    case GET_IN_ITEMS:
         return action.data;
     default:
         return state;
     }
 };
 
-const sentItems = (state = [], action) => {
+const outItems = (state = [], action) => {
     switch (action.type) {
-    case GET_SENT_ITEMS:
+    case GET_OUT_ITEMS:
         return action.data;
     default:
         return state;
@@ -64,8 +64,8 @@ export default combineReducers({
     rootModalVisible,
     postID,
     items,
-    inboxItems,
-    sentItems,
+    inItems,
+    outItems,
     rhsPluginAction,
 });
 

@@ -22,9 +22,9 @@ list
 list [listName]
 	List your items in certain list
 
-	example: /todo list inbox
-	example: /todo list sent
-	example (same as /todo list): /todo list own
+	example: /todo list in
+	example: /todo list out
+	example (same as /todo list): /todo list my
 
 pop
 	Removes the to do item at the top of the list.
@@ -113,7 +113,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You cannot send Todos to yourself. Use `/todo add` for this."), false, nil
 	}
 
-	message := strings.Join(args[1:], "")
+	message := strings.Join(args[1:], " ")
 
 	item := &Item{
 		ID:       model.NewId(),
@@ -124,7 +124,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 		Message:  message,
 	}
 
-	appErr := p.storeSentItemForUsers(extra.UserId, receiver.Id, item)
+	appErr := p.storeOutItemForUsers(extra.UserId, receiver.Id, item)
 	if appErr != nil {
 		return nil, false, appErr
 	}
@@ -175,13 +175,13 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 }
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	listID := OwnListKey
+	listID := MyListKey
 	if len(args) > 0 {
 		switch args[0] {
-		case "inbox":
-			listID = InboxListKey
-		case "sent":
-			listID = SentListKey
+		case "in":
+			listID = InListKey
+		case "out":
+			listID = OutListKey
 		}
 	}
 

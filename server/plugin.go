@@ -107,13 +107,13 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID := OwnListKey
+	listID := MyListKey
 	listInput := r.URL.Query().Get("list")
 	switch listInput {
-	case "sent":
-		listID = SentListKey
-	case "inbox":
-		listID = InboxListKey
+	case "out":
+		listID = OutListKey
+	case "in":
+		listID = InListKey
 	}
 
 	items, err := p.getItemListForUser(userID, listID)
@@ -200,7 +200,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = p.removeFromInboxForUser(userID, enqueueRequest.ID)
+	err = p.removeFromInForUser(userID, enqueueRequest.ID)
 	if err != nil {
 		item.Status = StatusPending
 		p.storeItem(item)
@@ -288,7 +288,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = p.removeFromInboxForUser(item.SendTo, completeRequest.ID)
+		err = p.removeFromInForUser(item.SendTo, completeRequest.ID)
 		if err != nil {
 			item.Status = StatusEnqueued
 			p.storeItem(item)
@@ -368,16 +368,16 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 			p.PostBotDM(item.CreateBy, message)
 		}
 	case StatusPending:
-		err = p.removeFromSentForUser(item.CreateBy, removeRequest.ID)
+		err = p.removeFromOutForUser(item.CreateBy, removeRequest.ID)
 		if err != nil {
 			p.API.LogError("Unable to remove item err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
-		err = p.removeFromInboxForUser(item.SendTo, removeRequest.ID)
+		err = p.removeFromInForUser(item.SendTo, removeRequest.ID)
 		if err != nil {
-			p.addToSentForUser(item.CreateBy, removeRequest.ID)
+			p.addToOutForUser(item.CreateBy, removeRequest.ID)
 			p.API.LogError("Unable to remove item err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -385,8 +385,8 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 		err = p.deleteItem(removeRequest.ID)
 		if err != nil {
-			p.addToSentForUser(item.CreateBy, removeRequest.ID)
-			p.addToInboxForUser(item.SendTo, removeRequest.ID)
+			p.addToOutForUser(item.CreateBy, removeRequest.ID)
+			p.addToInForUser(item.SendTo, removeRequest.ID)
 			p.API.LogError("Unable to remove item err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -399,7 +399,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 			p.PostBotDM(item.CreateBy, message)
 		}
 	default:
-		err = p.removeFromSentForUser(userID, removeRequest.ID)
+		err = p.removeFromOutForUser(userID, removeRequest.ID)
 		if err != nil {
 			p.API.LogError("Unable to remove item err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
@@ -408,7 +408,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 		err = p.deleteItem(removeRequest.ID)
 		if err != nil {
-			p.addToSentForUser(userID, removeRequest.ID)
+			p.addToOutForUser(userID, removeRequest.ID)
 			p.API.LogError("Unable to remove item err=" + err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return

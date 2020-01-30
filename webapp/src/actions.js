@@ -1,7 +1,7 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {id as pluginId} from './manifest';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS, GET_INBOX_ITEMS, GET_SENT_ITEMS} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS, GET_IN_ITEMS, GET_OUT_ITEMS} from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -57,7 +57,7 @@ export const add = (message) => async (dispatch, getState) => {
     dispatch(list());
 };
 
-export const list = (reminder = false, listName = 'own') => async (dispatch, getState) => {
+export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
     let resp;
     let data;
     try {
@@ -75,14 +75,14 @@ export const list = (reminder = false, listName = 'own') => async (dispatch, get
 
     let actionType = GET_ITEMS;
     switch (listName) {
-    case 'own':
+    case 'my':
         actionType = GET_ITEMS;
         break;
-    case 'inbox':
-        actionType = GET_INBOX_ITEMS;
+    case 'in':
+        actionType = GET_IN_ITEMS;
         break;
-    case 'sent':
-        actionType = GET_SENT_ITEMS;
+    case 'out':
+        actionType = GET_OUT_ITEMS;
         break;
     }
 
@@ -105,9 +105,9 @@ export const remove = (id) => async (dispatch, getState) => {
         body: JSON.stringify({id}),
     });
 
-    dispatch(list(false, 'own'));
-    dispatch(list(false, 'inbox'));
-    dispatch(list(false, 'sent'));
+    dispatch(list(false, 'my'));
+    dispatch(list(false, 'in'));
+    dispatch(list(false, 'out'));
 };
 
 export const complete = (id) => async (dispatch, getState) => {
@@ -121,9 +121,9 @@ export const complete = (id) => async (dispatch, getState) => {
         body: JSON.stringify({id}),
     });
 
-    dispatch(list(false, 'own'));
-    dispatch(list(false, 'inbox'));
-    dispatch(list(false, 'sent'));
+    dispatch(list(false, 'my'));
+    dispatch(list(false, 'in'));
+    dispatch(list(false, 'out'));
 };
 
 export const enqueue = (id) => async (dispatch, getState) => {
@@ -137,7 +137,7 @@ export const enqueue = (id) => async (dispatch, getState) => {
         body: JSON.stringify({id}),
     });
 
-    dispatch(list(false, 'own'));
-    dispatch(list(false, 'inbox'));
-    dispatch(list(false, 'sent'));
+    dispatch(list(false, 'my'));
+    dispatch(list(false, 'in'));
+    dispatch(list(false, 'out'));
 };

@@ -33,15 +33,15 @@ export function renderThumbVertical(props) {
         />);
 }
 
-const OwnListName = 'own';
-const SentListName = 'sent';
-const InboxListName = 'inbox';
+const MyListName = 'my';
+const OutListName = 'out';
+const InListName = 'in';
 
 export default class SidebarRight extends React.PureComponent {
     static propTypes = {
         todos: PropTypes.arrayOf(PropTypes.object),
-        inboxTodos: PropTypes.arrayOf(PropTypes.object),
-        sentTodos: PropTypes.arrayOf(PropTypes.object),
+        inTodos: PropTypes.arrayOf(PropTypes.object),
+        outTodos: PropTypes.arrayOf(PropTypes.object),
         theme: PropTypes.object.isRequired,
         actions: PropTypes.shape({
             remove: PropTypes.func.isRequired,
@@ -56,7 +56,7 @@ export default class SidebarRight extends React.PureComponent {
         super(props);
 
         this.state = {
-            list: OwnListName,
+            list: MyListName,
         };
     }
 
@@ -67,34 +67,34 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.props.actions.list(false, 'own');
-        this.props.actions.list(false, 'inbox');
-        this.props.actions.list(false, 'sent');
+        this.props.actions.list(false, 'my');
+        this.props.actions.list(false, 'in');
+        this.props.actions.list(false, 'out');
     }
 
-    getInboxImportantItems() {
+    getInImportantItems() {
+        return this.props.inTodos.length;
+    }
+
+    getOutImportantItems() {
+        return this.props.outTodos.length;
+    }
+
+    getMyImportantItems() {
         return this.props.todos.length;
-    }
-
-    getSentImportantItems() {
-        return this.props.sentTodos.length;
-    }
-
-    getOwnImportantItems() {
-        return this.props.inboxTodos.length;
     }
 
     render() {
         let todos = [];
         switch (this.state.list) {
-        case OwnListName:
+        case MyListName:
             todos = this.props.todos || [];
             break;
-        case SentListName:
-            todos = this.props.sentTodos || [];
+        case OutListName:
+            todos = this.props.outTodos || [];
             break;
-        case InboxListName:
-            todos = this.props.inboxTodos || [];
+        case InListName:
+            todos = this.props.inTodos || [];
             break;
         }
 
@@ -111,22 +111,22 @@ export default class SidebarRight extends React.PureComponent {
                 >
                     <div className='header-menu'>
                         <div
-                            className={this.state.list === InboxListName ? 'selected' : ''}
-                            onClick={() => this.openList(InboxListName)}
+                            className={this.state.list === InListName ? 'selected' : ''}
+                            onClick={() => this.openList(InListName)}
                         >
-                            {'Inbox'} {this.getInboxImportantItems() > 0 ? ' (' + this.getInboxImportantItems() + ')' : ''}
+                            {'In'} {this.getInImportantItems() > 0 ? ' (' + this.getInImportantItems() + ')' : ''}
                         </div>
                         <div
-                            className={this.state.list === SentListName ? 'selected' : ''}
-                            onClick={() => this.openList(SentListName)}
+                            className={this.state.list === OutListName ? 'selected' : ''}
+                            onClick={() => this.openList(OutListName)}
                         >
-                            {'Sent'} {this.getSentImportantItems() > 0 ? ' (' + this.getSentImportantItems() + ')' : ''}
+                            {'Out'} {this.getOutImportantItems() > 0 ? ' (' + this.getOutImportantItems() + ')' : ''}
                         </div>
                         <div
-                            className={this.state.list === OwnListName ? 'selected' : ''}
-                            onClick={() => this.openList(OwnListName)}
+                            className={this.state.list === MyListName ? 'selected' : ''}
+                            onClick={() => this.openList(MyListName)}
                         >
-                            {'Own'} {this.getOwnImportantItems() > 0 ? ' (' + this.getOwnImportantItems() + ')' : ''}
+                            {'My'} {this.getMyImportantItems() > 0 ? ' (' + this.getMyImportantItems() + ')' : ''}
                         </div>
                     </div>
                     <div

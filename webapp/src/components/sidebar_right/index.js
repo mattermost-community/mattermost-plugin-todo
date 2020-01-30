@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getItems, getInboxItems, getSentItems} from '../../selectors';
+import {getItems, getInItems, getOutItems} from '../../selectors';
 import {remove, list, openRootModal, complete, enqueue} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
@@ -12,8 +12,8 @@ import SidebarRight from './sidebar_right.jsx';
 function mapStateToProps(state) {
     return {
         todos: getItems(state),
-        inboxTodos: getInboxItems(state),
-        sentTodos: getSentItems(state),
+        inTodos: getInItems(state),
+        outTodos: getOutItems(state),
     };
 }
 

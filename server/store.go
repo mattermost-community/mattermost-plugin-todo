@@ -18,12 +18,12 @@ const (
 	StoreItemKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
-	// OwnListKey is the key used to store the order of the owned todos
-	OwnListKey = ""
-	// InboxListKey is the key used to store the order of received todos
-	InboxListKey = "_inbox"
-	// SentListKey is the key used to store the order of sent todos
-	SentListKey = "_sent"
+	// MyListKey is the key used to store the order of the owned todos
+	MyListKey = ""
+	// InListKey is the key used to store the order of received todos
+	InListKey = "_in"
+	// OutListKey is the key used to store the order of sent todos
+	OutListKey = "_out"
 )
 
 func (p *Plugin) storeLastReminderTimeForUser(userID string) error {
@@ -53,21 +53,21 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	return reminderAt, nil
 }
 
-func (p *Plugin) storeSentItemForUsers(sender string, receiver string, item *Item) error {
+func (p *Plugin) storeOutItemForUsers(sender string, receiver string, item *Item) error {
 	err := p.storeItem(item)
 	if err != nil {
 		return err
 	}
 
-	err = p.addToInboxForUser(receiver, item.ID)
+	err = p.addToInForUser(receiver, item.ID)
 	if err != nil {
 		p.deleteItem(item.ID)
 		return err
 	}
 
-	err = p.addToSentForUser(sender, item.ID)
+	err = p.addToOutForUser(sender, item.ID)
 	if err != nil {
-		p.removeFromInboxForUser(receiver, item.ID)
+		p.removeFromInForUser(receiver, item.ID)
 		p.deleteItem(item.ID)
 		return err
 	}
@@ -133,7 +133,7 @@ func (p *Plugin) deleteItem(itemID string) error {
 }
 
 func (p *Plugin) getItemsForUser(userID string) ([]*Item, error) {
-	return p.getItemListForUser(userID, OwnListKey)
+	return p.getItemListForUser(userID, MyListKey)
 }
 
 func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, error) {
@@ -157,15 +157,15 @@ func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, erro
 }
 
 func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, OwnListKey)
+	return p.addToListForUser(userID, itemID, MyListKey)
 }
 
-func (p *Plugin) addToInboxForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, InboxListKey)
+func (p *Plugin) addToInForUser(userID string, itemID string) error {
+	return p.addToListForUser(userID, itemID, InListKey)
 }
 
-func (p *Plugin) addToSentForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, SentListKey)
+func (p *Plugin) addToOutForUser(userID string, itemID string) error {
+	return p.addToListForUser(userID, itemID, OutListKey)
 }
 
 func (p *Plugin) addToListForUser(userID string, itemID string, listID string) error {
@@ -199,15 +199,15 @@ func (p *Plugin) addToListForUser(userID string, itemID string, listID string) e
 }
 
 func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, OwnListKey)
+	return p.removeFromListForUser(userID, itemID, MyListKey)
 }
 
-func (p *Plugin) removeFromInboxForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, InboxListKey)
+func (p *Plugin) removeFromInForUser(userID string, itemID string) error {
+	return p.removeFromListForUser(userID, itemID, InListKey)
 }
 
-func (p *Plugin) removeFromSentForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, SentListKey)
+func (p *Plugin) removeFromOutForUser(userID string, itemID string) error {
+	return p.removeFromListForUser(userID, itemID, OutListKey)
 }
 
 func (p *Plugin) removeFromListForUser(userID string, itemID string, listID string) error {
@@ -273,15 +273,15 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 }
 
 func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, OwnListKey, order, originalJSONOrder)
+	return p.storeList(userID, MyListKey, order, originalJSONOrder)
 }
 
-func (p *Plugin) storeInbox(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, InboxListKey, order, originalJSONOrder)
+func (p *Plugin) storeIn(userID string, order []string, originalJSONOrder []byte) (bool, error) {
+	return p.storeList(userID, InListKey, order, originalJSONOrder)
 }
 
-func (p *Plugin) storeSent(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, SentListKey, order, originalJSONOrder)
+func (p *Plugin) storeOut(userID string, order []string, originalJSONOrder []byte) (bool, error) {
+	return p.storeList(userID, OutListKey, order, originalJSONOrder)
 }
 
 func (p *Plugin) storeList(userID string, listID string, order []string, originalJSONOrder []byte) (bool, error) {
@@ -299,15 +299,15 @@ func (p *Plugin) storeList(userID string, listID string, order []string, origina
 }
 
 func (p *Plugin) getOrderForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, OwnListKey)
+	return p.getListForUser(userID, MyListKey)
 }
 
-func (p *Plugin) getInboxForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, InboxListKey)
+func (p *Plugin) getInForUser(userID string) ([]string, []byte, error) {
+	return p.getListForUser(userID, InListKey)
 }
 
-func (p *Plugin) getSentForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, SentListKey)
+func (p *Plugin) getOutForUser(userID string) ([]string, []byte, error) {
+	return p.getListForUser(userID, OutListKey)
 }
 
 func (p *Plugin) getListForUser(userID string, listID string) ([]string, []byte, error) {
@@ -330,15 +330,15 @@ func (p *Plugin) getListForUser(userID string, listID string) ([]string, []byte,
 }
 
 func getOrderKey(userID string) string {
-	return getListKey(userID, OwnListKey)
+	return getListKey(userID, MyListKey)
 }
 
-func getInboxKey(userID string) string {
-	return getListKey(userID, InboxListKey)
+func getInKey(userID string) string {
+	return getListKey(userID, InListKey)
 }
 
-func getSentKey(userID string) string {
-	return getListKey(userID, SentListKey)
+func getOutKey(userID string) string {
+	return getListKey(userID, OutListKey)
 }
 
 func getListKey(userID string, listID string) string {

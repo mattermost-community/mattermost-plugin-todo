@@ -27,7 +27,13 @@ export default class Plugin {
 
         registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do items.');
 
-        registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, () => store.dispatch(list()));
+        const refresh = () => {
+            store.dispatch(list(false, 'my'));
+            store.dispatch(list(false, 'in'));
+            store.dispatch(list(false, 'out'));
+        }
+
+        registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
 
         store.dispatch(list(true));
 

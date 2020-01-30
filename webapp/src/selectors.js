@@ -17,5 +17,5 @@ export const getMessage = (state) => {
     return post.message;
 };
 export const getItems = (state) => getPluginState(state).items;
-export const getInboxItems = (state) => getPluginState(state).inboxItems;
-export const getSentItems = (state) => getPluginState(state).sentItems;
+export const getInItems = (state) => getPluginState(state).inItems;
+export const getOutItems = (state) => getPluginState(state).outItems;
