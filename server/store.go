@@ -18,6 +18,12 @@ const (
 	StoreItemKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
+	// OwnListKey is the key used to store the order of the owned todos
+	OwnListKey = ""
+	// InboxListKey is the key used to store the order of received todos
+	InboxListKey = "_inbox"
+	// SentListKey is the key used to store the order of sent todos
+	SentListKey = "_sent"
 )
 
 func (p *Plugin) storeLastReminderTimeForUser(userID string) error {
@@ -47,13 +53,35 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	return reminderAt, nil
 }
 
+func (p *Plugin) storeSentItemForUsers(sender string, receiver string, item *Item) error {
+	err := p.storeItem(item)
+	if err != nil {
+		return err
+	}
+
+	err = p.addToInboxForUser(receiver, item.ID)
+	if err != nil {
+		p.deleteItem(item.ID)
+		return err
+	}
+
+	err = p.addToSentForUser(sender, item.ID)
+	if err != nil {
+		p.removeFromInboxForUser(receiver, item.ID)
+		p.deleteItem(item.ID)
+		return err
+	}
+
+	return nil
+}
+
 func (p *Plugin) storeItemForUser(userID string, item *Item) error {
 	err := p.storeItem(item)
 	if err != nil {
 		return err
 	}
 
-	p.addToOrderForUser(userID, item.ID)
+	err = p.addToOrderForUser(userID, item.ID)
 	if err != nil {
 		p.deleteItem(item.ID)
 		return err
@@ -105,7 +133,11 @@ func (p *Plugin) deleteItem(itemID string) error {
 }
 
 func (p *Plugin) getItemsForUser(userID string) ([]*Item, error) {
-	order, _, err := p.getOrderForUser(userID)
+	return p.getItemListForUser(userID, OwnListKey)
+}
+
+func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, error) {
+	order, _, err := p.getListForUser(userID, listID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,8 +157,20 @@ func (p *Plugin) getItemsForUser(userID string) ([]*Item, error) {
 }
 
 func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
+	return p.addToListForUser(userID, itemID, OwnListKey)
+}
+
+func (p *Plugin) addToInboxForUser(userID string, itemID string) error {
+	return p.addToListForUser(userID, itemID, InboxListKey)
+}
+
+func (p *Plugin) addToSentForUser(userID string, itemID string) error {
+	return p.addToListForUser(userID, itemID, SentListKey)
+}
+
+func (p *Plugin) addToListForUser(userID string, itemID string, listID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		order, originalJSONOrder, err := p.getListForUser(userID, listID)
 		if err != nil {
 			return err
 		}
@@ -139,7 +183,7 @@ func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
 
 		order = append(order, itemID)
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		ok, err := p.storeList(userID, listID, order, originalJSONOrder)
 		if err != nil {
 			return err
 		}
@@ -155,8 +199,20 @@ func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
 }
 
 func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
+	return p.removeFromListForUser(userID, itemID, OwnListKey)
+}
+
+func (p *Plugin) removeFromInboxForUser(userID string, itemID string) error {
+	return p.removeFromListForUser(userID, itemID, InboxListKey)
+}
+
+func (p *Plugin) removeFromSentForUser(userID string, itemID string) error {
+	return p.removeFromListForUser(userID, itemID, SentListKey)
+}
+
+func (p *Plugin) removeFromListForUser(userID string, itemID string, listID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		order, originalJSONOrder, err := p.getListForUser(userID, listID)
 		if err != nil {
 			return err
 		}
@@ -173,7 +229,7 @@ func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
 			return nil
 		}
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		ok, err := p.storeList(userID, listID, order, originalJSONOrder)
 		if err != nil {
 			return err
 		}
@@ -217,12 +273,24 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 }
 
 func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []byte) (bool, error) {
+	return p.storeList(userID, OwnListKey, order, originalJSONOrder)
+}
+
+func (p *Plugin) storeInbox(userID string, order []string, originalJSONOrder []byte) (bool, error) {
+	return p.storeList(userID, InboxListKey, order, originalJSONOrder)
+}
+
+func (p *Plugin) storeSent(userID string, order []string, originalJSONOrder []byte) (bool, error) {
+	return p.storeList(userID, SentListKey, order, originalJSONOrder)
+}
+
+func (p *Plugin) storeList(userID string, listID string, order []string, originalJSONOrder []byte) (bool, error) {
 	newJSONOrder, jsonErr := json.Marshal(order)
 	if jsonErr != nil {
 		return false, jsonErr
 	}
 
-	ok, appErr := p.API.KVCompareAndSet(getOrderKey(userID), originalJSONOrder, newJSONOrder)
+	ok, appErr := p.API.KVCompareAndSet(getListKey(userID, listID), originalJSONOrder, newJSONOrder)
 	if appErr != nil {
 		return false, errors.New(appErr.Error())
 	}
@@ -231,7 +299,19 @@ func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []b
 }
 
 func (p *Plugin) getOrderForUser(userID string) ([]string, []byte, error) {
-	originalJSONOrder, err := p.API.KVGet(getOrderKey(userID))
+	return p.getListForUser(userID, OwnListKey)
+}
+
+func (p *Plugin) getInboxForUser(userID string) ([]string, []byte, error) {
+	return p.getListForUser(userID, InboxListKey)
+}
+
+func (p *Plugin) getSentForUser(userID string) ([]string, []byte, error) {
+	return p.getListForUser(userID, SentListKey)
+}
+
+func (p *Plugin) getListForUser(userID string, listID string) ([]string, []byte, error) {
+	originalJSONOrder, err := p.API.KVGet(getListKey(userID, listID))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -250,7 +330,19 @@ func (p *Plugin) getOrderForUser(userID string) ([]string, []byte, error) {
 }
 
 func getOrderKey(userID string) string {
-	return fmt.Sprintf("%s_%s", StoreOrderKey, userID)
+	return getListKey(userID, OwnListKey)
+}
+
+func getInboxKey(userID string) string {
+	return getListKey(userID, InboxListKey)
+}
+
+func getSentKey(userID string) string {
+	return getListKey(userID, SentListKey)
+}
+
+func getListKey(userID string, listID string) string {
+	return fmt.Sprintf("%s_%s%s", StoreOrderKey, userID, listID)
 }
 
 func getItemKey(itemID string) string {

@@ -19,8 +19,20 @@ add [message]
 list
 	Lists your to do items.
 
+list [listName]
+	List your items in certain list
+
+	example: /todo list inbox
+	example: /todo list sent
+	example (same as /todo list): /todo list own
+
 pop
 	Removes the to do item at the top of the list.
+
+send [user] [message]
+	Sends some user a Todo
+
+	example: /todo send @awesomePerson Don't forget to be awesome
 
 help
 	Display usage.
@@ -66,6 +78,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runListCommand
 	case "pop":
 		handler = p.runPopCommand
+	case "send":
+		handler = p.runSendCommand
 	}
 
 	if handler == nil {
@@ -85,6 +99,49 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return resp, nil
 }
 
+func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	if len(args) < 2 {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You must specify a user and a message."), false, nil
+	}
+
+	receiver, err := p.API.GetUserByUsername(args[0][1:])
+	if err != nil {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user."), false, nil
+	}
+
+	if receiver.Id == extra.UserId {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You cannot send Todos to yourself. Use `/todo add` for this."), false, nil
+	}
+
+	message := strings.Join(args[1:], "")
+
+	item := &Item{
+		ID:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		CreateBy: extra.UserId,
+		SendTo:   receiver.Id,
+		Status:   StatusPending,
+		Message:  message,
+	}
+
+	p.itemLock.Lock()
+	defer p.itemLock.Unlock()
+	appErr := p.storeSentItemForUsers(extra.UserId, receiver.Id, item)
+	if appErr != nil {
+		return nil, false, appErr
+	}
+
+	p.sendRefreshEvent(extra.UserId)
+	p.sendRefreshEvent(receiver.Id)
+
+	responseMessage := fmt.Sprintf("Todo sent to %s.", args[0])
+
+	receiverMessage := fmt.Sprintf("You have received a new Todo from %s: %s", args[0], message)
+
+	p.PostBotDM(receiver.Id, receiverMessage)
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+}
+
 func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	message := strings.Join(args, " ")
 
@@ -98,6 +155,8 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		Message:  message,
 	}
 
+	p.itemLock.Lock()
+	defer p.itemLock.Unlock()
 	err := p.storeItemForUser(extra.UserId, item)
 	if err != nil {
 		return nil, false, err
@@ -120,7 +179,19 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 }
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	items, err := p.getItemsForUser(extra.UserId)
+	listID := OwnListKey
+	if len(args) > 0 {
+		switch args[0] {
+		case "inbox":
+			listID = InboxListKey
+		case "sent":
+			listID = SentListKey
+		}
+	}
+
+	p.itemLock.RLock()
+	defer p.itemLock.RUnlock()
+	items, err := p.getItemListForUser(extra.UserId, listID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -134,6 +205,8 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	p.itemLock.Lock()
+	defer p.itemLock.Unlock()
 	err := p.popFromOrderForUser(extra.UserId)
 	if err != nil {
 		return nil, false, err
