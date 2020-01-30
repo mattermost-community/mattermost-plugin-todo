@@ -26,7 +26,6 @@ type Plugin struct {
 
 	// configurationLock synchronizes access to the configuration.
 	configurationLock sync.RWMutex
-	itemLock          sync.RWMutex
 
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
@@ -89,8 +88,6 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	item.ID = model.NewId()
 	item.CreateAt = model.GetMillis()
 
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 	err = p.storeItemForUser(userID, item)
 	if err != nil {
 		p.API.LogError("Unable to add item err=" + err.Error())
@@ -119,8 +116,6 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		listID = InboxListKey
 	}
 
-	p.itemLock.RLock()
-	defer p.itemLock.RUnlock()
 	items, err := p.getItemListForUser(userID, listID)
 	if err != nil {
 		p.API.LogError("Unable to get items for user err=" + err.Error())
@@ -181,8 +176,6 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 	item, _, err := p.getItem(enqueueRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to get item to enqueue err=" + err.Error())
@@ -240,9 +233,6 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 
 	item, _, err := p.getItem(completeRequest.ID)
 	if err != nil {
@@ -331,9 +321,6 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 
 	item, _, err := p.getItem(removeRequest.ID)
 	if err != nil {

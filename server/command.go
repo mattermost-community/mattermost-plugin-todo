@@ -124,8 +124,6 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 		Message:  message,
 	}
 
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 	appErr := p.storeSentItemForUsers(extra.UserId, receiver.Id, item)
 	if appErr != nil {
 		return nil, false, appErr
@@ -155,8 +153,6 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		Message:  message,
 	}
 
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 	err := p.storeItemForUser(extra.UserId, item)
 	if err != nil {
 		return nil, false, err
@@ -189,8 +185,6 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		}
 	}
 
-	p.itemLock.RLock()
-	defer p.itemLock.RUnlock()
 	items, err := p.getItemListForUser(extra.UserId, listID)
 	if err != nil {
 		return nil, false, err
@@ -205,8 +199,6 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	p.itemLock.Lock()
-	defer p.itemLock.Unlock()
 	err := p.popFromOrderForUser(extra.UserId)
 	if err != nil {
 		return nil, false, err
