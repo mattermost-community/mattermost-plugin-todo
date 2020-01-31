@@ -31,7 +31,7 @@ export default class Plugin {
             store.dispatch(list(false, 'my'));
             store.dispatch(list(false, 'in'));
             store.dispatch(list(false, 'out'));
-        }
+        };
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
 
