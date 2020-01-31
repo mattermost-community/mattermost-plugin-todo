@@ -138,7 +138,12 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	responseMessage := fmt.Sprintf("Todo sent to %s.", args[0])
 
-	receiverMessage := fmt.Sprintf("You have received a new Todo from %s: %s", args[0], message)
+	senderName := "Someone"
+	if user, err := p.API.GetUser(extra.UserId); err == nil {
+		senderName = user.Username
+	}
+
+	receiverMessage := fmt.Sprintf("You have received a new Todo from %s: %s", senderName, message)
 
 	p.PostBotDM(receiver.Id, receiverMessage)
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
