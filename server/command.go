@@ -110,7 +110,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 	}
 
 	if receiver.Id == extra.UserId {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You cannot send Todos to yourself. Use `/todo add` for this."), false, nil
+		return p.runAddCommand(args[1:], extra)
 	}
 
 	message := strings.Join(args[1:], " ")
