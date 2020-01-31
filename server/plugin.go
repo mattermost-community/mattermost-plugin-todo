@@ -184,7 +184,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	myList := p.getMyListForUser(userID)
-	inList := p.getMyListForUser(userID)
+	inList := p.getInListForUser(userID)
 
 	oe, _, err := inList.getOrderForItem(enqueueRequest.ID)
 	if err != nil {
