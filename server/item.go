@@ -70,10 +70,7 @@ func (p *Plugin) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem {
 		listName = "out"
 	}
 
-	userName := "Someone"
-	if user, err := p.API.GetUser(oe.ForeignUserID); err == nil {
-		userName = user.Username
-	}
+	userName := p.getUserName(oe.ForeignUserID)
 
 	feItem.ForeignUser = userName
 	feItem.ForeignList = listName

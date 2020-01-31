@@ -138,10 +138,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	responseMessage := fmt.Sprintf("Todo sent to %s.", args[0])
 
-	senderName := "Someone"
-	if user, err := p.API.GetUser(extra.UserId); err == nil {
-		senderName = user.Username
-	}
+	senderName := p.getUserName(extra.UserId)
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from %s: %s", senderName, message)
 

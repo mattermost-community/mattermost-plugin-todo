@@ -213,7 +213,9 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	message := fmt.Sprintf("%s enqueued a Todo you sent: %s", userID, item.Message)
+	userName := p.getUserName(userID)
+
+	message := fmt.Sprintf("%s enqueued a Todo you sent: %s", userName, item.Message)
 	p.PostBotDM(oe.ForeignUserID, message)
 }
 
@@ -268,9 +270,11 @@ func (p *Plugin) handleExternalComplete(foreignUserID string, foreignItemID stri
 		return
 	}
 
+	userName := p.getUserName(userID)
+
 	p.deleteItem(foreignItemID)
-	message := fmt.Sprintf("%s completed a Todo you sent: %s", userID, item.Message)
-	p.PostBotDM(userID, message)
+	message := fmt.Sprintf("%s completed a Todo you sent: %s", userName, item.Message)
+	p.PostBotDM(foreignUserID, message)
 }
 
 type removeAPIRequest struct {
@@ -314,6 +318,7 @@ func (p *Plugin) handleExternalRemove(foreignUserID string, foreignItemID string
 	if foreignUserID == "" {
 		return
 	}
+	originalUserName := p.getUserName(userID)
 
 	itemList, _, _, listKey := p.getUserListForItem(foreignUserID, foreignItemID)
 
@@ -324,11 +329,11 @@ func (p *Plugin) handleExternalRemove(foreignUserID string, foreignItemID string
 	}
 
 	p.deleteItem(foreignItemID)
-	message := fmt.Sprintf("%s removed a Todo you received: %s", userID, item.Message)
+	message := fmt.Sprintf("%s removed a Todo you received: %s", originalUserName, item.Message)
 	if listKey == OutListKey {
-		message = fmt.Sprintf("%s declined a Todo you sent: %s", userID, item.Message)
+		message = fmt.Sprintf("%s declined a Todo you sent: %s", originalUserName, item.Message)
 	}
-	p.PostBotDM(userID, message)
+	p.PostBotDM(foreignUserID, message)
 }
 
 func (p *Plugin) sendRefreshEvent(userID string) {
@@ -337,4 +342,12 @@ func (p *Plugin) sendRefreshEvent(userID string) {
 		nil,
 		&model.WebsocketBroadcast{UserId: userID},
 	)
+}
+
+func (p *Plugin) getUserName(userID string) string {
+	userName := "Someone"
+	if user, err := p.API.GetUser(userID); err == nil {
+		userName = user.Username
+	}
+	return userName
 }
