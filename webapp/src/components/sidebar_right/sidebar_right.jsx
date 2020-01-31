@@ -139,8 +139,11 @@ export default class SidebarRight extends React.PureComponent {
                     <div>
                         <ToDoItems
                             items={todos}
-                            remove={this.props.actions.remove}
                             theme={this.props.theme}
+                            list={this.state.list}
+                            remove={this.props.actions.remove}
+                            complete={this.props.actions.complete}
+                            enqueue={this.props.actions.enqueue}
                         />
                     </div>
                 </Scrollbars>

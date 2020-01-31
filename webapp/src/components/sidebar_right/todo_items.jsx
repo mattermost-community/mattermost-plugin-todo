@@ -10,6 +10,18 @@ const PostUtils = window.PostUtils; // import the post utilities
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+function canDelete(myList, foreignList) {
+    return myList === 'my' || myList === 'in' || foreignList === 'in';
+}
+
+function canComplete(myList) {
+    return myList === 'my' || myList === 'in';
+}
+
+function canEnqueue(myList) {
+    return myList === 'in';
+}
+
 function ToDoItems(props) {
     const style = getStyle(props.theme);
 
@@ -30,14 +42,13 @@ function ToDoItems(props) {
         let createdMessage = 'Created ';
         let orderMessage = '';
         if (item.user) {
-            if (item.list == '') {
+            if (item.list === '') {
                 createdMessage = 'Sent to ' + item.user;
                 orderMessage = 'ENQUEUED on position ' + item.position + '.';
-            } else if (item.list == 'in') {
+            } else if (item.list === 'in') {
                 createdMessage = 'Sent to ' + item.user;
                 orderMessage = 'In Inbox on position ' + item.position + '.';
-            }
-            else if (item.list == 'out') {
+            } else if (item.list === 'out') {
                 createdMessage = 'Received from ' + item.user;
                 orderMessage = '';
             }
@@ -50,23 +61,47 @@ function ToDoItems(props) {
             >
                 {orderMessage}
             </div>
-        )
+        );
+
+        const deleteButton = (
+            <div
+                href='#'
+                className='button'
+                onClick={() => props.remove(item.id)}
+            >{props.list === 'out' ? 'Cancel' : 'Won\'t do'}</div>
+        );
+
+        const enqueueButton = (
+            <div
+                href='#'
+                className='button'
+                onClick={() => props.enqueue(item.id)}
+            >{'Add to my list'}</div>
+        );
+
+        const completeButton = (
+            <div
+                href='#'
+                className='button'
+                onClick={() => props.complete(item.id)}
+            >{'Done'}</div>
+        );
+
+        const actionButtons = (<div className='action-buttons'>
+            {canDelete(props.list, item.list) && deleteButton}
+            {canEnqueue(props.list) && enqueueButton}
+            {canComplete(props.list) && completeButton}
+        </div>);
 
         return (
             <div
                 key={item.id}
                 style={style.container}
             >
-                <a
-                    href='#'
-                    className='light pull-right'
-                    onClick={() => props.remove(item.id)}
-                >
-                    {'X'}
-                </a>
                 <div style={style.message}>
                     {itemComponent}
                 </div>
+                {(canDelete(props.list, item.list) || canComplete(props.list) || canEnqueue(props.list)) && actionButtons}
                 <div
                     className='light'
                     style={style.subtitle}
@@ -82,7 +117,10 @@ function ToDoItems(props) {
 ToDoItems.propTypes = {
     items: PropTypes.array.isRequired,
     theme: PropTypes.object.isRequired,
+    list: PropTypes.string.isRequired,
     remove: PropTypes.func.isRequired,
+    complete: PropTypes.func.isRequired,
+    enqueue: PropTypes.func.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {
@@ -101,7 +139,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             fontSize: '13px',
         },
         message: {
-            width: '95%',
+            width: '100%',
         },
     };
 });

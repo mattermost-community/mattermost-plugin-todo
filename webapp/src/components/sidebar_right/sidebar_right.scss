@@ -12,10 +12,9 @@
     }
     .header-menu {
         padding: 15px;
-        text-align: center;
-        cursor: pointer;
         display: flex;
         div {
+            cursor: pointer;
             flex-grow: 1;
             text-align: center;
             height: 100%;
@@ -23,6 +22,19 @@
                 background-color: var(--button-bg-10);
             }
             &.selected {
+                background-color: var(--button-bg-10);
+            }
+        }
+    }
+    .action-buttons {
+        padding: 15px;
+        display: flex;
+        .button {
+            flex-grow: 1;
+            text-align: center;
+            height: 100%;
+            cursor: pointer;
+            &:hover {
                 background-color: var(--button-bg-10);
             }
         }
