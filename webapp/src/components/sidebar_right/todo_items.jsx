@@ -27,6 +27,31 @@ function ToDoItems(props) {
         const htmlFormattedText = PostUtils.formatText(item.message);
         const itemComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
 
+        let createdMessage = 'Created ';
+        let orderMessage = '';
+        if (item.user) {
+            if (item.list == '') {
+                createdMessage = 'Sent to ' + item.user;
+                orderMessage = 'ENQUEUED on position ' + item.position + '.';
+            } else if (item.list == 'in') {
+                createdMessage = 'Sent to ' + item.user;
+                orderMessage = 'In Inbox on position ' + item.position + '.';
+            }
+            else if (item.list == 'out') {
+                createdMessage = 'Received from ' + item.user;
+                orderMessage = '';
+            }
+        }
+
+        const orderDiv = (
+            <div
+                className='light'
+                style={style.subtitle}
+            >
+                {orderMessage}
+            </div>
+        )
+
         return (
             <div
                 key={item.id}
@@ -46,8 +71,9 @@ function ToDoItems(props) {
                     className='light'
                     style={style.subtitle}
                 >
-                    {'Created on ' + formattedDate + ' at ' + formattedTime}
+                    {createdMessage + ' on ' + formattedDate + ' at ' + formattedTime}
                 </div>
+                {orderMessage && orderDiv}
             </div>
         );
     }) : <div style={style.container}>{'You have no to do items'}</div>;
