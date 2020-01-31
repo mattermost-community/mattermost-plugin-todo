@@ -88,16 +88,16 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	item.ID = model.NewId()
 	item.CreateAt = model.GetMillis()
 
-	err = p.storeItemForUser(userID, item)
+	p.storeItem(item)
+	myList := p.getMyListForUser(userID)
+
+	err = myList.add(item.ID, "", "")
 	if err != nil {
+		p.deleteItem(item.ID)
 		p.API.LogError("Unable to add item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-type listAPIRequest struct {
-	list string
 }
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
@@ -107,16 +107,16 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID := MyListKey
+	list := p.getMyListForUser(userID)
 	listInput := r.URL.Query().Get("list")
 	switch listInput {
 	case "out":
-		listID = OutListKey
+		list = p.getOutListForUser(userID)
 	case "in":
-		listID = InListKey
+		list = p.getInListForUser(userID)
 	}
 
-	items, err := p.getItemListForUser(userID, listID)
+	items, err := list.getItems()
 	if err != nil {
 		p.API.LogError("Unable to get items for user err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -178,40 +178,42 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 
 	item, _, err := p.getItem(enqueueRequest.ID)
 	if err != nil {
-		p.API.LogError("Unable to get item to enqueue err=" + err.Error())
+		p.API.LogError("Unable to enqueue item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	item.Status = StatusEnqueued
-	err = p.storeItem(item)
+	myList := p.getMyListForUser(userID)
+	inList := p.getMyListForUser(userID)
+
+	oe, _, err := inList.getOrderForItem(enqueueRequest.ID)
+	if err != nil {
+		p.API.LogError("Unable to enqueue item err=" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if oe == nil {
+		p.API.LogError("Unable to enqueue item")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = myList.add(oe.ItemID, oe.ForeignItemID, oe.ForeignUserID)
 	if err != nil {
 		p.API.LogError("Unable to enqueue item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	err = p.addToOrderForUser(userID, enqueueRequest.ID)
+	err = inList.remove(enqueueRequest.ID)
 	if err != nil {
-		item.Status = StatusPending
-		p.storeItem(item)
-		p.API.LogError("Unable to enqueue item err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = p.removeFromInForUser(userID, enqueueRequest.ID)
-	if err != nil {
-		item.Status = StatusPending
-		p.storeItem(item)
-		p.removeFromOrderForUser(userID, enqueueRequest.ID)
 		p.API.LogError("Unable to enqueue item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	message := fmt.Sprintf("%s enqueued a Todo you sent: %s", userID, item.Message)
-	p.PostBotDM(item.CreateBy, message)
+	p.PostBotDM(oe.ForeignUserID, message)
 }
 
 type completeAPIRequest struct {
@@ -234,72 +236,39 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, _, err := p.getItem(completeRequest.ID)
-	if err != nil {
-		p.API.LogError("Unable to get item to complete err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+	itemList := p.getMyListForUser(userID)
+
+	oe, _, err := itemList.getOrderForItem(completeRequest.ID)
+	if oe == nil {
+		itemList = p.getInListForUser(userID)
+		oe, _, err = itemList.getOrderForItem(completeRequest.ID)
+		if oe == nil {
+			p.API.LogError("Unable to get item to complete")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	itemList.remove(oe.ItemID)
+	p.deleteItem(oe.ItemID)
+	p.handleExternalComplete(oe.ForeignUserID, oe.ForeignItemID, userID)
+}
+
+func (p *Plugin) handleExternalComplete(foreignUserID string, foreignItemID string, userID string) {
+	if foreignUserID == "" {
 		return
 	}
 
-	switch item.Status {
-	case StatusEnqueued:
-		if item.CreateBy == "" {
-			err = p.removeFromOrderForUser(userID, completeRequest.ID)
-			if err != nil {
-				p.API.LogError("Unable to complete item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			err = p.deleteItem(completeRequest.ID)
-			if err != nil {
-				p.addToOrderForUser(userID, completeRequest.ID)
-				p.API.LogError("Unable to complete item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		} else {
-			item.Status = StatusComplete
-			err = p.storeItem(item)
-			if err != nil {
-				p.API.LogError("Unable to complete item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			err = p.removeFromOrderForUser(userID, completeRequest.ID)
-			if err != nil {
-				item.Status = StatusEnqueued
-				p.storeItem(item)
-				p.API.LogError("Unable to complete item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			message := fmt.Sprintf("%s completed a Todo you sent: %s", userID, item.Message)
-			p.PostBotDM(item.CreateBy, message)
-		}
-	case StatusPending:
-		item.Status = StatusComplete
-		err = p.storeItem(item)
-		if err != nil {
-			p.API.LogError("Unable to complete item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		err = p.removeFromInForUser(item.SendTo, completeRequest.ID)
-		if err != nil {
-			item.Status = StatusEnqueued
-			p.storeItem(item)
-			p.API.LogError("Unable to complete item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		message := fmt.Sprintf("%s completed a Todo you sent: %s", userID, item.Message)
-		p.PostBotDM(item.CreateBy, message)
+	outList := p.getOutListForUser(foreignUserID)
+	outList.remove(foreignItemID)
+	item, _, err := p.getItem(foreignItemID)
+	if err != nil {
+		return
 	}
+
+	p.deleteItem(foreignItemID)
+	message := fmt.Sprintf("%s completed a Todo you sent: %s", userID, item.Message)
+	p.PostBotDM(userID, message)
 }
 
 type removeAPIRequest struct {
@@ -322,98 +291,37 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, _, err := p.getItem(removeRequest.ID)
-	if err != nil {
-		p.API.LogError("Unable to get item to remove err=" + err.Error())
+	itemList, oe, _ := p.getUserListForItem(userID, removeRequest.ID)
+	if itemList == nil {
+		p.API.LogError("Unable to get item to remove")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	switch item.Status {
-	case StatusEnqueued:
-		if item.CreateBy == "" {
-			err = p.removeFromOrderForUser(userID, removeRequest.ID)
-			if err != nil {
-				p.API.LogError("Unable to remove item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
+	itemList.remove(oe.ItemID)
+	p.deleteItem(oe.ItemID)
+	p.handleExternalRemove(oe.ForeignUserID, oe.ForeignItemID, userID)
+}
 
-			err = p.deleteItem(removeRequest.ID)
-			if err != nil {
-				p.addToOrderForUser(userID, removeRequest.ID)
-				p.API.LogError("Unable to remove item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		} else {
-			item.Status = StatusDeleted
-			err = p.storeItem(item)
-			if err != nil {
-				p.API.LogError("Unable to remove item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			err = p.removeFromOrderForUser(userID, removeRequest.ID)
-			if err != nil {
-				item.Status = StatusEnqueued
-				p.storeItem(item)
-				p.API.LogError("Unable to remove item err=" + err.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-
-			message := fmt.Sprintf("%s removed a Todo you sent him from its list: %s", userID, item.Message)
-			p.PostBotDM(item.CreateBy, message)
-		}
-	case StatusPending:
-		err = p.removeFromOutForUser(item.CreateBy, removeRequest.ID)
-		if err != nil {
-			p.API.LogError("Unable to remove item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		err = p.removeFromInForUser(item.SendTo, removeRequest.ID)
-		if err != nil {
-			p.addToOutForUser(item.CreateBy, removeRequest.ID)
-			p.API.LogError("Unable to remove item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		err = p.deleteItem(removeRequest.ID)
-		if err != nil {
-			p.addToOutForUser(item.CreateBy, removeRequest.ID)
-			p.addToInForUser(item.SendTo, removeRequest.ID)
-			p.API.LogError("Unable to remove item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		if item.CreateBy == userID {
-			message := fmt.Sprintf("%s cancelled a previous Todo sent to you: %s", userID, item.Message)
-			p.PostBotDM(item.SendTo, message)
-		} else {
-			message := fmt.Sprintf("%s declined a Todo you sent: %s", userID, item.Message)
-			p.PostBotDM(item.CreateBy, message)
-		}
-	default:
-		err = p.removeFromOutForUser(userID, removeRequest.ID)
-		if err != nil {
-			p.API.LogError("Unable to remove item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		err = p.deleteItem(removeRequest.ID)
-		if err != nil {
-			p.addToOutForUser(userID, removeRequest.ID)
-			p.API.LogError("Unable to remove item err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+func (p *Plugin) handleExternalRemove(foreignUserID string, foreignItemID string, userID string) {
+	if foreignUserID == "" {
+		return
 	}
+
+	itemList, _, listKey := p.getUserListForItem(foreignUserID, foreignItemID)
+
+	itemList.remove(foreignItemID)
+	item, _, err := p.getItem(foreignItemID)
+	if err != nil {
+		return
+	}
+
+	p.deleteItem(foreignItemID)
+	message := fmt.Sprintf("%s removed a Todo you received: %s", userID, item.Message)
+	if listKey == OutListKey {
+		message = fmt.Sprintf("%s declined a Todo you sent: %s", userID, item.Message)
+	}
+	p.PostBotDM(userID, message)
 }
 
 func (p *Plugin) sendRefreshEvent(userID string) {

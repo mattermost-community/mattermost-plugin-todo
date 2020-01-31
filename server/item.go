@@ -3,17 +3,8 @@ package main
 import (
 	"fmt"
 	"time"
-)
 
-const (
-	// StatusEnqueued denotes items on the own list waiting to be done (empty string for legacy)
-	StatusEnqueued = ""
-	// StatusComplete denotes items sent that are finished by the receiver
-	StatusComplete = "Complete"
-	// StatusDeleted denotes items sent that are deleted by the receiver
-	StatusDeleted = "Deleted"
-	// StatusPending denotes items sent that are not yet processed by the receiver
-	StatusPending = "Pending"
+	"github.com/mattermost/mattermost-server/v5/model"
 )
 
 // Item represents a to do item
@@ -21,9 +12,14 @@ type Item struct {
 	ID       string `json:"id"`
 	Message  string `json:"message"`
 	CreateAt int64  `json:"create_at"`
-	CreateBy string `json:"create_by"`
-	SendTo   string `json:"send_to"`
-	Status   string `json:"status"`
+}
+
+func newItem(message string) *Item {
+	return &Item{
+		ID:       model.NewId(),
+		CreateAt: model.GetMillis(),
+		Message:  message,
+	}
 }
 
 func itemsListToString(items []*Item) string {

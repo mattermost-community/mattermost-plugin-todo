@@ -18,13 +18,16 @@ const (
 	StoreItemKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
-	// MyListKey is the key used to store the order of the owned todos
-	MyListKey = ""
-	// InListKey is the key used to store the order of received todos
-	InListKey = "_in"
-	// OutListKey is the key used to store the order of sent todos
-	OutListKey = "_out"
 )
+
+// OrderElement denotes every element in any of the lists. Contains the item that refers to,
+// and may contain foreign ids of item and user, denoting the user this element is related to
+// and the item on that user system.
+type OrderElement struct {
+	ItemID        string `json:"item_id"`
+	ForeignItemID string `json:"foreign_item_id"`
+	ForeignUserID string `json:"foreign_user_id"`
+}
 
 func (p *Plugin) storeLastReminderTimeForUser(userID string) error {
 	strTime := strconv.FormatInt(model.GetMillis(), 10)
@@ -51,43 +54,6 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	}
 
 	return reminderAt, nil
-}
-
-func (p *Plugin) storeOutItemForUsers(sender string, receiver string, item *Item) error {
-	err := p.storeItem(item)
-	if err != nil {
-		return err
-	}
-
-	err = p.addToInForUser(receiver, item.ID)
-	if err != nil {
-		p.deleteItem(item.ID)
-		return err
-	}
-
-	err = p.addToOutForUser(sender, item.ID)
-	if err != nil {
-		p.removeFromInForUser(receiver, item.ID)
-		p.deleteItem(item.ID)
-		return err
-	}
-
-	return nil
-}
-
-func (p *Plugin) storeItemForUser(userID string, item *Item) error {
-	err := p.storeItem(item)
-	if err != nil {
-		return err
-	}
-
-	err = p.addToOrderForUser(userID, item.ID)
-	if err != nil {
-		p.deleteItem(item.ID)
-		return err
-	}
-
-	return nil
 }
 
 func (p *Plugin) storeItem(item *Item) error {
@@ -132,10 +98,6 @@ func (p *Plugin) deleteItem(itemID string) error {
 	return nil
 }
 
-func (p *Plugin) getItemsForUser(userID string) ([]*Item, error) {
-	return p.getItemListForUser(userID, MyListKey)
-}
-
 func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, error) {
 	order, _, err := p.getListForUser(userID, listID)
 	if err != nil {
@@ -143,8 +105,8 @@ func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, erro
 	}
 
 	items := []*Item{}
-	for _, id := range order {
-		item, _, err := p.getItem(id)
+	for _, oe := range order {
+		item, _, err := p.getItem(oe.ItemID)
 		if err != nil {
 			return nil, err
 		}
@@ -156,32 +118,24 @@ func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, erro
 	return items, nil
 }
 
-func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, MyListKey)
-}
-
-func (p *Plugin) addToInForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, InListKey)
-}
-
-func (p *Plugin) addToOutForUser(userID string, itemID string) error {
-	return p.addToListForUser(userID, itemID, OutListKey)
-}
-
-func (p *Plugin) addToListForUser(userID string, itemID string, listID string) error {
+func (p *Plugin) addToListForUser(userID string, itemID string, listID string, foreignItemID string, foreignUserID string) error {
 	for i := 0; i < StoreRetries; i++ {
 		order, originalJSONOrder, err := p.getListForUser(userID, listID)
 		if err != nil {
 			return err
 		}
 
-		for _, id := range order {
-			if id == itemID {
+		for _, oe := range order {
+			if oe.ItemID == itemID {
 				return errors.New("item id already exists in order")
 			}
 		}
 
-		order = append(order, itemID)
+		order = append(order, &OrderElement{
+			ItemID:        itemID,
+			ForeignItemID: foreignItemID,
+			ForeignUserID: foreignUserID,
+		})
 
 		ok, err := p.storeList(userID, listID, order, originalJSONOrder)
 		if err != nil {
@@ -198,18 +152,6 @@ func (p *Plugin) addToListForUser(userID string, itemID string, listID string) e
 	return errors.New("unable to store installation")
 }
 
-func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, MyListKey)
-}
-
-func (p *Plugin) removeFromInForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, InListKey)
-}
-
-func (p *Plugin) removeFromOutForUser(userID string, itemID string) error {
-	return p.removeFromListForUser(userID, itemID, OutListKey)
-}
-
 func (p *Plugin) removeFromListForUser(userID string, itemID string, listID string) error {
 	for i := 0; i < StoreRetries; i++ {
 		order, originalJSONOrder, err := p.getListForUser(userID, listID)
@@ -218,8 +160,8 @@ func (p *Plugin) removeFromListForUser(userID string, itemID string, listID stri
 		}
 
 		found := false
-		for i, id := range order {
-			if id == itemID {
+		for i, oe := range order {
+			if oe.ItemID == itemID {
 				order = append(order[:i], order[i+1:]...)
 				found = true
 			}
@@ -244,9 +186,9 @@ func (p *Plugin) removeFromListForUser(userID string, itemID string, listID stri
 	return errors.New("unable to store order")
 }
 
-func (p *Plugin) popFromOrderForUser(userID string) error {
+func (p *Plugin) popFromMyListForUser(userID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		order, originalJSONOrder, err := p.getListForUser(userID, MyListKey)
 		if err != nil {
 			return err
 		}
@@ -257,7 +199,7 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 
 		order = order[1:]
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		ok, err := p.storeList(userID, MyListKey, order, originalJSONOrder)
 		if err != nil {
 			return err
 		}
@@ -272,19 +214,7 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 	return errors.New("unable to store order")
 }
 
-func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, MyListKey, order, originalJSONOrder)
-}
-
-func (p *Plugin) storeIn(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, InListKey, order, originalJSONOrder)
-}
-
-func (p *Plugin) storeOut(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	return p.storeList(userID, OutListKey, order, originalJSONOrder)
-}
-
-func (p *Plugin) storeList(userID string, listID string, order []string, originalJSONOrder []byte) (bool, error) {
+func (p *Plugin) storeList(userID string, listID string, order []*OrderElement, originalJSONOrder []byte) (bool, error) {
 	newJSONOrder, jsonErr := json.Marshal(order)
 	if jsonErr != nil {
 		return false, jsonErr
@@ -298,47 +228,23 @@ func (p *Plugin) storeList(userID string, listID string, order []string, origina
 	return ok, nil
 }
 
-func (p *Plugin) getOrderForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, MyListKey)
-}
-
-func (p *Plugin) getInForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, InListKey)
-}
-
-func (p *Plugin) getOutForUser(userID string) ([]string, []byte, error) {
-	return p.getListForUser(userID, OutListKey)
-}
-
-func (p *Plugin) getListForUser(userID string, listID string) ([]string, []byte, error) {
+func (p *Plugin) getListForUser(userID string, listID string) ([]*OrderElement, []byte, error) {
 	originalJSONOrder, err := p.API.KVGet(getListKey(userID, listID))
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if originalJSONOrder == nil {
-		return []string{}, originalJSONOrder, nil
+		return []*OrderElement{}, originalJSONOrder, nil
 	}
 
-	var order []string
+	var order []*OrderElement
 	jsonErr := json.Unmarshal(originalJSONOrder, &order)
 	if jsonErr != nil {
-		return nil, nil, jsonErr
+		return p.legacyOrderElement(userID, listID)
 	}
 
 	return order, originalJSONOrder, nil
-}
-
-func getOrderKey(userID string) string {
-	return getListKey(userID, MyListKey)
-}
-
-func getInKey(userID string) string {
-	return getListKey(userID, InListKey)
-}
-
-func getOutKey(userID string) string {
-	return getListKey(userID, OutListKey)
 }
 
 func getListKey(userID string, listID string) string {
@@ -351,4 +257,55 @@ func getItemKey(itemID string) string {
 
 func getReminderKey(userID string) string {
 	return fmt.Sprintf("%s_%s", StoreReminderKey, userID)
+}
+
+func (p *Plugin) legacyOrderElement(userID string, listID string) ([]*OrderElement, []byte, error) {
+	originalJSONOrder, err := p.API.KVGet(getListKey(userID, listID))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if originalJSONOrder == nil {
+		return []*OrderElement{}, originalJSONOrder, nil
+	}
+
+	var order []string
+	jsonErr := json.Unmarshal(originalJSONOrder, &order)
+	if jsonErr != nil {
+		return nil, nil, jsonErr
+	}
+
+	newOrder := []*OrderElement{}
+	for _, v := range order {
+		newOrder = append(newOrder, &OrderElement{ItemID: v})
+	}
+
+	return newOrder, originalJSONOrder, nil
+}
+
+func (p *Plugin) getOrderForItem(userID string, itemID string, listID string) (*OrderElement, int, error) {
+	originalJSONOrder, err := p.API.KVGet(getListKey(userID, listID))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if originalJSONOrder == nil {
+		return nil, 0, nil
+	}
+
+	var order []*OrderElement
+	jsonErr := json.Unmarshal(originalJSONOrder, &order)
+	if jsonErr != nil {
+		order, _, jsonErr = p.legacyOrderElement(userID, listID)
+		if order == nil {
+			return nil, 0, jsonErr
+		}
+	}
+
+	for i, oe := range order {
+		if oe.ItemID == itemID {
+			return oe, i, nil
+		}
+	}
+	return nil, 0, nil
 }
