@@ -274,6 +274,7 @@ func (p *Plugin) handleExternalComplete(foreignUserID string, foreignItemID stri
 
 	p.deleteItem(foreignItemID)
 	message := fmt.Sprintf("%s completed a Todo you sent: %s", userName, item.Message)
+	p.sendRefreshEvent(foreignUserID)
 	p.PostBotDM(foreignUserID, message)
 }
 
@@ -333,6 +334,7 @@ func (p *Plugin) handleExternalRemove(foreignUserID string, foreignItemID string
 	if listKey == OutListKey {
 		message = fmt.Sprintf("%s declined a Todo you sent: %s", originalUserName, item.Message)
 	}
+	p.sendRefreshEvent(foreignUserID)
 	p.PostBotDM(foreignUserID, message)
 }
 
