@@ -238,18 +238,19 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	itemList := p.getMyListForUser(userID)
 
-	oe, _, err := itemList.getOrderForItem(completeRequest.ID)
-	if oe == nil {
-		itemList = p.getInListForUser(userID)
-		oe, _, err = itemList.getOrderForItem(completeRequest.ID)
-		if oe == nil {
-			p.API.LogError("Unable to get item to complete")
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	itemList, oe, _ := p.getUserListForItem(userID, completeRequest.ID)
+	if itemList == nil {
+		p.API.LogError("Unable to get item to complete")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	itemList.remove(oe.ItemID)
+	if err := itemList.remove(oe.ItemID); err != nil {
+		p.API.LogError("Unable to complete the item err=" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	p.deleteItem(oe.ItemID)
 	p.handleExternalComplete(oe.ForeignUserID, oe.ForeignItemID, userID)
 }
@@ -298,7 +299,12 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	itemList.remove(oe.ItemID)
+	if err := itemList.remove(oe.ItemID); err != nil {
+		p.API.LogError("Unable to remove the item err=" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	p.deleteItem(oe.ItemID)
 	p.handleExternalRemove(oe.ForeignUserID, oe.ForeignItemID, userID)
 }
