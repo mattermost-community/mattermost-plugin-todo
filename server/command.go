@@ -179,12 +179,16 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	listID := MyListKey
+	responseMessage := "To Do List:\n\n"
+
 	if len(args) > 0 {
 		switch args[0] {
 		case "in":
 			listID = InListKey
+			responseMessage = "Received To Do list:\n\n"
 		case "out":
 			listID = OutListKey
+			responseMessage = "Sent To Do list:\n\n"
 		}
 	}
 
@@ -195,7 +199,6 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 
 	p.sendRefreshEvent(extra.UserId)
 
-	responseMessage := "To Do List:\n\n"
 	responseMessage += itemsListToString(items)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
