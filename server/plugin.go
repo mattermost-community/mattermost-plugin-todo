@@ -207,6 +207,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 
 	err = inList.remove(enqueueRequest.ID)
 	if err != nil {
+		myList.remove(oe.ItemID)
 		p.API.LogError("Unable to enqueue item err=" + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
