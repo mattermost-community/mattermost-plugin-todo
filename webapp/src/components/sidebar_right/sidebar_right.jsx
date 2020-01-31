@@ -72,15 +72,15 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.list(false, 'out');
     }
 
-    getInImportantItems() {
+    getInItems() {
         return this.props.inTodos.length;
     }
 
-    getOutImportantItems() {
+    getOutItems() {
         return this.props.outTodos.length;
     }
 
-    getMyImportantItems() {
+    getMyItems() {
         return this.props.todos.length;
     }
 
@@ -111,22 +111,22 @@ export default class SidebarRight extends React.PureComponent {
                 >
                     <div className='header-menu'>
                         <div
+                            className={this.state.list === MyListName ? 'selected' : ''}
+                            onClick={() => this.openList(MyListName)}
+                        >
+                            {'My'} {this.getMyItems() > 0 ? ' (' + this.getMyItems() + ')' : ''}
+                        </div>
+                        <div
                             className={this.state.list === InListName ? 'selected' : ''}
                             onClick={() => this.openList(InListName)}
                         >
-                            {'In'} {this.getInImportantItems() > 0 ? ' (' + this.getInImportantItems() + ')' : ''}
+                            {'In'} {this.getInItems() > 0 ? ' (' + this.getInItems() + ')' : ''}
                         </div>
                         <div
                             className={this.state.list === OutListName ? 'selected' : ''}
                             onClick={() => this.openList(OutListName)}
                         >
-                            {'Out'} {this.getOutImportantItems() > 0 ? ' (' + this.getOutImportantItems() + ')' : ''}
-                        </div>
-                        <div
-                            className={this.state.list === MyListName ? 'selected' : ''}
-                            onClick={() => this.openList(MyListName)}
-                        >
-                            {'My'} {this.getMyImportantItems() > 0 ? ' (' + this.getMyImportantItems() + ')' : ''}
+                            {'Out'} {this.getOutItems() > 0 ? ' (' + this.getOutItems() + ')' : ''}
                         </div>
                     </div>
                     <div
