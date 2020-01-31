@@ -39,29 +39,29 @@ func (p *Plugin) getMyListForUser(userID string) *list {
 	}
 }
 
-func (p *Plugin) getUserListForItem(userID string, itemID string) (*list, *OrderElement, string) {
+func (p *Plugin) getUserListForItem(userID string, itemID string) (*list, *OrderElement, int, string) {
 	itemList := p.getMyListForUser(userID)
-	oe, _, _ := itemList.getOrderForItem(itemID)
+	oe, n, _ := itemList.getOrderForItem(itemID)
 	if oe != nil {
-		return itemList, oe, MyListKey
+		return itemList, oe, n, MyListKey
 	}
 
 	itemList = p.getOutListForUser(userID)
-	oe, _, _ = itemList.getOrderForItem(itemID)
+	oe, n, _ = itemList.getOrderForItem(itemID)
 	if oe != nil {
-		return itemList, oe, OutListKey
+		return itemList, oe, n, OutListKey
 	}
 
 	itemList = p.getInListForUser(userID)
-	oe, _, _ = itemList.getOrderForItem(itemID)
+	oe, n, _ = itemList.getOrderForItem(itemID)
 	if oe != nil {
-		return itemList, oe, InListKey
+		return itemList, oe, n, InListKey
 	}
 
-	return nil, nil, ""
+	return nil, nil, 0, ""
 }
 
-func (l *list) getItems() ([]*Item, error) {
+func (l *list) getItems() ([]*ExtendedItem, error) {
 	return l.p.getItemListForUser(l.userID, l.listID)
 }
 

@@ -98,20 +98,21 @@ func (p *Plugin) deleteItem(itemID string) error {
 	return nil
 }
 
-func (p *Plugin) getItemListForUser(userID string, listID string) ([]*Item, error) {
+func (p *Plugin) getItemListForUser(userID string, listID string) ([]*ExtendedItem, error) {
 	order, _, err := p.getListForUser(userID, listID)
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*Item{}
+	items := []*ExtendedItem{}
 	for _, oe := range order {
 		item, _, err := p.getItem(oe.ItemID)
 		if err != nil {
 			return nil, err
 		}
-		if item != nil {
-			items = append(items, item)
+		feItem := p.extendItemInfo(item, oe)
+		if feItem != nil {
+			items = append(items, feItem)
 		}
 	}
 

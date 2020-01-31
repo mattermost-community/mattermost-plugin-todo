@@ -14,6 +14,14 @@ type Item struct {
 	CreateAt int64  `json:"create_at"`
 }
 
+// ExtendedItem extends the information on Item to be used on the front-end
+type ExtendedItem struct {
+	Item
+	ForeignUser     string `json:"user"`
+	ForeignList     string `json:"list"`
+	ForeignPosition int    `json:"position"`
+}
+
 func newItem(message string) *Item {
 	return &Item{
 		ID:       model.NewId(),
@@ -22,7 +30,7 @@ func newItem(message string) *Item {
 	}
 }
 
-func itemsListToString(items []*Item) string {
+func itemsListToString(items []*ExtendedItem) string {
 	if len(items) == 0 {
 		return "Nothing to do!"
 	}
@@ -35,4 +43,36 @@ func itemsListToString(items []*Item) string {
 	}
 
 	return str
+}
+
+func (p *Plugin) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem {
+	if item == nil || oe == nil {
+		return nil
+	}
+
+	feItem := &ExtendedItem{
+		Item: *item,
+	}
+
+	if oe.ForeignUserID == "" {
+		return feItem
+	}
+
+	_, _, n, listKey := p.getUserListForItem(oe.ForeignUserID, oe.ForeignItemID)
+
+	var listName string
+	switch listKey {
+	case MyListKey:
+		listName = ""
+	case InListKey:
+		listName = "in"
+	case OutListKey:
+		listName = "out"
+	}
+
+	feItem.ForeignUser = oe.ForeignUserID
+	feItem.ForeignList = listName
+	feItem.ForeignPosition = n
+
+	return feItem
 }
