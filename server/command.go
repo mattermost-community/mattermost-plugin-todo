@@ -183,12 +183,15 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 
 	if len(args) > 0 {
 		switch args[0] {
+		case "my":
 		case "in":
 			listID = InListKey
 			responseMessage = "Received To Do list:\n\n"
 		case "out":
 			listID = OutListKey
 			responseMessage = "Sent To Do list:\n\n"
+		default:
+			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), true, nil
 		}
 	}
 
