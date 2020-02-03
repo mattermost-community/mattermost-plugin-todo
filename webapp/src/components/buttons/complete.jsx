@@ -5,7 +5,7 @@ const CompleteButton = (props) => {
     return (
         <button
             className='button'
-            onClick={() => props.complete(itemId)}
+            onClick={() => props.complete(props.itemId)}
         >{'Done'}</button>
     );
 };
