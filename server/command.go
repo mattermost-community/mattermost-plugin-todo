@@ -101,12 +101,16 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 
 func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) < 2 {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You must specify a user and a message."), false, nil
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You must specify a user and a message.\n"+getHelp()), false, nil
 	}
 
-	receiver, err := p.API.GetUserByUsername(args[0][1:])
+	userName := args[0]
+	if args[0][0] == '@' {
+		userName = args[0][1:]
+	}
+	receiver, err := p.API.GetUserByUsername(userName)
 	if err != nil {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user."), false, nil
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user.\n"+getHelp()), false, nil
 	}
 
 	if receiver.Id == extra.UserId {
@@ -122,7 +126,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 	p.sendRefreshEvent(extra.UserId)
 	p.sendRefreshEvent(receiver.Id)
 
-	responseMessage := fmt.Sprintf("Todo sent to %s.", args[0])
+	responseMessage := fmt.Sprintf("Todo sent to @%s.", userName)
 
 	senderName := p.getUserName(extra.UserId)
 
