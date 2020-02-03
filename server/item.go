@@ -44,37 +44,3 @@ func itemsListToString(items []*ExtendedItem) string {
 
 	return str
 }
-
-func (p *Plugin) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem {
-	if item == nil || oe == nil {
-		return nil
-	}
-
-	feItem := &ExtendedItem{
-		Item: *item,
-	}
-
-	if oe.ForeignUserID == "" {
-		return feItem
-	}
-
-	_, _, n, listKey := p.getUserListForItem(oe.ForeignUserID, oe.ForeignItemID)
-
-	var listName string
-	switch listKey {
-	case MyListKey:
-		listName = ""
-	case InListKey:
-		listName = "in"
-	case OutListKey:
-		listName = "out"
-	}
-
-	userName := p.getUserName(oe.ForeignUserID)
-
-	feItem.ForeignUser = userName
-	feItem.ForeignList = listName
-	feItem.ForeignPosition = n
-
-	return feItem
-}

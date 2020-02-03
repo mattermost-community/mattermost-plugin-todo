@@ -115,22 +115,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	message := strings.Join(args[1:], " ")
 
-	senderItem := newItem(message)
-	p.storeItem(senderItem)
-	receiverItem := newItem(message)
-	p.storeItem(receiverItem)
-
-	senderList := p.getOutListForUser(extra.UserId)
-	receiverList := p.getInListForUser(receiver.Id)
-
-	appErr := senderList.add(senderItem.ID, receiverItem.ID, receiver.Id)
-	if appErr != nil {
-		return nil, false, appErr
-	}
-
-	appErr = receiverList.add(receiverItem.ID, senderItem.ID, extra.UserId)
-	if appErr != nil {
-		return nil, false, appErr
+	if err := p.listManager.Send(extra.UserId, receiver.Id, message); err != nil {
+		return nil, false, err
 	}
 
 	p.sendRefreshEvent(extra.UserId)
@@ -153,13 +139,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
 	}
 
-	item := newItem(message)
-
-	p.storeItem(item)
-	myList := p.getMyListForUser(extra.UserId)
-
-	err := myList.add(item.ID, "", "")
-	if err != nil {
+	if err := p.listManager.Add(extra.UserId, message); err != nil {
 		return nil, false, err
 	}
 
@@ -167,7 +147,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 
 	responseMessage := "Added to do."
 
-	items, err := myList.getItems()
+	items, err := p.listManager.Get(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
@@ -197,7 +177,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		}
 	}
 
-	items, err := p.getItemListForUser(extra.UserId, listID)
+	items, err := p.listManager.Get(extra.UserId, listID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -210,7 +190,16 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	err := p.popFromMyListForUser(extra.UserId)
+	todoMessage, sender, err := p.listManager.Pop(extra.UserId)
+
+	if sender != "" {
+		userName := p.getUserName(sender)
+
+		message := fmt.Sprintf("%s popped a Todo you sent: %s", userName, todoMessage)
+		p.sendRefreshEvent(sender)
+		p.PostBotDM(sender, message)
+	}
+
 	if err != nil {
 		return nil, false, err
 	}
@@ -219,9 +208,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 
 	responseMessage := "Removed top to do."
 
-	myList := p.getMyListForUser(extra.UserId)
-
-	items, err := myList.getItems()
+	items, err := p.listManager.Get(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
