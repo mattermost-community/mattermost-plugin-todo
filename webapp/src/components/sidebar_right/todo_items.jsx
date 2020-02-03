@@ -6,10 +6,10 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import DeleteButton from '../buttons/delete'
-import CompleteButton from '../buttons/complete'
-import EnqueueButton from '../buttons/enqueue'
-import {canComplete, canDelete, canEnqueue} from '../../utils'
+import DeleteButton from '../buttons/delete';
+import CompleteButton from '../buttons/complete';
+import EnqueueButton from '../buttons/enqueue';
+import {canComplete, canDelete, canEnqueue} from '../../utils';
 
 const PostUtils = window.PostUtils; // import the post utilities
 

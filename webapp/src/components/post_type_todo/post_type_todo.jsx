@@ -3,14 +3,15 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
-import DeleteButton from '../buttons/delete'
-import CompleteButton from '../buttons/complete'
-import EnqueueButton from '../buttons/enqueue'
+import DeleteButton from '../buttons/delete';
+import CompleteButton from '../buttons/complete';
+import EnqueueButton from '../buttons/enqueue';
 
 export default class PostTypeTodo extends React.PureComponent {
     static propTypes = {
         post: PropTypes.object.isRequired,
         pendingAnswer: PropTypes.bool.isRequired,
+        theme: PropTypes.object.isRequired,
         actions: PropTypes.shape({
             complete: PropTypes.func.isRequired,
             remove: PropTypes.func.isRequired,
@@ -25,12 +26,12 @@ export default class PostTypeTodo extends React.PureComponent {
 
         this.state = {};
     }
-    
+
     render() {
         const style = getStyle(this.props.theme);
 
-        const preText = "Automated message"
-        const title = this.props.post.props.message
+        const preText = 'Automated message';
+        const title = this.props.post.props.message;
         const subtitle = this.props.post.props.todo;
 
         const content = (
@@ -38,7 +39,7 @@ export default class PostTypeTodo extends React.PureComponent {
                 <DeleteButton
                     itemId={this.props.post.props.itemId}
                     remove={this.props.actions.remove}
-                    list={"my"}
+                    list={'my'}
                 />
                 <EnqueueButton
                     itemId={this.props.post.props.itemId}
@@ -50,7 +51,7 @@ export default class PostTypeTodo extends React.PureComponent {
                 />
             </div>
         );
-        
+
         return (
             <div>
                 {preText}
@@ -62,7 +63,7 @@ export default class PostTypeTodo extends React.PureComponent {
                             </h1>
                             {subtitle}
                             <div>
-                                    {this.props.pendingAnswer && content}
+                                {this.props.pendingAnswer && content}
                             </div>
                         </div>
                     </div>
