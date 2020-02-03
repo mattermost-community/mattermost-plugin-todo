@@ -6,21 +6,14 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
+import DeleteButton from '../buttons/delete'
+import CompleteButton from '../buttons/complete'
+import EnqueueButton from '../buttons/enqueue'
+import {canComplete, canDelete, canEnqueue} from '../../utils'
+
 const PostUtils = window.PostUtils; // import the post utilities
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-function canDelete(myList, foreignList) {
-    return myList === 'my' || myList === 'in' || foreignList === 'in';
-}
-
-function canComplete(myList) {
-    return myList === 'my' || myList === 'in';
-}
-
-function canEnqueue(myList) {
-    return myList === 'in';
-}
 
 function ToDoItems(props) {
     const style = getStyle(props.theme);
@@ -64,27 +57,25 @@ function ToDoItems(props) {
         );
 
         const deleteButton = (
-            <div
-                href='#'
-                className='button'
-                onClick={() => props.remove(item.id)}
-            >{props.list === 'out' ? 'Cancel' : 'Won\'t do'}</div>
+            <DeleteButton
+                itemId={item.id}
+                remove={props.remove}
+                list={props.list}
+            />
         );
 
         const enqueueButton = (
-            <div
-                href='#'
-                className='button'
-                onClick={() => props.enqueue(item.id)}
-            >{'Add to my list'}</div>
+            <EnqueueButton
+                itemId={item.id}
+                enqueue={props.enqueue}
+            />
         );
 
         const completeButton = (
-            <div
-                href='#'
-                className='button'
-                onClick={() => props.complete(item.id)}
-            >{'Done'}</div>
+            <CompleteButton
+                itemId={item.id}
+                complete={props.complete}
+            />
         );
 
         const actionButtons = (<div className='action-buttons'>

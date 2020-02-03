@@ -108,8 +108,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 	if args[0][0] == '@' {
 		userName = args[0][1:]
 	}
-	receiver, err := p.API.GetUserByUsername(userName)
-	if err != nil {
+	receiver, appErr := p.API.GetUserByUsername(userName)
+	if appErr != nil {
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user.\n"+getHelp()), false, nil
 	}
 
@@ -119,7 +119,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	message := strings.Join(args[1:], " ")
 
-	if err := p.listManager.Send(extra.UserId, receiver.Id, message); err != nil {
+	receiverItemID, err := p.listManager.Send(extra.UserId, receiver.Id, message)
+	if err != nil {
 		return nil, false, err
 	}
 
@@ -130,9 +131,9 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	senderName := p.getUserName(extra.UserId)
 
-	receiverMessage := fmt.Sprintf("You have received a new Todo from %s: %s", senderName, message)
+	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
-	p.PostBotDM(receiver.Id, receiverMessage)
+	p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverItemID)
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
 
@@ -199,7 +200,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	if sender != "" {
 		userName := p.getUserName(sender)
 
-		message := fmt.Sprintf("%s popped a Todo you sent: %s", userName, todoMessage)
+		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
 		p.sendRefreshEvent(sender)
 		p.PostBotDM(sender, message)
 	}

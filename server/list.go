@@ -54,7 +54,7 @@ func (l *listManager) Add(userID string, message string) error {
 	return nil
 }
 
-func (l *listManager) Send(senderID string, receiverID string, message string) error {
+func (l *listManager) Send(senderID string, receiverID string, message string) (string, error) {
 	senderItem := newItem(message)
 	l.store.AddItem(senderItem)
 	receiverItem := newItem(message)
@@ -62,15 +62,15 @@ func (l *listManager) Send(senderID string, receiverID string, message string) e
 
 	appErr := l.store.Add(senderID, senderItem.ID, OutListKey, receiverID, receiverItem.ID)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 
 	appErr = l.store.Add(receiverID, receiverItem.ID, InListKey, senderID, senderItem.ID)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 
-	return nil
+	return receiverItem.ID, nil
 }
 
 func (l *listManager) Get(userID string, listID string) ([]*ExtendedItem, error) {
@@ -93,7 +93,7 @@ func (l *listManager) Get(userID string, listID string) ([]*ExtendedItem, error)
 	return extendedItems, nil
 }
 
-func (l *listManager) Complete(userID string, itemID string) (todoMessage string, foreignUserID string, err error) {
+func (l *listManager) Complete(userID string, itemID string) (todoMessage string, foreignUserID string, outErr error) {
 	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
 	if oe == nil {
 		return "", "", fmt.Errorf("cannot find element")
@@ -120,7 +120,7 @@ func (l *listManager) Complete(userID string, itemID string) (todoMessage string
 	return item.Message, oe.ForeignUserID, nil
 }
 
-func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, err error) {
+func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, outErr error) {
 	item, err := l.store.GetItem(itemID)
 	if err != nil {
 		return "", "", err
@@ -148,7 +148,7 @@ func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string,
 	return item.Message, oe.ForeignUserID, nil
 }
 
-func (l *listManager) Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error) {
+func (l *listManager) Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, outErr error) {
 	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
 	if oe == nil {
 		return "", "", false, fmt.Errorf("cannot find element")
@@ -177,7 +177,7 @@ func (l *listManager) Remove(userID string, itemID string) (todoMessage string, 
 	return item.Message, oe.ForeignUserID, list == OutListKey, nil
 }
 
-func (l *listManager) Pop(userID string) (todoMessage string, sender string, err error) {
+func (l *listManager) Pop(userID string) (todoMessage string, sender string, outErr error) {
 	oe, err := l.store.Pop(userID, MyListKey)
 	if err != nil {
 		return "", "", err

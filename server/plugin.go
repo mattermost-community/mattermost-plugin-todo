@@ -21,7 +21,7 @@ const (
 // ListManager representes the logic on the lists
 type ListManager interface {
 	Add(userID string, message string) error
-	Send(senderID string, receiverID string, message string) error
+	Send(senderID string, receiverID string, message string) (string, error)
 	Get(userID string, listID string) ([]*ExtendedItem, error)
 	Complete(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
 	Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
@@ -192,7 +192,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.getUserName(userID)
 
-	message := fmt.Sprintf("%s enqueued a Todo you sent: %s", userName, todoMessage)
+	message := fmt.Sprintf("@%s enqueued a Todo you sent: %s", userName, todoMessage)
 	p.PostBotDM(sender, message)
 }
 
@@ -228,7 +228,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.getUserName(sender)
 
-	message := fmt.Sprintf("%s completed a Todo you sent: %s", userName, todoMessage)
+	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, todoMessage)
 	p.sendRefreshEvent(sender)
 	p.PostBotDM(sender, message)
 }
@@ -266,9 +266,9 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.getUserName(userID)
 
-	message := fmt.Sprintf("%s removed a Todo you received: %s", userName, todoMessage)
+	message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, todoMessage)
 	if isSender {
-		message = fmt.Sprintf("%s declined a Todo you sent: %s", userName, todoMessage)
+		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, todoMessage)
 	}
 
 	p.sendRefreshEvent(foreignUser)
