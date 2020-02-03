@@ -148,7 +148,7 @@ func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string,
 	return item.Message, oe.ForeignUserID, nil
 }
 
-func (l *listManager) Delete(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error) {
+func (l *listManager) Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error) {
 	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
 	if oe == nil {
 		return "", "", false, fmt.Errorf("cannot find element")

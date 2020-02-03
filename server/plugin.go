@@ -25,7 +25,7 @@ type ListManager interface {
 	Get(userID string, listID string) ([]*ExtendedItem, error)
 	Complete(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
 	Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
-	Delete(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
+	Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
 	Pop(userID string) (todoMessage string, sender string, err error)
 }
 
@@ -149,7 +149,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+itemsListToString(items))
-			p.storeLastReminderTimeForUser(userID)
+			p.saveLastReminderTimeForUser(userID)
 		}
 	}
 
@@ -253,7 +253,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todoMessage, foreignUser, isSender, err := p.listManager.Delete(userID, removeRequest.ID)
+	todoMessage, foreignUser, isSender, err := p.listManager.Remove(userID, removeRequest.ID)
 	if err != nil {
 		p.API.LogError("unable to complete item, err=" + err.Error())
 		w.WriteHeader(http.StatusBadRequest)

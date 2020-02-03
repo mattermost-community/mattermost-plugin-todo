@@ -300,7 +300,7 @@ func (l *listStore) legacyOrderElement(userID string, listID string) ([]*OrderEl
 	return newOrder, originalJSONOrder, nil
 }
 
-func (p *Plugin) storeLastReminderTimeForUser(userID string) error {
+func (p *Plugin) saveLastReminderTimeForUser(userID string) error {
 	strTime := strconv.FormatInt(model.GetMillis(), 10)
 	appErr := p.API.KVSet(getReminderKey(userID), []byte(strTime))
 	if appErr != nil {
