@@ -123,7 +123,6 @@ export const complete = (id) => async (dispatch, getState) => {
 
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
-    dispatch(list(false, 'out'));
 };
 
 export const enqueue = (id) => async (dispatch, getState) => {
@@ -139,5 +138,4 @@ export const enqueue = (id) => async (dispatch, getState) => {
 
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
-    dispatch(list(false, 'out'));
 };
