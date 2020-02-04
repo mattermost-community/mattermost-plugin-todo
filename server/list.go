@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 const (
@@ -15,65 +17,89 @@ const (
 
 // ListStore represents the KVStore operations for lists
 type ListStore interface {
+	// Item related function
 	AddItem(item *Item) error
 	GetItem(itemID string) (*Item, error)
 	RemoveItem(itemID string) error
 
-	GetItemOrder(userID string, itemID string, listID string) (*OrderElement, int, error)
-	GetItemListAndOrder(userID string, itemID string) (string, *OrderElement, int)
+	// GetItemOrder gets the item Order Element and position of the item itemID on user userID's list listID
+	GetItemOrder(userID, itemID, listID string) (*OrderElement, int, error)
+	// GetItemListAndOrder gets the item list, Order Element and position for user userID
+	GetItemListAndOrder(userID, itemID string) (string, *OrderElement, int)
 
-	Add(userID string, itemID string, listID string, foreignUserID string, foreignItemID string) error
-	Remove(userID string, itemID string, listID string) error
-	Pop(userID string, listID string) (*OrderElement, error)
+	// Order Element related functions
 
-	GetList(userID string, listID string) ([]*OrderElement, error)
+	// Add creates a new OrderElement with the itemID, foreignUSerID and foreignItemID, and stores it
+	// on the listID for userID.
+	Add(userID, itemID, listID, foreignUserID, foreignItemID string) error
+	// Remove removes the OrderElement for itemID in listID for userID
+	Remove(userID, itemID, listID string) error
+	// Pop removes the first OrderElement in listID for userID and return it
+	Pop(userID, listID string) (*OrderElement, error)
+
+	// GetList returns the list of OrderElement in listID for userID
+	GetList(userID, listID string) ([]*OrderElement, error)
 }
 
 type listManager struct {
-	store       ListStore
-	getUserName func(string) string
+	store ListStore
+	api   plugin.API
 }
 
 // NewListManager creates a new listManager
-func NewListManager(store ListStore, getUserName func(string) string) *listManager {
+func NewListManager(store ListStore, api plugin.API) *listManager {
 	return &listManager{
-		store:       store,
-		getUserName: getUserName,
+		store: store,
+		api:   api,
 	}
 }
 
-func (l *listManager) Add(userID string, message string) error {
+func (l *listManager) Add(userID, message string) error {
 	item := newItem(message)
 
-	l.store.AddItem(item)
+	if err := l.store.AddItem(item); err != nil {
+		return err
+	}
 
 	if err := l.store.Add(userID, item.ID, MyListKey, "", ""); err != nil {
+		l.store.RemoveItem(item.ID)
 		return err
 	}
 
 	return nil
 }
 
-func (l *listManager) Send(senderID string, receiverID string, message string) (string, error) {
+func (l *listManager) Send(senderID, receiverID, message string) (string, error) {
 	senderItem := newItem(message)
-	l.store.AddItem(senderItem)
+	if err := l.store.AddItem(senderItem); err != nil {
+		return "", err
+	}
+
 	receiverItem := newItem(message)
-	l.store.AddItem(receiverItem)
+	if err := l.store.AddItem(receiverItem); err != nil {
+		l.store.RemoveItem(senderItem.ID)
+		return "", err
+	}
 
 	appErr := l.store.Add(senderID, senderItem.ID, OutListKey, receiverID, receiverItem.ID)
 	if appErr != nil {
+		l.store.RemoveItem(senderItem.ID)
+		l.store.RemoveItem(receiverItem.ID)
 		return "", appErr
 	}
 
 	appErr = l.store.Add(receiverID, receiverItem.ID, InListKey, senderID, senderItem.ID)
 	if appErr != nil {
+		l.store.RemoveItem(senderItem.ID)
+		l.store.RemoveItem(receiverItem.ID)
+		l.store.Remove(senderID, senderItem.ID, OutListKey)
 		return "", appErr
 	}
 
 	return receiverItem.ID, nil
 }
 
-func (l *listManager) Get(userID string, listID string) ([]*ExtendedItem, error) {
+func (l *listManager) Get(userID, listID string) ([]*ExtendedItem, error) {
 	oes, err := l.store.GetList(userID, listID)
 	if err != nil {
 		return nil, err
@@ -93,7 +119,7 @@ func (l *listManager) Get(userID string, listID string) ([]*ExtendedItem, error)
 	return extendedItems, nil
 }
 
-func (l *listManager) Complete(userID string, itemID string) (todoMessage string, foreignUserID string, outErr error) {
+func (l *listManager) Complete(userID, itemID string) (todoMessage string, foreignUserID string, outErr error) {
 	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
 	if oe == nil {
 		return "", "", fmt.Errorf("cannot find element")
@@ -120,7 +146,7 @@ func (l *listManager) Complete(userID string, itemID string) (todoMessage string
 	return item.Message, oe.ForeignUserID, nil
 }
 
-func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, outErr error) {
+func (l *listManager) Enqueue(userID, itemID string) (todoMessage string, foreignUserID string, outErr error) {
 	item, err := l.store.GetItem(itemID)
 	if err != nil {
 		return "", "", err
@@ -148,7 +174,7 @@ func (l *listManager) Enqueue(userID string, itemID string) (todoMessage string,
 	return item.Message, oe.ForeignUserID, nil
 }
 
-func (l *listManager) Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, outErr error) {
+func (l *listManager) Remove(userID, itemID string) (todoMessage string, foreignUserID string, isSender bool, outErr error) {
 	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
 	if oe == nil {
 		return "", "", false, fmt.Errorf("cannot find element")
@@ -204,6 +230,14 @@ func (l *listManager) Pop(userID string) (todoMessage string, sender string, out
 	return item.Message, oe.ForeignUserID, nil
 }
 
+func (l *listManager) GetUserName(userID string) string {
+	user, err := l.api.GetUser(userID)
+	if err != nil {
+		return "Someone"
+	}
+	return user.Username
+}
+
 func (l *listManager) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem {
 	if item == nil || oe == nil {
 		return nil
@@ -229,7 +263,7 @@ func (l *listManager) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem
 		listName = "out"
 	}
 
-	userName := l.getUserName(oe.ForeignUserID)
+	userName := l.GetUserName(oe.ForeignUserID)
 
 	feItem.ForeignUser = userName
 	feItem.ForeignList = listName

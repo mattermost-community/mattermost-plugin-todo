@@ -95,7 +95,7 @@ func (l *listStore) RemoveItem(itemID string) error {
 	return nil
 }
 
-func (l *listStore) GetItemOrder(userID string, itemID string, listID string) (*OrderElement, int, error) {
+func (l *listStore) GetItemOrder(userID, itemID, listID string) (*OrderElement, int, error) {
 	originalJSONOrder, err := l.api.KVGet(getListKey(userID, listID))
 	if err != nil {
 		return nil, 0, err
@@ -122,7 +122,7 @@ func (l *listStore) GetItemOrder(userID string, itemID string, listID string) (*
 	return nil, 0, nil
 }
 
-func (l *listStore) GetItemListAndOrder(userID string, itemID string) (string, *OrderElement, int) {
+func (l *listStore) GetItemListAndOrder(userID, itemID string) (string, *OrderElement, int) {
 	oe, n, _ := l.GetItemOrder(userID, itemID, MyListKey)
 	if oe != nil {
 		return MyListKey, oe, n
@@ -141,7 +141,7 @@ func (l *listStore) GetItemListAndOrder(userID string, itemID string) (string, *
 	return "", nil, 0
 }
 
-func (l *listStore) Add(userID string, itemID string, listID string, foreignUserID string, foreignItemID string) error {
+func (l *listStore) Add(userID, itemID, listID, foreignUserID, foreignItemID string) error {
 	for i := 0; i < StoreRetries; i++ {
 		order, originalJSONOrder, err := l.getList(userID, listID)
 		if err != nil {
@@ -175,7 +175,7 @@ func (l *listStore) Add(userID string, itemID string, listID string, foreignUser
 	return errors.New("unable to store installation")
 }
 
-func (l *listStore) Remove(userID string, itemID string, listID string) error {
+func (l *listStore) Remove(userID, itemID, listID string) error {
 	for i := 0; i < StoreRetries; i++ {
 		order, originalJSONOrder, err := l.getList(userID, listID)
 		if err != nil {
@@ -209,7 +209,7 @@ func (l *listStore) Remove(userID string, itemID string, listID string) error {
 	return errors.New("unable to store order")
 }
 
-func (l *listStore) Pop(userID string, listID string) (*OrderElement, error) {
+func (l *listStore) Pop(userID, listID string) (*OrderElement, error) {
 	for i := 0; i < StoreRetries; i++ {
 		order, originalJSONOrder, err := l.getList(userID, listID)
 		if err != nil {
@@ -238,12 +238,12 @@ func (l *listStore) Pop(userID string, listID string) (*OrderElement, error) {
 	return nil, errors.New("unable to store order")
 }
 
-func (l *listStore) GetList(userID string, listID string) ([]*OrderElement, error) {
+func (l *listStore) GetList(userID, listID string) ([]*OrderElement, error) {
 	oes, _, err := l.getList(userID, listID)
 	return oes, err
 }
 
-func (l *listStore) getList(userID string, listID string) ([]*OrderElement, []byte, error) {
+func (l *listStore) getList(userID, listID string) ([]*OrderElement, []byte, error) {
 	originalJSONOrder, err := l.api.KVGet(getListKey(userID, listID))
 	if err != nil {
 		return nil, nil, err
@@ -262,7 +262,7 @@ func (l *listStore) getList(userID string, listID string) ([]*OrderElement, []by
 	return order, originalJSONOrder, nil
 }
 
-func (l *listStore) saveList(userID string, listID string, order []*OrderElement, originalJSONOrder []byte) (bool, error) {
+func (l *listStore) saveList(userID, listID string, order []*OrderElement, originalJSONOrder []byte) (bool, error) {
 	newJSONOrder, jsonErr := json.Marshal(order)
 	if jsonErr != nil {
 		return false, jsonErr
@@ -276,7 +276,7 @@ func (l *listStore) saveList(userID string, listID string, order []*OrderElement
 	return ok, nil
 }
 
-func (l *listStore) legacyOrderElement(userID string, listID string) ([]*OrderElement, []byte, error) {
+func (l *listStore) legacyOrderElement(userID, listID string) ([]*OrderElement, []byte, error) {
 	originalJSONOrder, err := l.api.KVGet(getListKey(userID, listID))
 	if err != nil {
 		return nil, nil, err

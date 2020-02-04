@@ -20,13 +20,14 @@ const (
 
 // ListManager representes the logic on the lists
 type ListManager interface {
-	Add(userID string, message string) error
-	Send(senderID string, receiverID string, message string) (string, error)
-	Get(userID string, listID string) ([]*ExtendedItem, error)
-	Complete(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
-	Enqueue(userID string, itemID string) (todoMessage string, foreignUserID string, err error)
-	Remove(userID string, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
+	Add(userID, message string) error
+	Send(senderID, receiverID, message string) (string, error)
+	Get(userID, listID string) ([]*ExtendedItem, error)
+	Complete(userID, itemID string) (todoMessage string, foreignUserID string, err error)
+	Enqueue(userID, itemID string) (todoMessage string, foreignUserID string, err error)
+	Remove(userID, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
 	Pop(userID string) (todoMessage string, sender string, err error)
+	GetUserName(userID string) string
 }
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -61,7 +62,7 @@ func (p *Plugin) OnActivate() error {
 	}
 	p.BotUserID = botID
 
-	p.listManager = NewListManager(NewListStore(p.API), p.getUserName)
+	p.listManager = NewListManager(NewListStore(p.API), p.API)
 
 	return p.API.RegisterCommand(getCommand())
 }
@@ -190,7 +191,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userName := p.getUserName(userID)
+	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s enqueued a Todo you sent: %s", userName, todoMessage)
 	p.PostBotDM(sender, message)
@@ -226,7 +227,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userName := p.getUserName(sender)
+	userName := p.listManager.GetUserName(sender)
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, todoMessage)
 	p.sendRefreshEvent(sender)
@@ -264,7 +265,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userName := p.getUserName(userID)
+	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, todoMessage)
 	if isSender {
@@ -281,12 +282,4 @@ func (p *Plugin) sendRefreshEvent(userID string) {
 		nil,
 		&model.WebsocketBroadcast{UserId: userID},
 	)
-}
-
-func (p *Plugin) getUserName(userID string) string {
-	userName := "Someone"
-	if user, err := p.API.GetUser(userID); err == nil {
-		userName = user.Username
-	}
-	return userName
 }

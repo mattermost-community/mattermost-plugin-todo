@@ -128,7 +128,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	responseMessage := fmt.Sprintf("Todo sent to @%s.", userName)
 
-	senderName := p.getUserName(extra.UserId)
+	senderName := p.listManager.GetUserName(extra.UserId)
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
@@ -199,7 +199,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	}
 
 	if sender != "" {
-		userName := p.getUserName(sender)
+		userName := p.listManager.GetUserName(sender)
 
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
 		p.sendRefreshEvent(sender)
