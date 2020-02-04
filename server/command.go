@@ -61,33 +61,32 @@ func getCommandResponse(responseType, text string) *model.CommandResponse {
 
 // ExecuteCommand executes a given command and returns a command response.
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	stringArgs := strings.Split(args.Command, " ")
-
-	if len(stringArgs) < 2 {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
-	}
-
-	command := stringArgs[1]
+	stringArgs := strings.Split(strings.TrimSpace(args.Command), " ")
+	lengthOfArgs := len(stringArgs)
+	restOfArgs := []string{}
 
 	var handler func([]string, *model.CommandArgs) (*model.CommandResponse, bool, error)
-
-	switch command {
-	case "add":
-		handler = p.runAddCommand
-	case "list":
+	if lengthOfArgs == 1 {
 		handler = p.runListCommand
-	case "pop":
-		handler = p.runPopCommand
-	case "send":
-		handler = p.runSendCommand
+	} else {
+		command := stringArgs[1]
+		if lengthOfArgs > 2 {
+			restOfArgs = stringArgs[2:]
+		}
+		switch command {
+		case "add":
+			handler = p.runAddCommand
+		case "list":
+			handler = p.runListCommand
+		case "pop":
+			handler = p.runPopCommand
+		case "send":
+			handler = p.runSendCommand
+		default:
+			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
+		}
 	}
-
-	if handler == nil {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
-	}
-
-	resp, isUserError, err := handler(stringArgs[2:], args)
-
+	resp, isUserError, err := handler(restOfArgs, args)
 	if err != nil {
 		if isUserError {
 			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("__Error: %s__\n\nRun `/todo help` for usage instructions.", err.Error())), nil
@@ -186,7 +185,6 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	if err != nil {
 		return nil, false, err
 	}
-
 	p.sendRefreshEvent(extra.UserId)
 
 	responseMessage += itemsListToString(items)
