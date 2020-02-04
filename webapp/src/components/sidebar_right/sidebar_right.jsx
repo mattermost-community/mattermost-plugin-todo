@@ -74,6 +74,7 @@ export default class SidebarRight extends React.PureComponent {
                             items={todos}
                             remove={this.props.actions.remove}
                             theme={this.props.theme}
+                            siteURL={this.props.siteURL}
                         />
                     </div>
                 </Scrollbars>

@@ -24,7 +24,7 @@ export const getCurrentTeamRoute = (state) => {
     return basePath + '/' + teamName + '/';
 };
 
-function getSiteURL() {
+export const getSiteURL = () => {
     let siteURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
     if (window.location.origin) {
         siteURL = window.location.origin;
@@ -43,4 +43,4 @@ function getSiteURL() {
     }
 
     return siteURL;
-}
+};

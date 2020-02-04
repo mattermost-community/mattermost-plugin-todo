@@ -5,6 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import {handleFormattedTextClick} from '../../utils';
 
 const PostUtils = window.PostUtils; // import the post utilities
 
@@ -24,7 +25,7 @@ function ToDoItems(props) {
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
-        const htmlFormattedText = PostUtils.formatText(item.message);
+        const htmlFormattedText = PostUtils.formatText(item.message, {siteURL: props.siteURL});
         const itemComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
 
         return (
@@ -39,7 +40,10 @@ function ToDoItems(props) {
                 >
                     {'X'}
                 </a>
-                <div style={style.message}>
+                <div
+                    style={style.message}
+                    onClick={handleFormattedTextClick}
+                >
                     {itemComponent}
                 </div>
                 <div
@@ -57,6 +61,7 @@ ToDoItems.propTypes = {
     items: PropTypes.array.isRequired,
     theme: PropTypes.object.isRequired,
     remove: PropTypes.func.isRequired,
+    siteURL: PropTypes.string.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {
