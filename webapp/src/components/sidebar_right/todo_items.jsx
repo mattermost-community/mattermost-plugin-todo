@@ -5,6 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+
 import {handleFormattedTextClick} from '../../utils';
 
 const PostUtils = window.PostUtils; // import the post utilities
