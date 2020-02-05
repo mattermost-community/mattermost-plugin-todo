@@ -1,4 +1,5 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import * as UserActions from 'mattermost-redux/actions/users';
 
 import {id as pluginId} from './manifest';
 import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS, GET_IN_ITEMS, GET_OUT_ITEMS} from './action_types';
@@ -43,7 +44,7 @@ export const getPluginServerRoute = (state) => {
     return basePath + '/plugins/' + pluginId;
 };
 
-export const add = (message) => async (dispatch, getState) => {
+export const add = (message, sendTo) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', {
         method: 'POST',
         credentials: 'same-origin',
@@ -51,10 +52,13 @@ export const add = (message) => async (dispatch, getState) => {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
         },
-        body: JSON.stringify({message}),
+        body: JSON.stringify({message, sendTo}),
     });
 
     dispatch(list());
+    if (sendTo) {
+        dispatch(list(false, 'out'));
+    }
 };
 
 export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
@@ -139,3 +143,10 @@ export const enqueue = (id) => async (dispatch, getState) => {
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
 };
+
+export function autocompleteUsers(username) {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username));
+        return data;
+    };
+}

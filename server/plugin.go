@@ -93,6 +93,11 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
+type addAPIRequest struct {
+	Message string
+	SendTo  string
+}
+
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 	if userID == "" {
@@ -100,20 +105,36 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var item *Item
+	var addRequest *addAPIRequest
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&item)
+	err := decoder.Decode(&addRequest)
 	if err != nil {
 		p.API.LogError("Unable to decode JSON err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
 
-	if err = p.listManager.Add(userID, item.Message); err != nil {
-		p.API.LogError("Unable to add item err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add item", err)
+	if addRequest.SendTo == "" {
+		if err = p.listManager.Add(userID, addRequest.Message); err != nil {
+			p.API.LogError("Unable to add item err=" + err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add item", err)
+		}
 		return
 	}
+
+	itemID, err := p.listManager.Send(userID, addRequest.SendTo, addRequest.Message)
+
+	if err != nil {
+		p.API.LogError("Unable to send item err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send item", err)
+		return
+	}
+
+	senderName := p.listManager.GetUserName(userID)
+
+	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
+
+	p.PostBotCustomDM(addRequest.SendTo, receiverMessage, addRequest.Message, itemID)
 }
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
