@@ -74,7 +74,7 @@ func (l *listStore) GetItem(itemID string) (*Item, error) {
 	}
 
 	if originalJSONItem == nil {
-		return nil, nil
+		return nil, errors.New("cannot find item")
 	}
 
 	var item *Item
@@ -102,7 +102,7 @@ func (l *listStore) GetItemOrder(userID, itemID, listID string) (*OrderElement, 
 	}
 
 	if originalJSONOrder == nil {
-		return nil, 0, nil
+		return nil, 0, errors.New("cannot load list")
 	}
 
 	var order []*OrderElement
@@ -119,7 +119,7 @@ func (l *listStore) GetItemOrder(userID, itemID, listID string) (*OrderElement, 
 			return oe, i, nil
 		}
 	}
-	return nil, 0, nil
+	return nil, 0, errors.New("cannot find item")
 }
 
 func (l *listStore) GetItemListAndOrder(userID, itemID string) (string, *OrderElement, int) {
@@ -191,7 +191,7 @@ func (l *listStore) Remove(userID, itemID, listID string) error {
 		}
 
 		if !found {
-			return nil
+			return errors.New("cannot find item")
 		}
 
 		ok, err := l.saveList(userID, listID, order, originalJSONOrder)
@@ -217,7 +217,7 @@ func (l *listStore) Pop(userID, listID string) (*OrderElement, error) {
 		}
 
 		if len(order) == 0 {
-			return nil, nil
+			return nil, errors.New("cannot find item")
 		}
 
 		oe := order[0]
@@ -236,6 +236,44 @@ func (l *listStore) Pop(userID, listID string) (*OrderElement, error) {
 	}
 
 	return nil, errors.New("unable to store order")
+}
+
+func (l *listStore) Bump(userID, itemID, listID string) error {
+	for i := 0; i < StoreRetries; i++ {
+		order, originalJSONOrder, err := l.getList(userID, listID)
+		if err != nil {
+			return err
+		}
+
+		var i int
+		var oe *OrderElement
+
+		for i, oe = range order {
+			if itemID == oe.ItemID {
+				break
+			}
+		}
+
+		if i == len(order) {
+			return errors.New("cannot find item")
+		}
+
+		newOrder := append([]*OrderElement{oe}, order[:i]...)
+		newOrder = append(newOrder, order[i+1:]...)
+
+		ok, err := l.saveList(userID, listID, newOrder, originalJSONOrder)
+		if err != nil {
+			return err
+		}
+
+		// If err is nil but ok is false, then something else updated the installs between the get and set above
+		// so we need to try again, otherwise we can return
+		if ok {
+			return nil
+		}
+	}
+
+	return errors.New("unable to store order")
 }
 
 func (l *listStore) GetList(userID, listID string) ([]*OrderElement, error) {

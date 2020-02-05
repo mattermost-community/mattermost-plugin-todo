@@ -34,6 +34,8 @@ type ListManager interface {
 	Remove(userID, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
 	// Removes the first element of myList for userID and returns the message and the sender of that todo if any
 	Pop(userID string) (todoMessage string, sender string, err error)
+	// Bump moves a itemID sent by userID to the top of its receiver inbox list
+	Bump(userID string, itemID string) (todoMessage string, receiver string, foreignItemID string, err error)
 	// GetUserName returns the readable username from userID
 	GetUserName(userID string) string
 }
@@ -88,6 +90,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleComplete(w, r)
 	case "/enqueue":
 		p.handleEnqueue(w, r)
+	case "/bump":
+		p.handleBump(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -133,7 +137,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	senderName := p.listManager.GetUserName(userID)
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-
+	p.sendRefreshEvent(addRequest.SendTo)
 	p.PostBotCustomDM(addRequest.SendTo, receiverMessage, addRequest.Message, itemID)
 }
 
@@ -223,6 +227,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s enqueued a Todo you sent: %s", userName, todoMessage)
+	p.sendRefreshEvent(sender)
 	p.PostBotDM(sender, message)
 }
 
@@ -303,6 +308,45 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 	p.sendRefreshEvent(foreignUser)
 	p.PostBotDM(foreignUser, message)
+}
+
+type bumpAPIRequest struct {
+	ID string
+}
+
+func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var bumpRequest *bumpAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&bumpRequest)
+	if err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	todoMessage, foreignUser, foreignItemID, err := p.listManager.Bump(userID, bumpRequest.ID)
+	if err != nil {
+		p.API.LogError("Unable to bump item, err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to bump item", err)
+		return
+	}
+
+	if foreignUser == "" {
+		return
+	}
+
+	userName := p.listManager.GetUserName(userID)
+
+	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
+
+	p.sendRefreshEvent(foreignUser)
+	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignItemID)
 }
 
 func (p *Plugin) sendRefreshEvent(userID string) {

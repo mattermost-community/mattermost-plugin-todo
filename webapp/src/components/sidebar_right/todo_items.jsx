@@ -9,7 +9,8 @@ import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_ut
 import DeleteButton from '../buttons/delete';
 import CompleteButton from '../buttons/complete';
 import EnqueueButton from '../buttons/enqueue';
-import {canComplete, canDelete, canEnqueue} from '../../utils';
+import BumpButton from '../buttons/bump';
+import {canComplete, canDelete, canEnqueue, canBump} from '../../utils';
 
 const PostUtils = window.PostUtils; // import the post utilities
 
@@ -78,10 +79,18 @@ function ToDoItems(props) {
             />
         );
 
+        const bumpButton = (
+            <BumpButton
+                itemId={item.id}
+                bump={props.bump}
+            />
+        );
+
         const actionButtons = (<div className='action-buttons'>
             {canDelete(props.list, item.list) && deleteButton}
             {canEnqueue(props.list) && enqueueButton}
             {canComplete(props.list) && completeButton}
+            {canBump(props.list, item.list) && bumpButton}
         </div>);
 
         return (
@@ -92,7 +101,7 @@ function ToDoItems(props) {
                 <div style={style.message}>
                     {itemComponent}
                 </div>
-                {(canDelete(props.list, item.list) || canComplete(props.list) || canEnqueue(props.list)) && actionButtons}
+                {(canDelete(props.list, item.list) || canComplete(props.list) || canEnqueue(props.list) || canBump(props.list, item.list)) && actionButtons}
                 <div
                     className='light'
                     style={style.subtitle}
@@ -112,6 +121,7 @@ ToDoItems.propTypes = {
     remove: PropTypes.func.isRequired,
     complete: PropTypes.func.isRequired,
     enqueue: PropTypes.func.isRequired,
+    bump: PropTypes.func.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {

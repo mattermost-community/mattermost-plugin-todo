@@ -12,6 +12,10 @@ export function canEnqueue(myList) {
     return myList === 'in';
 }
 
+export function canBump(myList, foreignList) {
+    return myList === 'out' && foreignList === 'in';
+}
+
 export function setSelectionRange(input, selectionStart, selectionEnd) {
     if (input.setSelectionRange) {
         input.focus();

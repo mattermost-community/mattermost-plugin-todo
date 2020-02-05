@@ -47,6 +47,7 @@ export default class SidebarRight extends React.PureComponent {
             remove: PropTypes.func.isRequired,
             complete: PropTypes.func.isRequired,
             enqueue: PropTypes.func.isRequired,
+            bump: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
             openRootModal: PropTypes.func.isRequired,
         }).isRequired,
@@ -144,6 +145,7 @@ export default class SidebarRight extends React.PureComponent {
                             remove={this.props.actions.remove}
                             complete={this.props.actions.complete}
                             enqueue={this.props.actions.enqueue}
+                            bump={this.props.actions.bump}
                         />
                     </div>
                 </Scrollbars>

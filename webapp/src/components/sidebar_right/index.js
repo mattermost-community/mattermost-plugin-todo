@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {getItems, getInItems, getOutItems} from '../../selectors';
-import {remove, list, openRootModal, complete, enqueue} from '../../actions';
+import {remove, list, openRootModal, complete, bump, enqueue} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
 
@@ -23,6 +23,7 @@ function mapDispatchToProps(dispatch) {
             remove,
             complete,
             enqueue,
+            bump,
             list,
             openRootModal,
         }, dispatch),

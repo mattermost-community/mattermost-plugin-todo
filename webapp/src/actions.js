@@ -144,6 +144,20 @@ export const enqueue = (id) => async (dispatch, getState) => {
     dispatch(list(false, 'in'));
 };
 
+export const bump = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/bump', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({id}),
+    });
+
+    dispatch(list(false, 'out'));
+};
+
 export function autocompleteUsers(username) {
     return async (doDispatch) => {
         const {data} = await doDispatch(UserActions.autocompleteUsers(username));
