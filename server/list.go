@@ -47,9 +47,9 @@ type listManager struct {
 }
 
 // NewListManager creates a new listManager
-func NewListManager(store ListStore, api plugin.API) *listManager {
+func NewListManager(api plugin.API) *listManager {
 	return &listManager{
-		store: store,
+		store: NewListStore(api),
 		api:   api,
 	}
 }
@@ -81,19 +81,17 @@ func (l *listManager) Send(senderID, receiverID, message string) (string, error)
 		return "", err
 	}
 
-	appErr := l.store.Add(senderID, senderItem.ID, OutListKey, receiverID, receiverItem.ID)
-	if appErr != nil {
+	if err := l.store.Add(senderID, senderItem.ID, OutListKey, receiverID, receiverItem.ID); err != nil {
 		l.store.RemoveItem(senderItem.ID)
 		l.store.RemoveItem(receiverItem.ID)
-		return "", appErr
+		return "", err
 	}
 
-	appErr = l.store.Add(receiverID, receiverItem.ID, InListKey, senderID, senderItem.ID)
-	if appErr != nil {
+	if err := l.store.Add(receiverID, receiverItem.ID, InListKey, senderID, senderItem.ID); err != nil {
 		l.store.RemoveItem(senderItem.ID)
 		l.store.RemoveItem(receiverItem.ID)
 		l.store.Remove(senderID, senderItem.ID, OutListKey)
-		return "", appErr
+		return "", err
 	}
 
 	return receiverItem.ID, nil

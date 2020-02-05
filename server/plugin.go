@@ -20,13 +20,21 @@ const (
 
 // ListManager representes the logic on the lists
 type ListManager interface {
+	// Add adds a todo to userID's myList with the message
 	Add(userID, message string) error
+	// Send sends the todo with the message from senderID to receiverID and returns the receiver's itemID
 	Send(senderID, receiverID, message string) (string, error)
+	// Get gets the todos on listID for userID
 	Get(userID, listID string) ([]*ExtendedItem, error)
+	// Complete completes the todo itemID for userID, and returns the message and the foreignUserID if any
 	Complete(userID, itemID string) (todoMessage string, foreignUserID string, err error)
+	// Enqueue moves one the todo itemID of userID from inbox to myList, and returns the message and the foreignUserID if any
 	Enqueue(userID, itemID string) (todoMessage string, foreignUserID string, err error)
+	// Remove removes the todo itemID for userID and returns the message, the foreignUserID if any, and whether the user sent the todo to someone else
 	Remove(userID, itemID string) (todoMessage string, foreignUserID string, isSender bool, err error)
+	// Removes the first element of myList for userID and returns the message and the sender of that todo if any
 	Pop(userID string) (todoMessage string, sender string, err error)
+	// GetUserName returns the readable username from userID
 	GetUserName(userID string) string
 }
 
@@ -62,7 +70,7 @@ func (p *Plugin) OnActivate() error {
 	}
 	p.BotUserID = botID
 
-	p.listManager = NewListManager(NewListStore(p.API), p.API)
+	p.listManager = NewListManager(p.API)
 
 	return p.API.RegisterCommand(getCommand())
 }
@@ -97,13 +105,13 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&item)
 	if err != nil {
 		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
 
 	if err = p.listManager.Add(userID, item.Message); err != nil {
 		p.API.LogError("Unable to add item err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add item", err)
 		return
 	}
 }
@@ -127,7 +135,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	items, err := p.listManager.Get(userID, listID)
 	if err != nil {
 		p.API.LogError("Unable to get items for user err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to get items for user", err)
 		return
 	}
 
@@ -136,7 +144,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {
 			p.API.LogError("Unable to send reminder err=" + err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send reminder", err)
 			return
 		}
 
@@ -157,7 +165,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	itemsJSON, err := json.Marshal(items)
 	if err != nil {
 		p.API.LogError("Unable marhsal items list to json err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal items list to json", err)
 		return
 	}
 
@@ -179,7 +187,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&enqueueRequest); err != nil {
 		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
 
@@ -187,7 +195,7 @@ func (p *Plugin) handleEnqueue(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		p.API.LogError("Unable to enqueue item err=" + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to enqueue item", err)
 		return
 	}
 
@@ -211,15 +219,15 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	var completeRequest *completeAPIRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&completeRequest); err != nil {
-		p.API.LogError("unable to decode JSON err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
 
 	todoMessage, sender, err := p.listManager.Complete(userID, completeRequest.ID)
 	if err != nil {
-		p.API.LogError("unable to complete item, err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.API.LogError("Unable to complete item err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete item", err)
 		return
 	}
 
@@ -250,14 +258,14 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&removeRequest)
 	if err != nil {
 		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
 
 	todoMessage, foreignUser, isSender, err := p.listManager.Remove(userID, removeRequest.ID)
 	if err != nil {
-		p.API.LogError("unable to complete item, err=" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		p.API.LogError("Unable to remove item, err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove item", err)
 		return
 	}
 
@@ -282,4 +290,16 @@ func (p *Plugin) sendRefreshEvent(userID string) {
 		nil,
 		&model.WebsocketBroadcast{UserId: userID},
 	)
+}
+
+func (p *Plugin) handleErrorWithCode(w http.ResponseWriter, code int, errTitle string, err error) {
+	w.WriteHeader(code)
+	b, _ := json.Marshal(struct {
+		Error   string `json:"error"`
+		Details string `json:"details"`
+	}{
+		Error:   errTitle,
+		Details: err.Error(),
+	})
+	_, _ = w.Write(b)
 }
