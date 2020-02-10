@@ -181,6 +181,7 @@ func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
 		// so we need to try again, otherwise we can return
 		if ok {
+			p.deleteItem(itemID)
 			return nil
 		}
 	}
@@ -199,6 +200,7 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 			return nil
 		}
 
+		itemID := order[0]
 		order = order[1:]
 
 		ok, err := p.storeOrder(userID, order, originalJSONOrder)
@@ -209,6 +211,7 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
 		// so we need to try again, otherwise we can return
 		if ok {
+			p.deleteItem(itemID)
 			return nil
 		}
 	}
