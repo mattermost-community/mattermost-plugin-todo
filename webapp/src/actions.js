@@ -1,4 +1,5 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {Client4} from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {id as pluginId} from './manifest';
@@ -45,15 +46,10 @@ export const getPluginServerRoute = (state) => {
 };
 
 export const add = (message, sendTo) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/add', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({message, sendTo}),
-    });
+    }));
 
     dispatch(list());
     if (sendTo) {
@@ -65,13 +61,9 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
     let resp;
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        });
+        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, Client4.getOptions({
+            method: 'get',
+        }));
         data = await resp.json();
     } catch (error) {
         return {error};
@@ -99,15 +91,10 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
 };
 
 export const remove = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/remove', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/remove', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({id}),
-    });
+    }));
 
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
@@ -115,45 +102,30 @@ export const remove = (id) => async (dispatch, getState) => {
 };
 
 export const complete = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/complete', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/complete', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({id}),
-    });
+    }));
 
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
 };
 
 export const enqueue = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/enqueue', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/enqueue', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({id}),
-    });
+    }));
 
     dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
 };
 
 export const bump = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/bump', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/bump', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({id}),
-    });
+    }));
 
     dispatch(list(false, 'out'));
 };
