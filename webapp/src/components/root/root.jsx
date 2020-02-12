@@ -66,7 +66,7 @@ export default class Root extends React.Component {
                     className='ToDoPluginRootModal'
                 >
                     <h1>{'Add a To Do'}</h1>
-                    <div className='todoplugin-item'>
+                    <div className='todoplugin-issue'>
                         <h2>
                             {'To Do Message'}
                         </h2>
@@ -104,13 +104,13 @@ export default class Root extends React.Component {
                             {'What does this do?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'Adding a to do will add an item to your to do list. You will get daily reminders about your to do items until you mark them as complete.'}
+                            {'Adding a to do will add an issue to your to do list. You will get daily reminders about your to do issues until you mark them as complete.'}
                         </div>
                         <div className='todoplugin-question'>
                             {'How is this different from flagging a post?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'To do items are disconnected from posts. You can generate to do items from posts but they have no other assoication to the posts. This allows for a cleaner to do list that does not rely on post history or someone else not deleting or editing the post.'}
+                            {'To do issues are disconnected from posts. You can generate to do issues from posts but they have no other assoication to the posts. This allows for a cleaner to do list that does not rely on post history or someone else not deleting or editing the post.'}
                         </div>
                     </div>
                 </div>

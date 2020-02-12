@@ -5,7 +5,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
 
-import ToDoItems from './todo_items';
+import ToDoIssues from './todo_issues';
 
 import './sidebar_right.scss';
 
@@ -46,7 +46,7 @@ export default class SidebarRight extends React.PureComponent {
         actions: PropTypes.shape({
             remove: PropTypes.func.isRequired,
             complete: PropTypes.func.isRequired,
-            enqueue: PropTypes.func.isRequired,
+            accept: PropTypes.func.isRequired,
             bump: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
             openRootModal: PropTypes.func.isRequired,
@@ -73,15 +73,15 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.list(false, 'out');
     }
 
-    getInItems() {
+    getInIssues() {
         return this.props.inTodos.length;
     }
 
-    getOutItems() {
+    getOutIssues() {
         return this.props.outTodos.length;
     }
 
-    getMyItems() {
+    getMyIssues() {
         return this.props.todos.length;
     }
 
@@ -115,36 +115,36 @@ export default class SidebarRight extends React.PureComponent {
                             className={this.state.list === MyListName ? 'selected' : ''}
                             onClick={() => this.openList(MyListName)}
                         >
-                            {'My'} {this.getMyItems() > 0 ? ' (' + this.getMyItems() + ')' : ''}
+                            {'My'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''}
                         </div>
                         <div
                             className={this.state.list === InListName ? 'selected' : ''}
                             onClick={() => this.openList(InListName)}
                         >
-                            {'In'} {this.getInItems() > 0 ? ' (' + this.getInItems() + ')' : ''}
+                            {'In'} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ')' : ''}
                         </div>
                         <div
                             className={this.state.list === OutListName ? 'selected' : ''}
                             onClick={() => this.openList(OutListName)}
                         >
-                            {'Out'} {this.getOutItems() > 0 ? ' (' + this.getOutItems() + ')' : ''}
+                            {'Out'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}
                         </div>
                     </div>
                     <div
                         className='section-header'
                         onClick={() => this.props.actions.openRootModal('')}
                     >
-                        {'Add new item '}
+                        {'Add new issue '}
                         <i className='icon fa fa-plus-circle'/>
                     </div>
                     <div>
-                        <ToDoItems
-                            items={todos}
+                        <ToDoIssues
+                            issues={todos}
                             theme={this.props.theme}
                             list={this.state.list}
                             remove={this.props.actions.remove}
                             complete={this.props.actions.complete}
-                            enqueue={this.props.actions.enqueue}
+                            accept={this.props.actions.accept}
                             bump={this.props.actions.bump}
                         />
                     </div>

@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 
 import {makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
-import DeleteButton from '../buttons/delete';
+import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
-import EnqueueButton from '../buttons/enqueue';
+import AcceptButton from '../buttons/accept';
 
 export default class PostTypeTodo extends React.PureComponent {
     static propTypes = {
@@ -15,7 +15,7 @@ export default class PostTypeTodo extends React.PureComponent {
         actions: PropTypes.shape({
             complete: PropTypes.func.isRequired,
             remove: PropTypes.func.isRequired,
-            enqueue: PropTypes.func.isRequired,
+            accept: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -36,17 +36,17 @@ export default class PostTypeTodo extends React.PureComponent {
 
         const content = (
             <div style={style.body}>
-                <DeleteButton
-                    itemId={this.props.post.props.itemId}
+                <RemoveButton
+                    issueId={this.props.post.props.issueId}
                     remove={this.props.actions.remove}
                     list={'my'}
                 />
-                <EnqueueButton
-                    itemId={this.props.post.props.itemId}
-                    enqueue={this.props.actions.enqueue}
+                <AcceptButton
+                    issueId={this.props.post.props.issueId}
+                    accept={this.props.actions.accept}
                 />
                 <CompleteButton
-                    itemId={this.props.post.props.itemId}
+                    issueId={this.props.post.props.issueId}
                     complete={this.props.actions.complete}
                 />
             </div>
@@ -129,7 +129,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             margin: '0',
             padding: '14px 0 0 0',
         },
-        summaryItem: {
+        summaryIssue: {
             fontFamily: 'Open Sans',
             fontSize: '14px',
             lineHeight: '26px',

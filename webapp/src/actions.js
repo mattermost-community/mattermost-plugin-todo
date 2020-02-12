@@ -3,7 +3,7 @@ import {Client4} from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {id as pluginId} from './manifest';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS, GET_IN_ITEMS, GET_OUT_ITEMS} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES} from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -69,16 +69,16 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
         return {error};
     }
 
-    let actionType = GET_ITEMS;
+    let actionType = GET_ISSUES;
     switch (listName) {
     case 'my':
-        actionType = GET_ITEMS;
+        actionType = GET_ISSUES;
         break;
     case 'in':
-        actionType = GET_IN_ITEMS;
+        actionType = GET_IN_ISSUES;
         break;
     case 'out':
-        actionType = GET_OUT_ITEMS;
+        actionType = GET_OUT_ISSUES;
         break;
     }
 
@@ -111,8 +111,8 @@ export const complete = (id) => async (dispatch, getState) => {
     dispatch(list(false, 'in'));
 };
 
-export const enqueue = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/enqueue', Client4.getOptions({
+export const accept = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/accept', Client4.getOptions({
         method: 'post',
         body: JSON.stringify({id}),
     }));

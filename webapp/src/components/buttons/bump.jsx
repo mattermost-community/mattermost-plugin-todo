@@ -5,13 +5,13 @@ const BumpButton = (props) => {
     return (
         <button
             className='button'
-            onClick={() => props.bump(props.itemId)}
+            onClick={() => props.bump(props.issueId)}
         >{'Bump'}</button>
     );
 };
 
 BumpButton.propTypes = {
-    itemId: PropTypes.string.isRequired,
+    issueId: PropTypes.string.isRequired,
     bump: PropTypes.func.isRequired,
 };
 

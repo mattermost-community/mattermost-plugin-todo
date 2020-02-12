@@ -1,6 +1,6 @@
 import Constants from './constants';
 
-export function canDelete(myList, foreignList) {
+export function canRemove(myList, foreignList) {
     return myList === 'my' || myList === 'in' || foreignList === 'in';
 }
 
@@ -8,7 +8,7 @@ export function canComplete(myList) {
     return myList === 'my' || myList === 'in';
 }
 
-export function canEnqueue(myList) {
+export function canAccept(myList) {
     return myList === 'in';
 }
 

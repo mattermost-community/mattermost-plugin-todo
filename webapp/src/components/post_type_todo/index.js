@@ -4,14 +4,14 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {remove, complete, enqueue} from '../../actions';
+import {remove, complete, accept} from '../../actions';
 
 import PostTypeTodo from './post_type_todo';
 
 function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
-        pendingAnswer: state['plugins-com.mattermost.plugin-todo'].inItems.some((item) => item.id === ownProps.post.props.itemId),
+        pendingAnswer: state['plugins-com.mattermost.plugin-todo'].inIssues.some((issue) => issue.id === ownProps.post.props.issueId),
     };
 }
 
@@ -20,7 +20,7 @@ function mapDispatchToProps(dispatch) {
         actions: bindActionCreators({
             remove,
             complete,
-            enqueue,
+            accept,
         }, dispatch),
     };
 }

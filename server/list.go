@@ -7,40 +7,40 @@ import (
 )
 
 const (
-	// MyListKey is the key used to store the order of the owned todos
+	// MyListKey is the key used to store the list of the owned todos
 	MyListKey = ""
-	// InListKey is the key used to store the order of received todos
+	// InListKey is the key used to store the list of received todos
 	InListKey = "_in"
-	// OutListKey is the key used to store the order of sent todos
+	// OutListKey is the key used to store the list of sent todos
 	OutListKey = "_out"
 )
 
 // ListStore represents the KVStore operations for lists
 type ListStore interface {
-	// Item related function
-	AddItem(item *Item) error
-	GetItem(itemID string) (*Item, error)
-	RemoveItem(itemID string) error
+	// Issue related function
+	AddIssue(issue *Issue) error
+	GetIssue(issueID string) (*Issue, error)
+	RemoveIssue(issueID string) error
 
-	// GetItemOrder gets the item Order Element and position of the item itemID on user userID's list listID
-	GetItemOrder(userID, itemID, listID string) (*OrderElement, int, error)
-	// GetItemListAndOrder gets the item list, Order Element and position for user userID
-	GetItemListAndOrder(userID, itemID string) (string, *OrderElement, int)
+	// Issue References related functions
 
-	// Order Element related functions
-
-	// Add creates a new OrderElement with the itemID, foreignUSerID and foreignItemID, and stores it
+	// AddReference creates a new IssueRef with the issueID, foreignUSerID and foreignIssueID, and stores it
 	// on the listID for userID.
-	Add(userID, itemID, listID, foreignUserID, foreignItemID string) error
-	// Remove removes the OrderElement for itemID in listID for userID
-	Remove(userID, itemID, listID string) error
-	// Pop removes the first OrderElement in listID for userID and returns it
-	Pop(userID, listID string) (*OrderElement, error)
-	// Bump moves the OrderElment for itemID in listID for userID to the beggining of the list
-	Bump(userID, itemID, listID string) error
+	AddReference(userID, issueID, listID, foreignUserID, foreignIssueID string) error
+	// RemoveReference removes the IssueRef for issueID in listID for userID
+	RemoveReference(userID, issueID, listID string) error
+	// PopReference removes the first IssueRef in listID for userID and returns it
+	PopReference(userID, listID string) (*IssueRef, error)
+	// BumpReference moves the Issue reference for issueID in listID for userID to the beggining of the list
+	BumpReference(userID, issueID, listID string) error
 
-	// GetList returns the list of OrderElement in listID for userID
-	GetList(userID, listID string) ([]*OrderElement, error)
+	// GetIssueReference gets the IssueRef and position of the issue issueID on user userID's list listID
+	GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error)
+	// GetIssueListAndReference gets the issue list, IssueRef and position for user userID
+	GetIssueListAndReference(userID, issueID string) (string, *IssueRef, int)
+
+	// GetList returns the list of IssueRef in listID for userID
+	GetList(userID, listID string) ([]*IssueRef, error)
 }
 
 type listManager struct {
@@ -56,16 +56,16 @@ func NewListManager(api plugin.API) *listManager {
 	}
 }
 
-func (l *listManager) Add(userID, message string) error {
-	item := newItem(message)
+func (l *listManager) AddIssue(userID, message string) error {
+	issue := newIssue(message)
 
-	if err := l.store.AddItem(item); err != nil {
+	if err := l.store.AddIssue(issue); err != nil {
 		return err
 	}
 
-	if err := l.store.Add(userID, item.ID, MyListKey, "", ""); err != nil {
-		if rollbackError := l.store.RemoveItem(item.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback item after add error, Err=", err.Error())
+	if err := l.store.AddReference(userID, issue.ID, MyListKey, "", ""); err != nil {
+		if rollbackError := l.store.RemoveIssue(issue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback issue after add error, Err=", err.Error())
 		}
 		return err
 	}
@@ -73,230 +73,230 @@ func (l *listManager) Add(userID, message string) error {
 	return nil
 }
 
-func (l *listManager) Send(senderID, receiverID, message string) (string, error) {
-	senderItem := newItem(message)
-	if err := l.store.AddItem(senderItem); err != nil {
+func (l *listManager) SendIssue(senderID, receiverID, message string) (string, error) {
+	senderIssue := newIssue(message)
+	if err := l.store.AddIssue(senderIssue); err != nil {
 		return "", err
 	}
 
-	receiverItem := newItem(message)
-	if err := l.store.AddItem(receiverItem); err != nil {
-		if rollbackError := l.store.RemoveItem(senderItem.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback sender item after send error, Err=", err.Error())
-		}
-		return "", err
-	}
-
-	if err := l.store.Add(senderID, senderItem.ID, OutListKey, receiverID, receiverItem.ID); err != nil {
-		if rollbackError := l.store.RemoveItem(senderItem.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback sender item after send error, Err=", err.Error())
-		}
-		if rollbackError := l.store.RemoveItem(receiverItem.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback receiver item after send error, Err=", err.Error())
+	receiverIssue := newIssue(message)
+	if err := l.store.AddIssue(receiverIssue); err != nil {
+		if rollbackError := l.store.RemoveIssue(senderIssue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback sender issue after send error, Err=", err.Error())
 		}
 		return "", err
 	}
 
-	if err := l.store.Add(receiverID, receiverItem.ID, InListKey, senderID, senderItem.ID); err != nil {
-		if rollbackError := l.store.RemoveItem(senderItem.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback sender item after send error, Err=", err.Error())
+	if err := l.store.AddReference(senderID, senderIssue.ID, OutListKey, receiverID, receiverIssue.ID); err != nil {
+		if rollbackError := l.store.RemoveIssue(senderIssue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback sender issue after send error, Err=", err.Error())
 		}
-		if rollbackError := l.store.RemoveItem(receiverItem.ID); rollbackError != nil {
-			l.api.LogError("cannot rollback receiver item after send error ,Err=", err.Error())
+		if rollbackError := l.store.RemoveIssue(receiverIssue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback receiver issue after send error, Err=", err.Error())
 		}
-		if rollbackError := l.store.Remove(senderID, senderItem.ID, OutListKey); rollbackError != nil {
+		return "", err
+	}
+
+	if err := l.store.AddReference(receiverID, receiverIssue.ID, InListKey, senderID, senderIssue.ID); err != nil {
+		if rollbackError := l.store.RemoveIssue(senderIssue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback sender issue after send error, Err=", err.Error())
+		}
+		if rollbackError := l.store.RemoveIssue(receiverIssue.ID); rollbackError != nil {
+			l.api.LogError("cannot rollback receiver issue after send error ,Err=", err.Error())
+		}
+		if rollbackError := l.store.RemoveReference(senderID, senderIssue.ID, OutListKey); rollbackError != nil {
 			l.api.LogError("cannot rollback sender list after send error, Err=", err.Error())
 		}
 		return "", err
 	}
 
-	return receiverItem.ID, nil
+	return receiverIssue.ID, nil
 }
 
-func (l *listManager) Get(userID, listID string) ([]*ExtendedItem, error) {
-	oes, err := l.store.GetList(userID, listID)
+func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, error) {
+	irs, err := l.store.GetList(userID, listID)
 	if err != nil {
 		return nil, err
 	}
 
-	extendedItems := []*ExtendedItem{}
-	for _, oe := range oes {
-		item, err := l.store.GetItem(oe.ItemID)
+	extendedIssues := []*ExtendedIssue{}
+	for _, ir := range irs {
+		issue, err := l.store.GetIssue(ir.IssueID)
 		if err != nil {
 			continue
 		}
 
-		extendedItem := l.extendItemInfo(item, oe)
-		extendedItems = append(extendedItems, extendedItem)
+		extendedIssue := l.extendIssueInfo(issue, ir)
+		extendedIssues = append(extendedIssues, extendedIssue)
 	}
 
-	return extendedItems, nil
+	return extendedIssues, nil
 }
 
-func (l *listManager) Complete(userID, itemID string) (todoMessage string, foreignUserID string, outErr error) {
-	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
-	if oe == nil {
+func (l *listManager) CompleteIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
+	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
+	if ir == nil {
 		return "", "", fmt.Errorf("cannot find element")
 	}
 
-	if err := l.store.Remove(userID, itemID, itemList); err != nil {
+	if err := l.store.RemoveReference(userID, issueID, issueList); err != nil {
 		return "", "", err
 	}
 
-	l.store.RemoveItem(itemID)
+	l.store.RemoveIssue(issueID)
 
-	if oe.ForeignUserID == "" {
+	if ir.ForeignUserID == "" {
 		return "", "", nil
 	}
 
-	if err := l.store.Remove(oe.ForeignUserID, oe.ForeignItemID, OutListKey); err != nil {
+	if err := l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, OutListKey); err != nil {
 		l.api.LogError("cannot clean foreigner list after complete, Err=", err.Error())
 	}
-	item, err := l.store.GetItem(oe.ForeignItemID)
+	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after complete, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after complete, Err=", err.Error())
 		return "", "", nil
 	}
 
-	err = l.store.RemoveItem(oe.ForeignItemID)
+	err = l.store.RemoveIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after complete, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after complete, Err=", err.Error())
 	}
 
-	return item.Message, oe.ForeignUserID, nil
+	return issue.Message, ir.ForeignUserID, nil
 }
 
-func (l *listManager) Enqueue(userID, itemID string) (todoMessage string, foreignUserID string, outErr error) {
-	item, err := l.store.GetItem(itemID)
+func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
+	issue, err := l.store.GetIssue(issueID)
 	if err != nil {
 		return "", "", err
 	}
 
-	oe, _, err := l.store.GetItemOrder(userID, itemID, InListKey)
+	ir, _, err := l.store.GetIssueReference(userID, issueID, InListKey)
 	if err != nil {
 		return "", "", err
 	}
-	if oe == nil {
-		return "", "", fmt.Errorf("element order not found")
+	if ir == nil {
+		return "", "", fmt.Errorf("element reference not found")
 	}
 
-	err = l.store.Add(userID, itemID, MyListKey, oe.ForeignUserID, oe.ForeignItemID)
+	err = l.store.AddReference(userID, issueID, MyListKey, ir.ForeignUserID, ir.ForeignIssueID)
 	if err != nil {
 		return "", "", err
 	}
 
-	err = l.store.Remove(userID, itemID, InListKey)
+	err = l.store.RemoveReference(userID, issueID, InListKey)
 	if err != nil {
-		if rollbackError := l.store.Remove(userID, itemID, MyListKey); rollbackError != nil {
-			l.api.LogError("cannot rollback enqueue operation, Err=", rollbackError.Error())
+		if rollbackError := l.store.RemoveReference(userID, issueID, MyListKey); rollbackError != nil {
+			l.api.LogError("cannot rollback accept operation, Err=", rollbackError.Error())
 		}
 		return "", "", err
 	}
 
-	return item.Message, oe.ForeignUserID, nil
+	return issue.Message, ir.ForeignUserID, nil
 }
 
-func (l *listManager) Remove(userID, itemID string) (todoMessage string, foreignUserID string, isSender bool, outErr error) {
-	itemList, oe, _ := l.store.GetItemListAndOrder(userID, itemID)
-	if oe == nil {
+func (l *listManager) RemoveIssue(userID, issueID string) (todoMessage string, foreignUserID string, isSender bool, outErr error) {
+	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
+	if ir == nil {
 		return "", "", false, fmt.Errorf("cannot find element")
 	}
 
-	if err := l.store.Remove(userID, itemID, itemList); err != nil {
+	if err := l.store.RemoveReference(userID, issueID, issueList); err != nil {
 		return "", "", false, err
 	}
 
-	if err := l.store.RemoveItem(itemID); err != nil {
-		l.api.LogError("cannot remove item, Err=", err.Error())
+	if err := l.store.RemoveIssue(issueID); err != nil {
+		l.api.LogError("cannot remove issue, Err=", err.Error())
 	}
 
-	if oe.ForeignUserID == "" {
+	if ir.ForeignUserID == "" {
 		return "", "", false, nil
 	}
 
-	list, _, _ := l.store.GetItemListAndOrder(oe.ForeignUserID, oe.ForeignItemID)
+	list, _, _ := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
 
-	if err := l.store.Remove(oe.ForeignUserID, oe.ForeignItemID, list); err != nil {
+	if err := l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, list); err != nil {
 		l.api.LogError("cannot clean foreigner list after remove, Err=", err.Error())
 	}
 
-	item, err := l.store.GetItem(oe.ForeignItemID)
+	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after remove, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after remove, Err=", err.Error())
 		return "", "", false, nil
 	}
 
-	err = l.store.RemoveItem(oe.ForeignItemID)
+	err = l.store.RemoveIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after remove, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after remove, Err=", err.Error())
 	}
 
-	return item.Message, oe.ForeignUserID, list == OutListKey, nil
+	return issue.Message, ir.ForeignUserID, list == OutListKey, nil
 }
 
-func (l *listManager) Pop(userID string) (todoMessage string, sender string, outErr error) {
-	oe, err := l.store.Pop(userID, MyListKey)
+func (l *listManager) PopIssue(userID string) (todoMessage string, sender string, outErr error) {
+	ir, err := l.store.PopReference(userID, MyListKey)
 	if err != nil {
 		return "", "", err
 	}
 
-	if oe == nil {
+	if ir == nil {
 		return "", "", nil
 	}
 
-	err = l.store.RemoveItem(oe.ItemID)
+	err = l.store.RemoveIssue(ir.IssueID)
 	if err != nil {
-		l.api.LogError("cannot remove item after pop, Err=", err.Error())
+		l.api.LogError("cannot remove issue after pop, Err=", err.Error())
 	}
 
-	if oe.ForeignUserID == "" {
+	if ir.ForeignUserID == "" {
 		return "", "", nil
 	}
 
-	item, err := l.store.GetItem(oe.ForeignItemID)
+	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after pop, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after pop, Err=", err.Error())
 		return "", "", nil
 	}
 
-	err = l.store.Remove(oe.ForeignUserID, oe.ForeignItemID, OutListKey)
+	err = l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, OutListKey)
 	if err != nil {
 		l.api.LogError("cannot clean foreigner list after pop, Err=", err.Error())
 	}
-	err = l.store.RemoveItem(oe.ForeignItemID)
+	err = l.store.RemoveIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot clean foreigner item after pop, Err=", err.Error())
+		l.api.LogError("cannot clean foreigner issue after pop, Err=", err.Error())
 	}
 
-	return item.Message, oe.ForeignUserID, nil
+	return issue.Message, ir.ForeignUserID, nil
 }
 
-func (l *listManager) Bump(userID, itemID string) (todoMessage string, receiver string, foreignItemID string, outErr error) {
-	oe, _, err := l.store.GetItemOrder(userID, itemID, OutListKey)
+func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {
+	ir, _, err := l.store.GetIssueReference(userID, issueID, OutListKey)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	if oe == nil {
-		return "", "", "", fmt.Errorf("cannot find sender item")
+	if ir == nil {
+		return "", "", "", fmt.Errorf("cannot find sender issue")
 	}
 
-	err = l.store.Bump(oe.ForeignUserID, oe.ForeignItemID, InListKey)
+	err = l.store.BumpReference(ir.ForeignUserID, ir.ForeignIssueID, InListKey)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	if oe == nil {
-		return "", "", "", fmt.Errorf("cannot find receiver item")
+	if ir == nil {
+		return "", "", "", fmt.Errorf("cannot find receiver issue")
 	}
 
-	item, err := l.store.GetItem(oe.ForeignItemID)
+	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
-		l.api.LogError("cannot find foreigner item after bump, Err=", err.Error())
+		l.api.LogError("cannot find foreigner issue after bump, Err=", err.Error())
 		return "", "", "", nil
 	}
 
-	return item.Message, oe.ForeignUserID, oe.ForeignItemID, nil
+	return issue.Message, ir.ForeignUserID, ir.ForeignIssueID, nil
 }
 
 func (l *listManager) GetUserName(userID string) string {
@@ -307,20 +307,20 @@ func (l *listManager) GetUserName(userID string) string {
 	return user.Username
 }
 
-func (l *listManager) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem {
-	if item == nil || oe == nil {
+func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue {
+	if issue == nil || ir == nil {
 		return nil
 	}
 
-	feItem := &ExtendedItem{
-		Item: *item,
+	feIssue := &ExtendedIssue{
+		Issue: *issue,
 	}
 
-	if oe.ForeignUserID == "" {
-		return feItem
+	if ir.ForeignUserID == "" {
+		return feIssue
 	}
 
-	list, _, n := l.store.GetItemListAndOrder(oe.ForeignUserID, oe.ForeignItemID)
+	list, _, n := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
 
 	var listName string
 	switch list {
@@ -332,11 +332,11 @@ func (l *listManager) extendItemInfo(item *Item, oe *OrderElement) *ExtendedItem
 		listName = "out"
 	}
 
-	userName := l.GetUserName(oe.ForeignUserID)
+	userName := l.GetUserName(ir.ForeignUserID)
 
-	feItem.ForeignUser = userName
-	feItem.ForeignList = listName
-	feItem.ForeignPosition = n
+	feIssue.ForeignUser = userName
+	feIssue.ForeignList = listName
+	feIssue.ForeignPosition = n
 
-	return feItem
+	return feIssue
 }

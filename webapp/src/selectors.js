@@ -16,6 +16,6 @@ export const getMessage = (state) => {
     }
     return post.message;
 };
-export const getItems = (state) => getPluginState(state).items;
-export const getInItems = (state) => getPluginState(state).inItems;
-export const getOutItems = (state) => getPluginState(state).outItems;
+export const getIssues = (state) => getPluginState(state).issues;
+export const getInIssues = (state) => getPluginState(state).inIssues;
+export const getOutIssues = (state) => getPluginState(state).outIssues;

@@ -26,7 +26,7 @@ export default class Plugin {
         const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do items.');
+        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do issues.');
 
         const refresh = () => {
             store.dispatch(list(false, 'my'));

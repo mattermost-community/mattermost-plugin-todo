@@ -4,16 +4,16 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getItems, getInItems, getOutItems} from '../../selectors';
-import {remove, list, openRootModal, complete, bump, enqueue} from '../../actions';
+import {getIssues, getInIssues, getOutIssues} from '../../selectors';
+import {remove, list, openRootModal, complete, bump, accept} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
 
 function mapStateToProps(state) {
     return {
-        todos: getItems(state),
-        inTodos: getInItems(state),
-        outTodos: getOutItems(state),
+        todos: getIssues(state),
+        inTodos: getInIssues(state),
+        outTodos: getOutIssues(state),
     };
 }
 
@@ -22,7 +22,7 @@ function mapDispatchToProps(dispatch) {
         actions: bindActionCreators({
             remove,
             complete,
-            enqueue,
+            accept,
             bump,
             list,
             openRootModal,

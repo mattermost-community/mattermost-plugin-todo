@@ -1,23 +1,23 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const DeleteButton = (props) => {
+const RemoveButton = (props) => {
     return (
         <button
             className='button'
-            onClick={() => props.remove(props.itemId)}
+            onClick={() => props.remove(props.issueId)}
         >{props.list === 'out' ? 'Cancel' : 'Won\'t do'}</button>
     );
 };
 
-DeleteButton.propTypes = {
-    itemId: PropTypes.string.isRequired,
+RemoveButton.propTypes = {
+    issueId: PropTypes.string.isRequired,
     remove: PropTypes.func.isRequired,
     list: PropTypes.string,
 };
 
-DeleteButton.defaultProps = {
+RemoveButton.defaultProps = {
     list: 'my',
 };
 
-export default DeleteButton;
+export default RemoveButton;

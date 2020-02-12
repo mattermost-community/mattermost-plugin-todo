@@ -5,13 +5,13 @@ const CompleteButton = (props) => {
     return (
         <button
             className='button'
-            onClick={() => props.complete(props.itemId)}
+            onClick={() => props.complete(props.issueId)}
         >{'Done'}</button>
     );
 };
 
 CompleteButton.propTypes = {
-    itemId: PropTypes.string.isRequired,
+    issueId: PropTypes.string.isRequired,
     complete: PropTypes.func.isRequired,
 };
 
