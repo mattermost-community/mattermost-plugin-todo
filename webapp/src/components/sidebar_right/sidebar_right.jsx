@@ -87,19 +87,19 @@ export default class SidebarRight extends React.PureComponent {
 
     render() {
         let todos = [];
-        let addButton = "";
+        let addButton = '';
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
-            addButton = "Add new To-do";
+            addButton = 'Add new To-do';
             break;
         case OutListName:
             todos = this.props.outTodos || [];
-            addButton = "Request a To-do from someone";
+            addButton = 'Request a To-do from someone';
             break;
         case InListName:
             todos = this.props.inTodos || [];
-            addButton = "Add new To-do";
+            addButton = 'Add new To-do';
             break;
         }
 
@@ -138,7 +138,7 @@ export default class SidebarRight extends React.PureComponent {
                         className='section-header'
                         onClick={() => this.props.actions.openRootModal('')}
                     >
-                        {addButton + " "}
+                        {addButton + ' '}
                         <i className='icon fa fa-plus-circle'/>
                     </div>
                     <div>
