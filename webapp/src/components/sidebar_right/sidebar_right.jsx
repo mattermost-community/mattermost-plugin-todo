@@ -87,15 +87,19 @@ export default class SidebarRight extends React.PureComponent {
 
     render() {
         let todos = [];
+        let addButton = "";
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
+            addButton = "Add new To-do";
             break;
         case OutListName:
             todos = this.props.outTodos || [];
+            addButton = "Request a To-do from someone";
             break;
         case InListName:
             todos = this.props.inTodos || [];
+            addButton = "Add new To-do";
             break;
         }
 
@@ -115,26 +119,26 @@ export default class SidebarRight extends React.PureComponent {
                             className={this.state.list === MyListName ? 'selected' : ''}
                             onClick={() => this.openList(MyListName)}
                         >
-                            {'My'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''}
+                            {'My Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''}
                         </div>
                         <div
                             className={this.state.list === InListName ? 'selected' : ''}
                             onClick={() => this.openList(InListName)}
                         >
-                            {'In'} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ')' : ''}
+                            {'Inbox'} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ')' : ''}
                         </div>
                         <div
                             className={this.state.list === OutListName ? 'selected' : ''}
                             onClick={() => this.openList(OutListName)}
                         >
-                            {'Out'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}
+                            {'Sent'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}
                         </div>
                     </div>
                     <div
                         className='section-header'
                         onClick={() => this.props.actions.openRootModal('')}
                     >
-                        {'Add new issue '}
+                        {addButton + " "}
                         <i className='icon fa fa-plus-circle'/>
                     </div>
                     <div>

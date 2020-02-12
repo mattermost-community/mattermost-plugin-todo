@@ -98,8 +98,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 }
 
 type addAPIRequest struct {
-	Message string
-	SendTo  string
+	Message string `json:"message"`
+	SendTo  string `json:"send_to"`
 }
 
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
@@ -198,7 +198,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 }
 
 type acceptAPIRequest struct {
-	ID string
+	ID string `json:"id"`
 }
 
 func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
@@ -232,7 +232,7 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 }
 
 type completeAPIRequest struct {
-	ID string
+	ID string `json:"id"`
 }
 
 func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
@@ -269,7 +269,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 }
 
 type removeAPIRequest struct {
-	ID string
+	ID string `json:"id"`
 }
 
 func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
@@ -311,7 +311,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 }
 
 type bumpAPIRequest struct {
-	ID string
+	ID string `json:"id"`
 }
 
 func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
