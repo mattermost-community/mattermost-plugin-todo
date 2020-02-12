@@ -26,7 +26,7 @@ func (p *Plugin) PostBotDM(userID string, message string) error {
 }
 
 // PostBotCustomDM posts a DM as the cloud bot user using custom post with action buttons.
-func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, itemID string) error {
+func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, issueID string) error {
 	channel, appError := p.API.GetDirectChannel(userID, p.BotUserID)
 	if appError != nil {
 		return appError
@@ -44,7 +44,7 @@ func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, ite
 			"type":    "custom_todo",
 			"message": message,
 			"todo":    todo,
-			"itemId":  itemID,
+			"issueId": issueID,
 		},
 	})
 
