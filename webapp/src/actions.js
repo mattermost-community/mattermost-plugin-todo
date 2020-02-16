@@ -117,8 +117,8 @@ export const accept = (id) => async (dispatch, getState) => {
         body: JSON.stringify({id}),
     }));
 
-    dispatch(list(false, 'my'));
     dispatch(list(false, 'in'));
+    dispatch(list(false, 'my'));
 };
 
 export const bump = (id) => async (dispatch, getState) => {

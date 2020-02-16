@@ -170,7 +170,7 @@ export default class SidebarRight extends React.PureComponent {
                     <div>
                         {inbox}
                         {separator}
-                        {this.state.showMy || (inboxList.length === 0) ?
+                        {(inboxList.length === 0) || (this.state.showMy && todos.length > 0)?
                             <ToDoIssues
                                 issues={todos}
                                 theme={this.props.theme}
