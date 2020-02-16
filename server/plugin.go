@@ -126,7 +126,14 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issueID, err := p.listManager.SendIssue(userID, addRequest.SendTo, addRequest.Message)
+	receiver, appErr := p.API.GetUserByUsername(addRequest.SendTo)
+	if appErr != nil {
+		p.API.LogError("username not valid, err=" + appErr.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", err)
+		return
+	}
+
+	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message)
 
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
@@ -137,8 +144,8 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	senderName := p.listManager.GetUserName(userID)
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-	p.sendRefreshEvent(addRequest.SendTo)
-	p.PostBotCustomDM(addRequest.SendTo, receiverMessage, addRequest.Message, issueID)
+	p.sendRefreshEvent(receiver.Id)
+	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
 }
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {

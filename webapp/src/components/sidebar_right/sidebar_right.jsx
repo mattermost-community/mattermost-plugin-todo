@@ -58,6 +58,8 @@ export default class SidebarRight extends React.PureComponent {
 
         this.state = {
             list: MyListName,
+            showInbox: true,
+            showMy: true,
         };
     }
 
@@ -65,6 +67,14 @@ export default class SidebarRight extends React.PureComponent {
         if (this.state.list !== listName) {
             this.setState({list: listName});
         }
+    }
+
+    toggleInbox() {
+        this.setState({showInbox: !this.state.showInbox});
+    }
+
+    toggleMy() {
+        this.setState({showMy: !this.state.showMy});
     }
 
     componentDidMount() {
@@ -88,19 +98,41 @@ export default class SidebarRight extends React.PureComponent {
     render() {
         let todos = [];
         let addButton = '';
+        let inboxList = [];
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
             addButton = 'Add new To-do';
+            inboxList = this.props.inTodos || [];
             break;
         case OutListName:
             todos = this.props.outTodos || [];
             addButton = 'Request a To-do from someone';
             break;
-        case InListName:
-            todos = this.props.inTodos || [];
-            addButton = 'Add new To-do';
-            break;
+        }
+
+        let inbox;
+        if (inboxList.length > 0) {
+            inbox = (
+                <div>
+                    <span onClick={() => this.toggleInbox()}>{`Incoming Todos (${inboxList.length}) (collapse)`}</span>
+                    {this.state.showInbox ?
+                        <ToDoIssues
+                            issues={inboxList}
+                            theme={this.props.theme}
+                            list={InListName}
+                            remove={this.props.actions.remove}
+                            complete={this.props.actions.complete}
+                            accept={this.props.actions.accept}
+                            bump={this.props.actions.bump}
+                        /> : ''}
+                </div>
+            );
+        }
+
+        let separator;
+        if ((inboxList.length > 0) && (todos.length > 0)) {
+            separator = (<span onClick={() => this.toggleMy()}>{`My Todos (${todos.length}) (collapse)`}</span>);
         }
 
         return (
@@ -119,13 +151,7 @@ export default class SidebarRight extends React.PureComponent {
                             className={this.state.list === MyListName ? 'selected' : ''}
                             onClick={() => this.openList(MyListName)}
                         >
-                            {'My Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''}
-                        </div>
-                        <div
-                            className={this.state.list === InListName ? 'selected' : ''}
-                            onClick={() => this.openList(InListName)}
-                        >
-                            {'Inbox'} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ')' : ''}
+                            {'Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ' received)' : ''}
                         </div>
                         <div
                             className={this.state.list === OutListName ? 'selected' : ''}
@@ -142,15 +168,18 @@ export default class SidebarRight extends React.PureComponent {
                         <i className='icon fa fa-plus-circle'/>
                     </div>
                     <div>
-                        <ToDoIssues
-                            issues={todos}
-                            theme={this.props.theme}
-                            list={this.state.list}
-                            remove={this.props.actions.remove}
-                            complete={this.props.actions.complete}
-                            accept={this.props.actions.accept}
-                            bump={this.props.actions.bump}
-                        />
+                        {inbox}
+                        {separator}
+                        {this.state.showMy || (inboxList.length === 0) ?
+                            <ToDoIssues
+                                issues={todos}
+                                theme={this.props.theme}
+                                list={this.state.list}
+                                remove={this.props.actions.remove}
+                                complete={this.props.actions.complete}
+                                accept={this.props.actions.accept}
+                                bump={this.props.actions.bump}
+                            /> : ''}
                     </div>
                 </Scrollbars>
             </React.Fragment>
