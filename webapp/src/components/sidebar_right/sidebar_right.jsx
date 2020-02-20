@@ -37,6 +37,7 @@ export default class SidebarRight extends React.PureComponent {
     static propTypes = {
         todos: PropTypes.arrayOf(PropTypes.object),
         theme: PropTypes.object.isRequired,
+        siteURL: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             remove: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
@@ -74,6 +75,7 @@ export default class SidebarRight extends React.PureComponent {
                             items={todos}
                             remove={this.props.actions.remove}
                             theme={this.props.theme}
+                            siteURL={this.props.siteURL}
                         />
                     </div>
                 </Scrollbars>

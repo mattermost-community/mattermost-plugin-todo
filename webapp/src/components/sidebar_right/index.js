@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getItems} from '../../selectors';
+import {getItems, getSiteURL} from '../../selectors';
 import {remove, list, openRootModal} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
@@ -12,6 +12,7 @@ import SidebarRight from './sidebar_right.jsx';
 function mapStateToProps(state) {
     return {
         todos: getItems(state),
+        siteURL: getSiteURL(),
     };
 }
 
