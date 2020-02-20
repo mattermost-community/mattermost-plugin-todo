@@ -43,6 +43,7 @@ export default class SidebarRight extends React.PureComponent {
         inTodos: PropTypes.arrayOf(PropTypes.object),
         outTodos: PropTypes.arrayOf(PropTypes.object),
         theme: PropTypes.object.isRequired,
+        siteURL: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             remove: PropTypes.func.isRequired,
             complete: PropTypes.func.isRequired,
@@ -179,6 +180,7 @@ export default class SidebarRight extends React.PureComponent {
                                 complete={this.props.actions.complete}
                                 accept={this.props.actions.accept}
                                 bump={this.props.actions.bump}
+                                siteURL={this.props.siteURL}
                             /> : ''}
                     </div>
                 </Scrollbars>

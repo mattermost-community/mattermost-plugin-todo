@@ -30,7 +30,7 @@ function ToDoIssues(props) {
         const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
         const formattedDate = month + ' ' + day + ', ' + year;
 
-        const htmlFormattedText = PostUtils.formatText(issue.message);
+        const htmlFormattedText = PostUtils.formatText(issue.message, {siteURL: props.siteURL});
         const issueComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
 
         let createdMessage = 'Created ';
@@ -122,6 +122,7 @@ ToDoIssues.propTypes = {
     complete: PropTypes.func.isRequired,
     accept: PropTypes.func.isRequired,
     bump: PropTypes.func.isRequired,
+    siteURL: PropTypes.string.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {

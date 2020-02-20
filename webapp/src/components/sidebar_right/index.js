@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getIssues, getInIssues, getOutIssues} from '../../selectors';
+import {getIssues, getInIssues, getOutIssues, getSiteURL} from '../../selectors';
 import {remove, list, openRootModal, complete, bump, accept} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
@@ -14,6 +14,7 @@ function mapStateToProps(state) {
         todos: getIssues(state),
         inTodos: getInIssues(state),
         outTodos: getOutIssues(state),
+        siteURL: getSiteURL(),
     };
 }
 
