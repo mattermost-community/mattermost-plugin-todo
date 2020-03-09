@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const CompleteButton = (props) => {
     return (
         <button
-            className='button'
+            className='btn btn-primary'
             onClick={() => props.complete(props.issueId)}
         >{'Done'}</button>
     );

@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const AcceptButton = (props) => {
     return (
         <button
-            className='button'
+            className='btn btn-primary'
             onClick={() => props.accept(props.issueId)}
         >{'Add to my list'}</button>
     );

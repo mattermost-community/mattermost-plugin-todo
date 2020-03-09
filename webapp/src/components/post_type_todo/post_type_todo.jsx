@@ -35,7 +35,10 @@ export default class PostTypeTodo extends React.PureComponent {
         const subtitle = this.props.post.props.todo;
 
         const content = (
-            <div style={style.body}>
+            <div
+                className='todo-post'
+                style={style.body}
+            >
                 <RemoveButton
                     issueId={this.props.post.props.issueId}
                     remove={this.props.actions.remove}

@@ -114,9 +114,15 @@ export default class SidebarRight extends React.PureComponent {
 
         let inbox;
         if (inboxList.length > 0) {
+            const actionName = this.state.showInbox ? 'collapse' : 'expand';
             inbox = (
                 <div>
-                    <span onClick={() => this.toggleInbox()}>{`Incoming Todos (${inboxList.length}) (collapse)`}</span>
+                    <span
+                        className='todo-separator'
+                        onClick={() => this.toggleInbox()}
+                    >
+                        {`Incoming Todos (${inboxList.length}) (${actionName})`}
+                    </span>
                     {this.state.showInbox ?
                         <ToDoIssues
                             issues={inboxList}
@@ -133,7 +139,15 @@ export default class SidebarRight extends React.PureComponent {
 
         let separator;
         if ((inboxList.length > 0) && (todos.length > 0)) {
-            separator = (<span onClick={() => this.toggleMy()}>{`My Todos (${todos.length}) (collapse)`}</span>);
+            const actionName = this.state.showMy ? 'collapse' : 'expand';
+            separator = (
+                <span
+                    className='todo-separator'
+                    onClick={() => this.toggleMy()}
+                >
+                    {`My Todos (${todos.length}) (${actionName})`}
+                </span>
+            );
         }
 
         return (
@@ -149,13 +163,13 @@ export default class SidebarRight extends React.PureComponent {
                 >
                     <div className='header-menu'>
                         <div
-                            className={this.state.list === MyListName ? 'selected' : ''}
+                            className={'btn btn-primary' + (this.state.list === MyListName ? ' selected' : '')}
                             onClick={() => this.openList(MyListName)}
                         >
                             {'Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ' received)' : ''}
                         </div>
                         <div
-                            className={this.state.list === OutListName ? 'selected' : ''}
+                            className={'btn btn-primary' + (this.state.list === OutListName ? ' selected' : '')}
                             onClick={() => this.openList(OutListName)}
                         >
                             {'Sent'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}

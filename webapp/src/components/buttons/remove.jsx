@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const RemoveButton = (props) => {
     return (
         <button
-            className='button'
+            className='btn btn-primary'
             onClick={() => props.remove(props.issueId)}
         >{props.list === 'out' ? 'Cancel' : 'Won\'t do'}</button>
     );

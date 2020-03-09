@@ -13,30 +13,45 @@
     .header-menu {
         padding: 15px;
         display: flex;
-        div {
+        .btn.btn-primary {
             cursor: pointer;
             flex-grow: 1;
             text-align: center;
             height: 100%;
+            margin-left: 5px;
+            margin-right: 5px;
+            background-color: var(--button-bg-10);
+            color: #000000;
             &:hover {
-                background-color: var(--button-bg-10);
+                color: var(--button-color);
             }
             &.selected {
-                background-color: var(--button-bg-10);
+                background-color: var(--button-bg);
+                color: var(--button-color);
             }
         }
     }
     .action-buttons {
         padding: 2px;
         display: flex;
-        .button {
+        .btn {
             flex-grow: 1;
             text-align: center;
             height: 100%;
-            cursor: pointer;
-            &:hover {
-                background-color: var(--button-bg-10);
-            }
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    }
+    .todo-separator {
+        font-size: 130%;
+        color: var(--link-color);
+    }
+}
+.post__content {
+    .todo-post {
+        .btn {
+            margin-left: 5px;
+            margin-right: 5px;
         }
     }
 }

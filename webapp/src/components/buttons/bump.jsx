@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 const BumpButton = (props) => {
     return (
         <button
-            className='button'
+            className='btn btn-primary'
             onClick={() => props.bump(props.issueId)}
         >{'Bump'}</button>
     );
