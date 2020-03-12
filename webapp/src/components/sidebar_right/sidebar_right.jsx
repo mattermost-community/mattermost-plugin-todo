@@ -117,12 +117,12 @@ export default class SidebarRight extends React.PureComponent {
             const actionName = this.state.showInbox ? 'collapse' : 'expand';
             inbox = (
                 <div>
-                    <span
+                    <div
                         className='todo-separator'
                         onClick={() => this.toggleInbox()}
                     >
                         {`Incoming Todos (${inboxList.length}) (${actionName})`}
-                    </span>
+                    </div>
                     {this.state.showInbox ?
                         <ToDoIssues
                             issues={inboxList}
@@ -141,12 +141,12 @@ export default class SidebarRight extends React.PureComponent {
         if ((inboxList.length > 0) && (todos.length > 0)) {
             const actionName = this.state.showMy ? 'collapse' : 'expand';
             separator = (
-                <span
+                <div
                     className='todo-separator'
                     onClick={() => this.toggleMy()}
                 >
                     {`My Todos (${todos.length}) (${actionName})`}
-                </span>
+                </div>
             );
         }
 

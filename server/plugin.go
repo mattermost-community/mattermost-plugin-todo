@@ -133,6 +133,14 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if receiver.Id == userID {
+		if err = p.listManager.AddIssue(userID, addRequest.Message); err != nil {
+			p.API.LogError("Unable to add issue err=" + err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+		}
+		return
+	}
+
 	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message)
 
 	if err != nil {
@@ -268,7 +276,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userName := p.listManager.GetUserName(sender)
+	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, todoMessage)
 	p.sendRefreshEvent(sender)

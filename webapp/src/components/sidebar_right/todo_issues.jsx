@@ -38,10 +38,10 @@ function ToDoIssues(props) {
         if (issue.user) {
             if (issue.list === '') {
                 createdMessage = 'Sent to ' + issue.user;
-                listPositionMessage = 'Accepted. On position ' + issue.position + '.';
+                listPositionMessage = 'Accepted. On position ' + (issue.position + 1) + '.';
             } else if (issue.list === 'in') {
                 createdMessage = 'Sent to ' + issue.user;
-                listPositionMessage = 'In Inbox on position ' + issue.position + '.';
+                listPositionMessage = 'In Inbox on position ' + (issue.position + 1) + '.';
             } else if (issue.list === 'out') {
                 createdMessage = 'Received from ' + issue.user;
                 listPositionMessage = '';

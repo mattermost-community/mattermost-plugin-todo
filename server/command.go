@@ -199,7 +199,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	}
 
 	if sender != "" {
-		userName := p.listManager.GetUserName(sender)
+		userName := p.listManager.GetUserName(extra.UserId)
 
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
 		p.sendRefreshEvent(sender)
