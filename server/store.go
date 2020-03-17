@@ -6,69 +6,60 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
 )
 
 const (
-	// StoreRetries is the number of retries to use when storing orders fails on a race
+	// StoreRetries is the number of retries to use when storing lists fails on a race
 	StoreRetries = 3
-	// StoreOrderKey is the key used to store orders in the plugin KV store
-	StoreOrderKey = "order"
-	// StoreItemKey is the key used to store items in the plugin KV store
-	StoreItemKey = "item"
+	// StoreListKey is the key used to store lists in the plugin KV store. Still "order" for backwards compatibility.
+	StoreListKey = "order"
+	// StoreIssueKey is the key used to store issues in the plugin KV store. Still "item" for backwards compatibilty.
+	StoreIssueKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
 )
 
-func (p *Plugin) storeLastReminderTimeForUser(userID string) error {
-	strTime := strconv.FormatInt(model.GetMillis(), 10)
-	appErr := p.API.KVSet(getReminderKey(userID), []byte(strTime))
-	if appErr != nil {
-		return errors.New(appErr.Error())
-	}
-	return nil
+// IssueRef denotes every element in any of the lists. Contains the issue that refers to,
+// and may contain foreign ids of issue and user, denoting the user this element is related to
+// and the issue on that user system.
+type IssueRef struct {
+	IssueID        string `json:"issue_id"`
+	ForeignIssueID string `json:"foreign_issue_id"`
+	ForeignUserID  string `json:"foreign_user_id"`
 }
 
-func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
-	timeBytes, appErr := p.API.KVGet(getReminderKey(userID))
-	if appErr != nil {
-		return 0, errors.New(appErr.Error())
-	}
-
-	if timeBytes == nil {
-		return 0, nil
-	}
-
-	reminderAt, err := strconv.ParseInt(string(timeBytes), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return reminderAt, nil
+func listKey(userID string, listID string) string {
+	return fmt.Sprintf("%s_%s%s", StoreListKey, userID, listID)
 }
 
-func (p *Plugin) storeItemForUser(userID string, item *Item) error {
-	err := p.storeItem(item)
-	if err != nil {
-		return err
-	}
-
-	p.addToOrderForUser(userID, item.ID)
-	if err != nil {
-		p.deleteItem(item.ID)
-		return err
-	}
-
-	return nil
+func issueKey(issueID string) string {
+	return fmt.Sprintf("%s_%s", StoreIssueKey, issueID)
 }
 
-func (p *Plugin) storeItem(item *Item) error {
-	jsonItem, jsonErr := json.Marshal(item)
+func reminderKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreReminderKey, userID)
+}
+
+type listStore struct {
+	api plugin.API
+}
+
+// NewListStore creates a new listStore
+func NewListStore(api plugin.API) *listStore {
+	return &listStore{
+		api: api,
+	}
+}
+
+func (l *listStore) AddIssue(issue *Issue) error {
+	jsonIssue, jsonErr := json.Marshal(issue)
 	if jsonErr != nil {
 		return jsonErr
 	}
 
-	appErr := p.API.KVSet(getItemKey(item.ID), jsonItem)
+	appErr := l.api.KVSet(issueKey(issue.ID), jsonIssue)
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
@@ -76,70 +67,100 @@ func (p *Plugin) storeItem(item *Item) error {
 	return nil
 }
 
-func (p *Plugin) getItem(itemID string) (*Item, []byte, error) {
-	originalJSONItem, appErr := p.API.KVGet(getItemKey(itemID))
+func (l *listStore) GetIssue(issueID string) (*Issue, error) {
+	originalJSONIssue, appErr := l.api.KVGet(issueKey(issueID))
 	if appErr != nil {
-		return nil, nil, errors.New(appErr.Error())
+		return nil, errors.New(appErr.Error())
 	}
 
-	if originalJSONItem == nil {
-		return nil, nil, nil
+	if originalJSONIssue == nil {
+		return nil, errors.New("cannot find issue")
 	}
 
-	var item *Item
-	err := json.Unmarshal(originalJSONItem, &item)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return item, originalJSONItem, nil
-}
-
-func (p *Plugin) deleteItem(itemID string) error {
-	appErr := p.API.KVDelete(getItemKey(itemID))
-	if appErr != nil {
-		return errors.New(appErr.Error())
-	}
-
-	return nil
-}
-
-func (p *Plugin) getItemsForUser(userID string) ([]*Item, error) {
-	order, _, err := p.getOrderForUser(userID)
+	var issue *Issue
+	err := json.Unmarshal(originalJSONIssue, &issue)
 	if err != nil {
 		return nil, err
 	}
 
-	items := []*Item{}
-	for _, id := range order {
-		item, _, err := p.getItem(id)
-		if err != nil {
-			return nil, err
-		}
-		if item != nil {
-			items = append(items, item)
+	return issue, nil
+}
+
+func (l *listStore) RemoveIssue(issueID string) error {
+	appErr := l.api.KVDelete(issueKey(issueID))
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+
+	return nil
+}
+
+func (l *listStore) GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error) {
+	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if originalJSONList == nil {
+		return nil, 0, errors.New("cannot load list")
+	}
+
+	var list []*IssueRef
+	jsonErr := json.Unmarshal(originalJSONList, &list)
+	if jsonErr != nil {
+		list, _, jsonErr = l.legacyIssueRef(userID, listID)
+		if list == nil {
+			return nil, 0, jsonErr
 		}
 	}
 
-	return items, nil
+	for i, ir := range list {
+		if ir.IssueID == issueID {
+			return ir, i, nil
+		}
+	}
+	return nil, 0, errors.New("cannot find issue")
 }
 
-func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
+func (l *listStore) GetIssueListAndReference(userID, issueID string) (string, *IssueRef, int) {
+	ir, n, _ := l.GetIssueReference(userID, issueID, MyListKey)
+	if ir != nil {
+		return MyListKey, ir, n
+	}
+
+	ir, n, _ = l.GetIssueReference(userID, issueID, OutListKey)
+	if ir != nil {
+		return OutListKey, ir, n
+	}
+
+	ir, n, _ = l.GetIssueReference(userID, issueID, InListKey)
+	if ir != nil {
+		return InListKey, ir, n
+	}
+
+	return "", nil, 0
+}
+
+func (l *listStore) AddReference(userID, issueID, listID, foreignUserID, foreignIssueID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		list, originalJSONList, err := l.getList(userID, listID)
 		if err != nil {
 			return err
 		}
 
-		for _, id := range order {
-			if id == itemID {
-				return errors.New("item id already exists in order")
+		for _, ir := range list {
+			if ir.IssueID == issueID {
+				return errors.New("issue id already exists in list")
 			}
 		}
 
-		order = append(order, itemID)
+		list = append(list, &IssueRef{
+			IssueID:        issueID,
+			ForeignIssueID: foreignIssueID,
+			ForeignUserID:  foreignUserID,
+		})
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		ok, err := l.saveList(userID, listID, list, originalJSONList)
 		if err != nil {
 			return err
 		}
@@ -154,26 +175,26 @@ func (p *Plugin) addToOrderForUser(userID string, itemID string) error {
 	return errors.New("unable to store installation")
 }
 
-func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
+func (l *listStore) RemoveReference(userID, issueID, listID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		list, originalJSONList, err := l.getList(userID, listID)
 		if err != nil {
 			return err
 		}
 
 		found := false
-		for i, id := range order {
-			if id == itemID {
-				order = append(order[:i], order[i+1:]...)
+		for i, ir := range list {
+			if ir.IssueID == issueID {
+				list = append(list[:i], list[i+1:]...)
 				found = true
 			}
 		}
 
 		if !found {
-			return nil
+			return errors.New("cannot find issue")
 		}
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		ok, err := l.saveList(userID, listID, list, originalJSONList)
 		if err != nil {
 			return err
 		}
@@ -181,29 +202,66 @@ func (p *Plugin) removeFromOrderForUser(userID string, itemID string) error {
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
 		// so we need to try again, otherwise we can return
 		if ok {
-			p.deleteItem(itemID)
 			return nil
 		}
 	}
 
-	return errors.New("unable to store order")
+	return errors.New("unable to store list")
 }
 
-func (p *Plugin) popFromOrderForUser(userID string) error {
+func (l *listStore) PopReference(userID, listID string) (*IssueRef, error) {
 	for i := 0; i < StoreRetries; i++ {
-		order, originalJSONOrder, err := p.getOrderForUser(userID)
+		list, originalJSONList, err := l.getList(userID, listID)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(list) == 0 {
+			return nil, errors.New("cannot find issue")
+		}
+
+		ir := list[0]
+		list = list[1:]
+
+		ok, err := l.saveList(userID, listID, list, originalJSONList)
+		if err != nil {
+			return nil, err
+		}
+
+		// If err is nil but ok is false, then something else updated the installs between the get and set above
+		// so we need to try again, otherwise we can return
+		if ok {
+			return ir, nil
+		}
+	}
+
+	return nil, errors.New("unable to store list")
+}
+
+func (l *listStore) BumpReference(userID, issueID, listID string) error {
+	for i := 0; i < StoreRetries; i++ {
+		list, originalJSONList, err := l.getList(userID, listID)
 		if err != nil {
 			return err
 		}
 
-		if len(order) == 0 {
-			return nil
+		var i int
+		var ir *IssueRef
+
+		for i, ir = range list {
+			if issueID == ir.IssueID {
+				break
+			}
 		}
 
-		itemID := order[0]
-		order = order[1:]
+		if i == len(list) {
+			return errors.New("cannot find issue")
+		}
 
-		ok, err := p.storeOrder(userID, order, originalJSONOrder)
+		newList := append([]*IssueRef{ir}, list[:i]...)
+		newList = append(newList, list[i+1:]...)
+
+		ok, err := l.saveList(userID, listID, newList, originalJSONList)
 		if err != nil {
 			return err
 		}
@@ -211,21 +269,44 @@ func (p *Plugin) popFromOrderForUser(userID string) error {
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
 		// so we need to try again, otherwise we can return
 		if ok {
-			p.deleteItem(itemID)
 			return nil
 		}
 	}
 
-	return errors.New("unable to store order")
+	return errors.New("unable to store list")
 }
 
-func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []byte) (bool, error) {
-	newJSONOrder, jsonErr := json.Marshal(order)
+func (l *listStore) GetList(userID, listID string) ([]*IssueRef, error) {
+	irs, _, err := l.getList(userID, listID)
+	return irs, err
+}
+
+func (l *listStore) getList(userID, listID string) ([]*IssueRef, []byte, error) {
+	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if originalJSONList == nil {
+		return []*IssueRef{}, originalJSONList, nil
+	}
+
+	var list []*IssueRef
+	jsonErr := json.Unmarshal(originalJSONList, &list)
+	if jsonErr != nil {
+		return l.legacyIssueRef(userID, listID)
+	}
+
+	return list, originalJSONList, nil
+}
+
+func (l *listStore) saveList(userID, listID string, list []*IssueRef, originalJSONList []byte) (bool, error) {
+	newJSONList, jsonErr := json.Marshal(list)
 	if jsonErr != nil {
 		return false, jsonErr
 	}
 
-	ok, appErr := p.API.KVCompareAndSet(getOrderKey(userID), originalJSONOrder, newJSONOrder)
+	ok, appErr := l.api.KVCompareAndSet(listKey(userID, listID), originalJSONList, newJSONList)
 	if appErr != nil {
 		return false, errors.New(appErr.Error())
 	}
@@ -233,33 +314,53 @@ func (p *Plugin) storeOrder(userID string, order []string, originalJSONOrder []b
 	return ok, nil
 }
 
-func (p *Plugin) getOrderForUser(userID string) ([]string, []byte, error) {
-	originalJSONOrder, err := p.API.KVGet(getOrderKey(userID))
+func (l *listStore) legacyIssueRef(userID, listID string) ([]*IssueRef, []byte, error) {
+	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if originalJSONOrder == nil {
-		return []string{}, originalJSONOrder, nil
+	if originalJSONList == nil {
+		return []*IssueRef{}, originalJSONList, nil
 	}
 
-	var order []string
-	jsonErr := json.Unmarshal(originalJSONOrder, &order)
+	var list []string
+	jsonErr := json.Unmarshal(originalJSONList, &list)
 	if jsonErr != nil {
 		return nil, nil, jsonErr
 	}
 
-	return order, originalJSONOrder, nil
+	newList := []*IssueRef{}
+	for _, v := range list {
+		newList = append(newList, &IssueRef{IssueID: v})
+	}
+
+	return newList, originalJSONList, nil
 }
 
-func getOrderKey(userID string) string {
-	return fmt.Sprintf("%s_%s", StoreOrderKey, userID)
+func (p *Plugin) saveLastReminderTimeForUser(userID string) error {
+	strTime := strconv.FormatInt(model.GetMillis(), 10)
+	appErr := p.API.KVSet(reminderKey(userID), []byte(strTime))
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+	return nil
 }
 
-func getItemKey(itemID string) string {
-	return fmt.Sprintf("%s_%s", StoreItemKey, itemID)
-}
+func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
+	timeBytes, appErr := p.API.KVGet(reminderKey(userID))
+	if appErr != nil {
+		return 0, errors.New(appErr.Error())
+	}
 
-func getReminderKey(userID string) string {
-	return fmt.Sprintf("%s_%s", StoreReminderKey, userID)
+	if timeBytes == nil {
+		return 0, nil
+	}
+
+	reminderAt, err := strconv.ParseInt(string(timeBytes), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return reminderAt, nil
 }

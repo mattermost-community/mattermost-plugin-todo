@@ -1,7 +1,9 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {Client4} from 'mattermost-redux/client';
+import * as UserActions from 'mattermost-redux/actions/users';
 
 import {id as pluginId} from './manifest';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ITEMS} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES} from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -43,38 +45,45 @@ export const getPluginServerRoute = (state) => {
     return basePath + '/plugins/' + pluginId;
 };
 
-export const add = (message) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/add', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({message}),
-    });
+export const add = (message, sendTo) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({message, send_to: sendTo}),
+    }));
 
     dispatch(list());
+    if (sendTo) {
+        dispatch(list(false, 'out'));
+    }
 };
 
-export const list = (reminder = false) => async (dispatch, getState) => {
+export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
     let resp;
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder, {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        });
+        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, Client4.getOptions({
+            method: 'get',
+        }));
         data = await resp.json();
     } catch (error) {
         return {error};
     }
 
+    let actionType = GET_ISSUES;
+    switch (listName) {
+    case 'my':
+        actionType = GET_ISSUES;
+        break;
+    case 'in':
+        actionType = GET_IN_ISSUES;
+        break;
+    case 'out':
+        actionType = GET_OUT_ISSUES;
+        break;
+    }
+
     dispatch({
-        type: GET_ITEMS,
+        type: actionType,
         data,
     });
 
@@ -82,15 +91,48 @@ export const list = (reminder = false) => async (dispatch, getState) => {
 };
 
 export const remove = (id) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/remove', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-        },
+    await fetch(getPluginServerRoute(getState()) + '/remove', Client4.getOptions({
+        method: 'post',
         body: JSON.stringify({id}),
-    });
+    }));
 
-    dispatch(list());
+    dispatch(list(false, 'my'));
+    dispatch(list(false, 'in'));
+    dispatch(list(false, 'out'));
 };
+
+export const complete = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/complete', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id}),
+    }));
+
+    dispatch(list(false, 'my'));
+    dispatch(list(false, 'in'));
+};
+
+export const accept = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/accept', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id}),
+    }));
+
+    dispatch(list(false, 'in'));
+    dispatch(list(false, 'my'));
+};
+
+export const bump = (id) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/bump', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id}),
+    }));
+
+    dispatch(list(false, 'out'));
+};
+
+export function autocompleteUsers(username) {
+    return async (doDispatch) => {
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username));
+        return data;
+    };
+}

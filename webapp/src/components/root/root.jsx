@@ -6,6 +6,8 @@ import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_ut
 import FullScreenModal from '../modals/full_screen_modal.jsx';
 
 import './root.scss';
+import AutocompleteSelector from '../user_selector/autocomplete_selector.jsx';
+import GenericUserProvider from '../user_selector/generic_user_provider.jsx';
 
 export default class Root extends React.Component {
     static propTypes = {
@@ -15,12 +17,14 @@ export default class Root extends React.Component {
         close: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
+        autocompleteUsers: PropTypes.func.isRequired,
     }
     constructor(props) {
         super(props);
 
         this.state = {
             message: null,
+            sendTo: null,
         };
     }
 
@@ -28,16 +32,16 @@ export default class Root extends React.Component {
         if (props.visible && state.message == null) {
             return {message: props.message};
         }
-        if (!props.visible && state.message != null) {
-            return {message: null};
+        if (!props.visible && (state.message != null || state.sendTo != null)) {
+            return {message: null, sendTo: null};
         }
         return null;
     }
 
     submit = () => {
         const {submit, close} = this.props;
-        const {message} = this.state;
-        submit(message);
+        const {message, sendTo} = this.state;
+        submit(message, sendTo);
         close();
     }
 
@@ -62,7 +66,7 @@ export default class Root extends React.Component {
                     className='ToDoPluginRootModal'
                 >
                     <h1>{'Add a To Do'}</h1>
-                    <div className='todoplugin-item'>
+                    <div className='todoplugin-issue'>
                         <h2>
                             {'To Do Message'}
                         </h2>
@@ -71,6 +75,17 @@ export default class Root extends React.Component {
                             style={style.textarea}
                             value={message}
                             onChange={(e) => this.setState({message: e.target.value})}
+                        />
+                    </div>
+                    <div>
+                        <AutocompleteSelector
+                            id='send_to_user'
+                            providers={[new GenericUserProvider(this.props.autocompleteUsers)]}
+                            onSelected={(selected) => this.setState({sendTo: selected.username})}
+                            label={'Send to user'}
+                            helpText={'Select a user if you want to send this todo.'}
+                            placeholder={''}
+                            value={this.state.sendTo}
                         />
                     </div>
                     <div className='todoplugin-button-container'>
@@ -89,13 +104,13 @@ export default class Root extends React.Component {
                             {'What does this do?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'Adding a to do will add an item to your to do list. You will get daily reminders about your to do items until you mark them as complete.'}
+                            {'Adding a to do will add an issue to your to do list. You will get daily reminders about your to do issues until you mark them as complete.'}
                         </div>
                         <div className='todoplugin-question'>
                             {'How is this different from flagging a post?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'To do items are disconnected from posts. You can generate to do items from posts but they have no other assoication to the posts. This allows for a cleaner to do list that does not rely on post history or someone else not deleting or editing the post.'}
+                            {'To do issues are disconnected from posts. You can generate to do issues from posts but they have no other assoication to the posts. This allows for a cleaner to do list that does not rely on post history or someone else not deleting or editing the post.'}
                         </div>
                     </div>
                 </div>
@@ -120,7 +135,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             backgroundColor: theme.buttonBg,
         },
         inactiveButton: {
-            color: changeOpacity(theme.buttonColor, 0.5),
+            color: '#000000',
             backgroundColor: changeOpacity(theme.buttonBg, 0.1),
         },
     };

@@ -7,6 +7,7 @@ import SidebarRight from './components/sidebar_right';
 
 import { openRootModal, list, setShowRHSAction } from './actions';
 import reducer from './reducer';
+import PostTypeTodo from './components/post_type_todo';
 
 let activityFunc;
 let lastActivityTime = Number.MAX_SAFE_INTEGER;
@@ -25,11 +26,19 @@ export default class Plugin {
         const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do items.');
+        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do issues.');
 
-        registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, () => store.dispatch(list()));
+        const refresh = () => {
+            store.dispatch(list(false, 'my'));
+            store.dispatch(list(false, 'in'));
+            store.dispatch(list(false, 'out'));
+        };
+
+        registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
 
         store.dispatch(list(true));
+        store.dispatch(list(false, 'in'));
+        store.dispatch(list(false, 'out'));
 
         activityFunc = () => {
             const now = new Date().getTime();
@@ -40,6 +49,8 @@ export default class Plugin {
         };
 
         document.addEventListener('click', activityFunc);
+
+        registry.registerPostTypeComponent('custom_todo', PostTypeTodo);
     }
 
     deinitialize() {

@@ -10,4 +10,49 @@
             color: var(--center-channel-color-90);
         }
     }
+    .header-menu {
+        padding: 15px;
+        display: flex;
+        .btn.btn-primary {
+            cursor: pointer;
+            flex-grow: 1;
+            text-align: center;
+            height: 100%;
+            margin-left: 5px;
+            margin-right: 5px;
+            background-color: var(--button-bg-10);
+            color: #000000;
+            &:hover {
+                color: var(--button-color);
+            }
+            &.selected {
+                background-color: var(--button-bg);
+                color: var(--button-color);
+            }
+        }
+    }
+    .action-buttons {
+        padding: 2px;
+        display: flex;
+        .btn {
+            flex-grow: 1;
+            text-align: center;
+            height: 100%;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    }
+    .todo-separator {
+        font-size: 130%;
+        color: var(--link-color);
+        padding-left: 5px;
+    }
+}
+.post__content {
+    .todo-post {
+        .btn {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+    }
 }

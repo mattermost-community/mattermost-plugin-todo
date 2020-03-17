@@ -17,10 +17,22 @@ add [message]
 	example: /todo add Don't forget to be awesome
 
 list
-	Lists your to do items.
+	Lists your to do issues.
+
+list [listName]
+	List your issues in certain list
+
+	example: /todo list in
+	example: /todo list out
+	example (same as /todo list): /todo list my
 
 pop
-	Removes the to do item at the top of the list.
+	Removes the to do issue at the top of the list.
+
+send [user] [message]
+	Sends some user a Todo
+
+	example: /todo send @awesomePerson Don't forget to be awesome
 
 help
 	Display usage.
@@ -68,6 +80,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runListCommand
 		case "pop":
 			handler = p.runPopCommand
+		case "send":
+			handler = p.runSendCommand
 		default:
 			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
 		}
@@ -84,6 +98,44 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return resp, nil
 }
 
+func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	if len(args) < 2 {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You must specify a user and a message.\n"+getHelp()), false, nil
+	}
+
+	userName := args[0]
+	if args[0][0] == '@' {
+		userName = args[0][1:]
+	}
+	receiver, appErr := p.API.GetUserByUsername(userName)
+	if appErr != nil {
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user.\n"+getHelp()), false, nil
+	}
+
+	if receiver.Id == extra.UserId {
+		return p.runAddCommand(args[1:], extra)
+	}
+
+	message := strings.Join(args[1:], " ")
+
+	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message)
+	if err != nil {
+		return nil, false, err
+	}
+
+	p.sendRefreshEvent(extra.UserId)
+	p.sendRefreshEvent(receiver.Id)
+
+	responseMessage := fmt.Sprintf("Todo sent to @%s.", userName)
+
+	senderName := p.listManager.GetUserName(extra.UserId)
+
+	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
+
+	p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+}
+
 func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	message := strings.Join(args, " ")
 
@@ -91,14 +143,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
 	}
 
-	item := &Item{
-		ID:       model.NewId(),
-		CreateAt: model.GetMillis(),
-		Message:  message,
-	}
-
-	err := p.storeItemForUser(extra.UserId, item)
-	if err != nil {
+	if err := p.listManager.AddIssue(extra.UserId, message); err != nil {
 		return nil, false, err
 	}
 
@@ -106,49 +151,73 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 
 	responseMessage := "Added to do."
 
-	items, err := p.getItemsForUser(extra.UserId)
+	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
 	responseMessage += "To Do List:\n\n"
-	responseMessage += itemsListToString(items)
+	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	items, err := p.getItemsForUser(extra.UserId)
+	listID := MyListKey
+	responseMessage := "To Do List:\n\n"
+
+	if len(args) > 0 {
+		switch args[0] {
+		case "my":
+		case "in":
+			listID = InListKey
+			responseMessage = "Received To Do list:\n\n"
+		case "out":
+			listID = OutListKey
+			responseMessage = "Sent To Do list:\n\n"
+		default:
+			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), true, nil
+		}
+	}
+
+	issues, err := p.listManager.GetIssueList(extra.UserId, listID)
 	if err != nil {
 		return nil, false, err
 	}
 	p.sendRefreshEvent(extra.UserId)
 
-	responseMessage := "To Do List:\n\n"
-	responseMessage += itemsListToString(items)
+	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	err := p.popFromOrderForUser(extra.UserId)
+	todoMessage, sender, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
 		return nil, false, err
+	}
+
+	if sender != "" {
+		userName := p.listManager.GetUserName(extra.UserId)
+
+		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
+		p.sendRefreshEvent(sender)
+		p.PostBotDM(sender, message)
 	}
 
 	p.sendRefreshEvent(extra.UserId)
 
 	responseMessage := "Removed top to do."
 
-	items, err := p.getItemsForUser(extra.UserId)
+	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
 	responseMessage += "To Do List:\n\n"
-	responseMessage += itemsListToString(items)
+	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
