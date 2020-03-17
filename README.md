@@ -1,4 +1,8 @@
-# Mattermost To Do Plugin [![CircleCI](https://circleci.com/gh/mattermost/mattermost-plugin-todo.svg?style=svg)](https://circleci.com/gh/mattermost/mattermost-plugin-todo)
+# Mattermost To Do Plugin 
+
+[![Build Status](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-todo/master.svg)](https://circleci.com/gh/mattermost/mattermost-plugin-todo)
+[![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mattermost-plugin-todo/master.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-todo)
+
 
 A plugin to track to do issues in a list and send you daily reminders about your to do list.
 
