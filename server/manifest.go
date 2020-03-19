@@ -14,8 +14,8 @@ const manifestStr = `
 {
   "id": "com.mattermost.plugin-todo",
   "name": "To Do Plugin",
-  "description": "This plugin makes it easy to keep track of to do items and get daily reminders.",
-  "version": "0.1.0",
+  "description": "This plugin makes it easy to keep track of to do issues and get daily reminders.",
+  "version": "0.2.0",
   "min_server_version": "5.12.0",
   "server": {
     "executables": {
