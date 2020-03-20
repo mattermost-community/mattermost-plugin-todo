@@ -118,7 +118,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	message := strings.Join(args[1:], " ")
 
-	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message)
+	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "")
 	if err != nil {
 		return nil, false, err
 	}
@@ -143,7 +143,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
 	}
 
-	if err := p.listManager.AddIssue(extra.UserId, message); err != nil {
+	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
 		return nil, false, err
 	}
 
@@ -193,14 +193,14 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	todoMessage, sender, err := p.listManager.PopIssue(extra.UserId)
+	todoMessage, sender, postID, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
 
-	if sender != "" {
-		userName := p.listManager.GetUserName(extra.UserId)
+	userName := p.listManager.GetUserName(extra.UserId)
 
+	if sender != "" {
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
 		p.sendRefreshEvent(sender)
 		p.PostBotDM(sender, message)
@@ -209,6 +209,9 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	p.sendRefreshEvent(extra.UserId)
 
 	responseMessage := "Removed top to do."
+
+	replyMessage := fmt.Sprintf("@%s popped a todo attached to this thread", userName)
+	p.postReplyIfNeeded(postID, replyMessage, todoMessage)
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {

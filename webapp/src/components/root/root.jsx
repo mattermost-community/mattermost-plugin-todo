@@ -25,6 +25,7 @@ export default class Root extends React.Component {
         this.state = {
             message: null,
             sendTo: null,
+            attachToThread: false,
         };
     }
 
@@ -33,15 +34,29 @@ export default class Root extends React.Component {
             return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
-            return {message: null, sendTo: null};
+            return {message: null, sendTo: null, attachToThread: false};
         }
         return null;
     }
 
+    handleAttachChange = (e) => {
+        const value = e.target.checked;
+        if (value !== this.state.attachToThread) {
+            this.setState({
+                attachToThread: value,
+            });
+        }
+    }
+
     submit = () => {
-        const {submit, close} = this.props;
-        const {message, sendTo} = this.state;
-        submit(message, sendTo);
+        const {submit, close, postID} = this.props;
+        const {message, sendTo, attachToThread} = this.state;
+        if (attachToThread) {
+            submit(message, sendTo, postID);
+        } else {
+            submit(message, sendTo);
+        }
+
         close();
     }
 
@@ -88,6 +103,14 @@ export default class Root extends React.Component {
                             value={this.state.sendTo}
                         />
                     </div>
+                    {this.props.postID && (<div>
+                        <input
+                            type='checkbox'
+                            checked={this.state.attachToThread}
+                            onChange={this.handleAttachChange}
+                        />
+                        {' add to thread'}
+                    </div>)}
                     <div className='todoplugin-button-container'>
                         <button
                             className={'btn btn-primary'}
