@@ -193,17 +193,17 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	todoMessage, sender, postID, err := p.listManager.PopIssue(extra.UserId)
+	issue, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
 
 	userName := p.listManager.GetUserName(extra.UserId)
 
-	if sender != "" {
-		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
-		p.sendRefreshEvent(sender)
-		p.PostBotDM(sender, message)
+	if issue.ForeignUser != "" {
+		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
+		p.sendRefreshEvent(issue.ForeignUser)
+		p.PostBotDM(issue.ForeignUser, message)
 	}
 
 	p.sendRefreshEvent(extra.UserId)
@@ -211,7 +211,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	responseMessage := "Removed top to do."
 
 	replyMessage := fmt.Sprintf("@%s popped a todo attached to this thread", userName)
-	p.postReplyIfNeeded(postID, replyMessage, todoMessage)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
