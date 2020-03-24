@@ -103,13 +103,14 @@ export default class Root extends React.Component {
                             value={this.state.sendTo}
                         />
                     </div>
-                    {this.props.postID && (<div>
+                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
                         <input
                             type='checkbox'
                             checked={this.state.attachToThread}
                             onChange={this.handleAttachChange}
                         />
-                        {' add to thread'}
+                        <b>{' Add to thread'}</b>
+                        <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
                     </div>)}
                     <div className='todoplugin-button-container'>
                         <button

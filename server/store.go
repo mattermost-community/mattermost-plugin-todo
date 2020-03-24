@@ -86,15 +86,24 @@ func (l *listStore) GetIssue(issueID string) (*Issue, error) {
 	return issue, nil
 }
 
-func (l *listStore) RemoveIssue(issueID string) (*Issue, error) {
+func (l *listStore) RemoveIssue(issueID string) error {
+	appErr := l.api.KVDelete(issueKey(issueID))
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+
+	return nil
+}
+
+func (l *listStore) GetAndRemoveIssue(issueID string) (*Issue, error) {
 	issue, err := l.GetIssue(issueID)
 	if err != nil {
 		return nil, err
 	}
 
-	appErr := l.api.KVDelete(issueKey(issueID))
-	if appErr != nil {
-		return nil, errors.New(appErr.Error())
+	err = l.RemoveIssue(issueID)
+	if err != nil {
+		return nil, err
 	}
 
 	return issue, nil
