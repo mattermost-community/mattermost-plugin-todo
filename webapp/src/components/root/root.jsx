@@ -92,6 +92,15 @@ export default class Root extends React.Component {
                             onChange={(e) => this.setState({message: e.target.value})}
                         />
                     </div>
+                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
+                        <input
+                            type='checkbox'
+                            checked={this.state.attachToThread}
+                            onChange={this.handleAttachChange}
+                        />
+                        <b>{' Add to thread'}</b>
+                        <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
+                    </div>)}
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
@@ -103,15 +112,6 @@ export default class Root extends React.Component {
                             value={this.state.sendTo}
                         />
                     </div>
-                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
-                        <input
-                            type='checkbox'
-                            checked={this.state.attachToThread}
-                            onChange={this.handleAttachChange}
-                        />
-                        <b>{' Add to thread'}</b>
-                        <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
-                    </div>)}
                     <div className='todoplugin-button-container'>
                         <button
                             className={'btn btn-primary'}
