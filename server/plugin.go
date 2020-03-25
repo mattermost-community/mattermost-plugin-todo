@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	// WSEventRefresh is the WebSocket event for refreshing the to do list
+	// WSEventRefresh is the WebSocket event for refreshing the Todo list
 	WSEventRefresh = "refresh"
 )
 
@@ -64,8 +64,8 @@ func (p *Plugin) OnActivate() error {
 
 	botID, err := p.Helpers.EnsureBot(&model.Bot{
 		Username:    "todo",
-		DisplayName: "To Do Bot",
-		Description: "Created by the To Do plugin.",
+		DisplayName: "Todo Bot",
+		Description: "Created by the Todo plugin.",
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure todo bot")

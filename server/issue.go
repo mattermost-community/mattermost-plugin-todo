@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
-// Issue represents a to do issue
+// Issue represents a Todo issue
 type Issue struct {
 	ID       string `json:"id"`
 	Message  string `json:"message"`

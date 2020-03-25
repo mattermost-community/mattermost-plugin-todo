@@ -103,12 +103,12 @@ export default class SidebarRight extends React.PureComponent {
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
-            addButton = 'Add new To-do';
+            addButton = 'Add new Todo';
             inboxList = this.props.inTodos || [];
             break;
         case OutListName:
             todos = this.props.outTodos || [];
-            addButton = 'Request a To-do from someone';
+            addButton = 'Request a Todo from someone';
             break;
         }
 
