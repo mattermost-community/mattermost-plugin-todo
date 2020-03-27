@@ -33,7 +33,7 @@ export function setShowRHSAction(showRHSPluginAction) {
 export const getPluginServerRoute = (state) => {
     const config = getConfig(state);
 
-    let basePath = '/';
+    let basePath = '';
     if (config && config.SiteURL) {
         basePath = new URL(config.SiteURL).pathname;
 
