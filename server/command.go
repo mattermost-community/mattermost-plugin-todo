@@ -12,12 +12,12 @@ func getHelp() string {
 	return `Available Commands:
 
 add [message]
-	Adds a to do.
+	Adds a Todo.
 
 	example: /todo add Don't forget to be awesome
 
 list
-	Lists your to do issues.
+	Lists your Todo issues.
 
 list [listName]
 	List your issues in certain list
@@ -27,7 +27,7 @@ list [listName]
 	example (same as /todo list): /todo list my
 
 pop
-	Removes the to do issue at the top of the list.
+	Removes the Todo issue at the top of the list.
 
 send [user] [message]
 	Sends some user a Todo
@@ -42,8 +42,8 @@ help
 func getCommand() *model.Command {
 	return &model.Command{
 		Trigger:          "todo",
-		DisplayName:      "To Do Bot",
-		Description:      "Interact with your to do list.",
+		DisplayName:      "Todo Bot",
+		Description:      "Interact with your Todo list.",
 		AutoComplete:     true,
 		AutoCompleteDesc: "Available commands: add, list, pop",
 		AutoCompleteHint: "[command]",
@@ -118,7 +118,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	message := strings.Join(args[1:], " ")
 
-	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message)
+	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "")
 	if err != nil {
 		return nil, false, err
 	}
@@ -143,13 +143,13 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
 	}
 
-	if err := p.listManager.AddIssue(extra.UserId, message); err != nil {
+	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
 		return nil, false, err
 	}
 
 	p.sendRefreshEvent(extra.UserId)
 
-	responseMessage := "Added to do."
+	responseMessage := "Added Todo."
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
@@ -157,7 +157,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "To Do List:\n\n"
+	responseMessage += "Todo List:\n\n"
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
@@ -165,17 +165,17 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	listID := MyListKey
-	responseMessage := "To Do List:\n\n"
+	responseMessage := "Todo List:\n\n"
 
 	if len(args) > 0 {
 		switch args[0] {
 		case "my":
 		case "in":
 			listID = InListKey
-			responseMessage = "Received To Do list:\n\n"
+			responseMessage = "Received Todo list:\n\n"
 		case "out":
 			listID = OutListKey
-			responseMessage = "Sent To Do list:\n\n"
+			responseMessage = "Sent Todo list:\n\n"
 		default:
 			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), true, nil
 		}
@@ -193,22 +193,25 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	todoMessage, sender, err := p.listManager.PopIssue(extra.UserId)
+	issue, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
 
-	if sender != "" {
-		userName := p.listManager.GetUserName(extra.UserId)
+	userName := p.listManager.GetUserName(extra.UserId)
 
-		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, todoMessage)
-		p.sendRefreshEvent(sender)
-		p.PostBotDM(sender, message)
+	if issue.ForeignUser != "" {
+		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
+		p.sendRefreshEvent(issue.ForeignUser)
+		p.PostBotDM(issue.ForeignUser, message)
 	}
 
 	p.sendRefreshEvent(extra.UserId)
 
-	responseMessage := "Removed top to do."
+	responseMessage := "Removed top Todo."
+
+	replyMessage := fmt.Sprintf("@%s popped a todo attached to this thread", userName)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
@@ -216,7 +219,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "To Do List:\n\n"
+	responseMessage += "Todo List:\n\n"
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil

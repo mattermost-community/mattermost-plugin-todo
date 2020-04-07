@@ -25,6 +25,7 @@ export default class Root extends React.Component {
         this.state = {
             message: null,
             sendTo: null,
+            attachToThread: false,
         };
     }
 
@@ -33,15 +34,29 @@ export default class Root extends React.Component {
             return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
-            return {message: null, sendTo: null};
+            return {message: null, sendTo: null, attachToThread: false};
         }
         return null;
     }
 
+    handleAttachChange = (e) => {
+        const value = e.target.checked;
+        if (value !== this.state.attachToThread) {
+            this.setState({
+                attachToThread: value,
+            });
+        }
+    }
+
     submit = () => {
-        const {submit, close} = this.props;
-        const {message, sendTo} = this.state;
-        submit(message, sendTo);
+        const {submit, close, postID} = this.props;
+        const {message, sendTo, attachToThread} = this.state;
+        if (attachToThread) {
+            submit(message, sendTo, postID);
+        } else {
+            submit(message, sendTo);
+        }
+
         close();
     }
 
@@ -65,10 +80,10 @@ export default class Root extends React.Component {
                     style={style.modal}
                     className='ToDoPluginRootModal'
                 >
-                    <h1>{'Add a To Do'}</h1>
+                    <h1>{'Add a Todo'}</h1>
                     <div className='todoplugin-issue'>
                         <h2>
-                            {'To Do Message'}
+                            {'Todo Message'}
                         </h2>
                         <textarea
                             className='todoplugin-input'
@@ -77,6 +92,15 @@ export default class Root extends React.Component {
                             onChange={(e) => this.setState({message: e.target.value})}
                         />
                     </div>
+                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
+                        <input
+                            type='checkbox'
+                            checked={this.state.attachToThread}
+                            onChange={this.handleAttachChange}
+                        />
+                        <b>{' Add to thread'}</b>
+                        <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
+                    </div>)}
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
@@ -95,7 +119,7 @@ export default class Root extends React.Component {
                             onClick={this.submit}
                             disabled={!message}
                         >
-                            {'Add To Do'}
+                            {'Add Todo'}
                         </button>
                     </div>
                     <div className='todoplugin-divider'/>
@@ -104,13 +128,13 @@ export default class Root extends React.Component {
                             {'What does this do?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'Adding a to do will add an issue to your to do list. You will get daily reminders about your to do issues until you mark them as complete.'}
+                            {'Adding a Todo will add an issue to your Todo list. You will get daily reminders about your Todo issues until you mark them as complete.'}
                         </div>
                         <div className='todoplugin-question'>
                             {'How is this different from flagging a post?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'To do issues are disconnected from posts. You can generate to do issues from posts but they have no other assoication to the posts. This allows for a cleaner to do list that does not rely on post history or someone else not deleting or editing the post.'}
+                            {'Todo issues are disconnected from posts. You can generate Todo issues from posts but they have no other assoication to the posts. This allows for a cleaner Todo list that does not rely on post history or someone else not deleting or editing the post.'}
                         </div>
                     </div>
                 </div>

@@ -111,7 +111,7 @@ function ToDoIssues(props) {
                 {listPositionMessage && listDiv}
             </div>
         );
-    }) : <div style={style.container}>{'You have no to do issues'}</div>;
+    }) : <div style={style.container}>{'You have no Todo issues'}</div>;
 }
 
 ToDoIssues.propTypes = {
@@ -142,6 +142,7 @@ const getStyle = makeStyleFromTheme((theme) => {
         },
         message: {
             width: '100%',
+            overflowWrap: 'break-word',
         },
     };
 });
