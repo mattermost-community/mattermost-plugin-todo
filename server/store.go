@@ -95,6 +95,20 @@ func (l *listStore) RemoveIssue(issueID string) error {
 	return nil
 }
 
+func (l *listStore) GetAndRemoveIssue(issueID string) (*Issue, error) {
+	issue, err := l.GetIssue(issueID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = l.RemoveIssue(issueID)
+	if err != nil {
+		return nil, err
+	}
+
+	return issue, nil
+}
+
 func (l *listStore) GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error) {
 	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
 	if err != nil {

@@ -45,10 +45,10 @@ export const getPluginServerRoute = (state) => {
     return basePath + '/plugins/' + pluginId;
 };
 
-export const add = (message, sendTo) => async (dispatch, getState) => {
+export const add = (message, sendTo, postID) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({message, send_to: sendTo}),
+        body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
     }));
 
     dispatch(list());

@@ -14,26 +14,26 @@ import (
 )
 
 const (
-	// WSEventRefresh is the WebSocket event for refreshing the to do list
+	// WSEventRefresh is the WebSocket event for refreshing the Todo list
 	WSEventRefresh = "refresh"
 )
 
 // ListManager representes the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
-	AddIssue(userID, message string) error
+	AddIssue(userID, message, postID string) error
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
-	SendIssue(senderID, receiverID, message string) (string, error)
+	SendIssue(senderID, receiverID, message, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
-	// CompleteIssue completes the todo issueID for userID, and returns the message and the foreignUserID if any
-	CompleteIssue(userID, issueID string) (todoMessage string, foreignUserID string, err error)
+	// CompleteIssue completes the todo issueID for userID, and returns the extended issue
+	CompleteIssue(userID, issueID string) (*ExtendedIssue, error)
 	// AcceptIssue moves one the todo issueID of userID from inbox to myList, and returns the message and the foreignUserID if any
 	AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, err error)
-	// RemoveIssue removes the todo issueID for userID and returns the message, the foreignUserID if any, and whether the user sent the todo to someone else
-	RemoveIssue(userID, issueID string) (todoMessage string, foreignUserID string, isSender bool, err error)
-	// PopIssue the first element of myList for userID and returns the message and the sender of that todo if any
-	PopIssue(userID string) (todoMessage string, sender string, err error)
+	// RemoveIssue removes the todo issueID for userID and returns the extended issue, and whether the user sent the todo to someone else
+	RemoveIssue(userID, issueID string) (issue *ExtendedIssue, isSender bool, err error)
+	// PopIssue the first element of myList for userID and returns the extended issue
+	PopIssue(userID string) (*ExtendedIssue, error)
 	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
 	BumpIssue(userID string, issueID string) (todoMessage string, receiver string, foreignIssueID string, err error)
 	// GetUserName returns the readable username from userID
@@ -64,8 +64,8 @@ func (p *Plugin) OnActivate() error {
 
 	botID, err := p.Helpers.EnsureBot(&model.Bot{
 		Username:    "todo",
-		DisplayName: "To Do Bot",
-		Description: "Created by the To Do plugin.",
+		DisplayName: "Todo Bot",
+		Description: "Created by the Todo plugin.",
 	})
 	if err != nil {
 		return errors.Wrap(err, "failed to ensure todo bot")
@@ -100,6 +100,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 type addAPIRequest struct {
 	Message string `json:"message"`
 	SendTo  string `json:"send_to"`
+	PostID  string `json:"post_id"`
 }
 
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
@@ -118,11 +119,17 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	senderName := p.listManager.GetUserName(userID)
+
 	if addRequest.SendTo == "" {
-		if err = p.listManager.AddIssue(userID, addRequest.Message); err != nil {
+		err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			return
 		}
+		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
+		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		return
 	}
 
@@ -134,14 +141,18 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if receiver.Id == userID {
-		if err = p.listManager.AddIssue(userID, addRequest.Message); err != nil {
+		err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			return
 		}
+		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
+		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		return
 	}
 
-	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message)
+	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostID)
 
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
@@ -149,11 +160,21 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	senderName := p.listManager.GetUserName(userID)
-
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.sendRefreshEvent(receiver.Id)
 	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
+
+	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
+	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+}
+
+func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
+	if postID != "" {
+		err := p.ReplyPostBot(postID, message, todo)
+		if err != nil {
+			p.API.LogError(err.Error())
+		}
+	}
 }
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
@@ -265,22 +286,24 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todoMessage, sender, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
+	issue, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to complete issue err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
 		return
 	}
 
-	if sender == "" {
+	userName := p.listManager.GetUserName(userID)
+	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+
+	if issue.ForeignUser == "" {
 		return
 	}
 
-	userName := p.listManager.GetUserName(userID)
-
-	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, todoMessage)
-	p.sendRefreshEvent(sender)
-	p.PostBotDM(sender, message)
+	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
+	p.sendRefreshEvent(issue.ForeignUser)
+	p.PostBotDM(issue.ForeignUser, message)
 }
 
 type removeAPIRequest struct {
@@ -303,26 +326,28 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todoMessage, foreignUser, isSender, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
+	issue, isSender, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to remove issue, err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
 		return
 	}
 
-	if foreignUser == "" {
+	userName := p.listManager.GetUserName(userID)
+	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+
+	if issue.ForeignUser == "" {
 		return
 	}
 
-	userName := p.listManager.GetUserName(userID)
-
-	message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, todoMessage)
+	message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, issue.Message)
 	if isSender {
-		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, todoMessage)
+		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, issue.Message)
 	}
 
-	p.sendRefreshEvent(foreignUser)
-	p.PostBotDM(foreignUser, message)
+	p.sendRefreshEvent(issue.ForeignUser)
+	p.PostBotDM(issue.ForeignUser, message)
 }
 
 type bumpAPIRequest struct {

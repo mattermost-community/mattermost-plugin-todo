@@ -19,14 +19,14 @@ export default class Plugin {
         registry.registerReducer(reducer);
 
         registry.registerPostDropdownMenuAction(
-            'Add To Do',
+            'Add Todo',
             (postID) => store.dispatch(openRootModal(postID)),
         );
 
-        const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'To Do List');
+        const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'To Do', 'Open your list of to do issues.');
+        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'Todo', 'Open your list of Todo issues.');
 
         const refresh = () => {
             store.dispatch(list(false, 'my'));
