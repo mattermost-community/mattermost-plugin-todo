@@ -193,17 +193,17 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 }
 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	issue, err := p.listManager.PopIssue(extra.UserId)
+	issue, foreignID, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
 
 	userName := p.listManager.GetUserName(extra.UserId)
 
-	if issue.ForeignUser != "" {
+	if foreignID != "" {
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
-		p.sendRefreshEvent(issue.ForeignUser)
-		p.PostBotDM(issue.ForeignUser, message)
+		p.sendRefreshEvent(foreignID)
+		p.PostBotDM(foreignID, message)
 	}
 
 	p.sendRefreshEvent(extra.UserId)

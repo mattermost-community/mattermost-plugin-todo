@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -134,26 +135,23 @@ func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, err
 	return extendedIssues, nil
 }
 
-func (l *listManager) CompleteIssue(userID, issueID string) (*ExtendedIssue, error) {
+func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, err error) {
 	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
-		return nil, fmt.Errorf("cannot find element")
+		return nil, "", fmt.Errorf("cannot find element")
 	}
 
 	if err := l.store.RemoveReference(userID, issueID, issueList); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	issue, err := l.store.GetAndRemoveIssue(issueID)
+	issue, err = l.store.GetAndRemoveIssue(issueID)
 	if err != nil {
 		l.api.LogError("cannot remove issue, Err=", err.Error())
 	}
 
 	if ir.ForeignUserID == "" {
-		if issue == nil {
-			return &ExtendedIssue{}, nil
-		}
-		return l.extendIssueInfo(issue, ir), nil
+		return issue, "", nil
 	}
 
 	err = l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, OutListKey)
@@ -166,7 +164,7 @@ func (l *listManager) CompleteIssue(userID, issueID string) (*ExtendedIssue, err
 		l.api.LogError("cannot clean foreigner issue after complete, Err=", err.Error())
 	}
 
-	return l.extendIssueInfo(issue, ir), nil
+	return issue, ir.ForeignUserID, nil
 }
 
 func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
@@ -199,14 +197,14 @@ func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, f
 	return issue.Message, ir.ForeignUserID, nil
 }
 
-func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *ExtendedIssue, isSender bool, outErr error) {
+func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *Issue, foreignID string, isSender bool, outErr error) {
 	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
-		return nil, false, fmt.Errorf("cannot find element")
+		return nil, "", false, fmt.Errorf("cannot find element")
 	}
 
 	if err := l.store.RemoveReference(userID, issueID, issueList); err != nil {
-		return nil, false, err
+		return nil, "", false, err
 	}
 
 	issue, err := l.store.GetAndRemoveIssue(issueID)
@@ -215,10 +213,7 @@ func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *ExtendedIss
 	}
 
 	if ir.ForeignUserID == "" {
-		if issue == nil {
-			return &ExtendedIssue{}, false, nil
-		}
-		return l.extendIssueInfo(issue, ir), false, nil
+		return issue, "", false, nil
 	}
 
 	list, _, _ := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
@@ -233,29 +228,26 @@ func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *ExtendedIss
 		l.api.LogError("cannot clean foreigner issue after remove, Err=", err.Error())
 	}
 
-	return l.extendIssueInfo(issue, ir), list == OutListKey, nil
+	return issue, ir.ForeignUserID, list == OutListKey, nil
 }
 
-func (l *listManager) PopIssue(userID string) (*ExtendedIssue, error) {
+func (l *listManager) PopIssue(userID string) (issue *Issue, foreignID string, err error) {
 	ir, err := l.store.PopReference(userID, MyListKey)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	if ir == nil {
-		return &ExtendedIssue{}, nil
+		return nil, "", errors.New("unexpected nil for issue reference")
 	}
 
-	issue, err := l.store.GetAndRemoveIssue(ir.IssueID)
+	issue, err = l.store.GetAndRemoveIssue(ir.IssueID)
 	if err != nil {
 		l.api.LogError("cannot remove issue after pop, Err=", err.Error())
 	}
 
 	if ir.ForeignUserID == "" {
-		if issue == nil {
-			return &ExtendedIssue{}, nil
-		}
-		return l.extendIssueInfo(issue, ir), nil
+		return issue, "", nil
 	}
 
 	err = l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, OutListKey)
@@ -267,7 +259,7 @@ func (l *listManager) PopIssue(userID string) (*ExtendedIssue, error) {
 		l.api.LogError("cannot clean foreigner issue after pop, Err=", err.Error())
 	}
 
-	return l.extendIssueInfo(issue, ir), nil
+	return issue, ir.ForeignUserID, nil
 }
 
 func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {
