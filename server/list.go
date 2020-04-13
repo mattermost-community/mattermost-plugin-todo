@@ -141,7 +141,7 @@ func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, forei
 		return nil, "", fmt.Errorf("cannot find element")
 	}
 
-	if err := l.store.RemoveReference(userID, issueID, issueList); err != nil {
+	if err = l.store.RemoveReference(userID, issueID, issueList); err != nil {
 		return nil, "", err
 	}
 
