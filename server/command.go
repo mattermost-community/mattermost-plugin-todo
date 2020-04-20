@@ -157,7 +157,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "Todo List:\n\n"
+	responseMessage += " Todo List:\n\n"
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
@@ -219,7 +219,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += "Todo List:\n\n"
+	responseMessage += " Todo List:\n\n"
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
