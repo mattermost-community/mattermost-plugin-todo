@@ -104,12 +104,19 @@ export const Constants = {
         DASH: ['-', 189],
         PERIOD: ['.', 190],
         FORWARD_SLASH: ['/', 191],
-        TILDE: ['~', 192], // coudnt find the key or even get code from browser - no reference in code as of now
+        TILDE: ['~', 192], // couldn't find the key or even get code from browser - no reference in code as of now
         OPEN_BRACKET: ['[', 219],
         BACK_SLASH: ['\\', 220],
         CLOSE_BRACKET: [']', 221],
         COMPOSING: ['Composing', 229],
     },
+    SETTING_BUTTONS_TEAM: 'team',
+};
+
+export const RHSStates = {
+    ISSUES: 'issues',
+    IN_ISSUES: 'inIssues',
+    OUT_ISSUES: 'outIssues',
 };
 
 export default Constants;

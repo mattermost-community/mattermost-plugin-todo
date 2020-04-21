@@ -8,6 +8,7 @@ import SidebarRight from './components/sidebar_right';
 import { openRootModal, list, setShowRHSAction } from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
+import TeamSidebar from './components/team_sidebar';
 
 let activityFunc;
 let lastActivityTime = Number.MAX_SAFE_INTEGER;
@@ -17,6 +18,8 @@ export default class Plugin {
     initialize(registry, store) {
         registry.registerRootComponent(Root);
         registry.registerReducer(reducer);
+
+        registry.registerBottomTeamSidebarComponent(TeamSidebar);
 
         registry.registerPostDropdownMenuAction(
             'Add Todo',
