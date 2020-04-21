@@ -13,6 +13,9 @@ export default class SidebarButtons extends React.PureComponent {
         theme: PropTypes.object.isRequired,
         isTeamSidebar: PropTypes.bool,
         showRHSPlugin: PropTypes.func.isRequired,
+        issues: PropTypes.arrayOf(PropTypes.object),
+        inIssues: PropTypes.arrayOf(PropTypes.object),
+        outIssues: PropTypes.arrayOf(PropTypes.object),
         actions: PropTypes.shape({
             list: PropTypes.func.isRequired,
             updateRhsState: PropTypes.func.isRequired,
@@ -42,9 +45,9 @@ export default class SidebarButtons extends React.PureComponent {
 
         this.setState({refreshing: true});
         await Promise.all([
-            this.props.actions.list(false, "my"),
-            this.props.actions.list(false, "in"),
-            this.props.actions.list(false, "out"),
+            this.props.actions.list(false, 'my'),
+            this.props.actions.list(false, 'in'),
+            this.props.actions.list(false, 'out'),
         ]);
         this.setState({refreshing: false});
     }
@@ -77,7 +80,7 @@ export default class SidebarButtons extends React.PureComponent {
                 <OverlayTrigger
                     key='todoLink'
                     placement={placement}
-                    overlay={<Tooltip id='todoTooltip'>Your todos</Tooltip>}
+                    overlay={<Tooltip id='todoTooltip'>{'Your todos'}</Tooltip>}
                 >
                     <a
                         style={button}
@@ -90,7 +93,7 @@ export default class SidebarButtons extends React.PureComponent {
                 <OverlayTrigger
                     key='todoReviewsLink'
                     placement={placement}
-                    overlay={<Tooltip id='reviewTooltip'>Todos received</Tooltip>}
+                    overlay={<Tooltip id='reviewTooltip'>{'Todos received'}</Tooltip>}
                 >
                     <a
                         onClick={() => this.openRHS(RHSStates.IN_ISSUES)}
@@ -103,7 +106,7 @@ export default class SidebarButtons extends React.PureComponent {
                 <OverlayTrigger
                     key='todoAssignmentsLink'
                     placement={placement}
-                    overlay={<Tooltip id='reviewTooltip'>Todos sent</Tooltip>}
+                    overlay={<Tooltip id='reviewTooltip'>{'Todos sent'}</Tooltip>}
                 >
                     <a
                         onClick={() => this.openRHS(RHSStates.OUT_ISSUES)}
@@ -116,7 +119,7 @@ export default class SidebarButtons extends React.PureComponent {
                 <OverlayTrigger
                     key='todoRefreshButton'
                     placement={placement}
-                    overlay={<Tooltip id='refreshTooltip'>Refresh</Tooltip>}
+                    overlay={<Tooltip id='refreshTooltip'>{'Refresh'}</Tooltip>}
                 >
                     <a
                         href='#'
