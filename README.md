@@ -3,6 +3,8 @@
 [![Build Status](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-todo/master.svg)](https://circleci.com/gh/mattermost/mattermost-plugin-todo)
 [![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mattermost-plugin-todo/master.svg)](https://codecov.io/gh/mattermost/mattermost-plugin-todo)
 
+**Maintainer:** [@larkox](https://github.com/larkox)
+**Co-Maintainer:** [@jfrerich](https://github.com/jfrerich)
 
 A plugin to track Todo issues in a list and send you daily reminders about your Todo list.
 

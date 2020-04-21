@@ -7,9 +7,7 @@ import {CSSTransition} from 'react-transition-group';
 
 import CloseIcon from '../close_icon.jsx';
 
-import './full_screen_modal.scss';
-
-// This must be on sync with the animation time in ./full_screen_modal.scss
+// This must be on sync with the animation time in mattermost-webapp's full_screen_modal.scss
 const ANIMATION_DURATION = 100;
 
 export default class FullScreenModal extends React.Component {
