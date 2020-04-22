@@ -30,17 +30,19 @@ export default class SidebarButtons extends React.PureComponent {
         };
     }
 
-    componentDidUpdate() {
-        this.getData();
+    componentDidUpdate(prevProps) {
+        if (prevProps.issues !== this.props.issues || prevProps.inIssues !== this.props.inIssues || prevProps.outIssues !== this.props.outIssues) {
+            this.getData();
+        }
     }
 
     getData = async (e) => {
-        if (this.state.refreshing) {
-            return;
-        }
-
         if (e) {
             e.preventDefault();
+        }
+
+        if (this.state.refreshing) {
+            return;
         }
 
         this.setState({refreshing: true});
@@ -78,41 +80,41 @@ export default class SidebarButtons extends React.PureComponent {
         return (
             <div style={container}>
                 <OverlayTrigger
-                    key='todoLink'
+                    key='myTodosLink'
                     placement={placement}
-                    overlay={<Tooltip id='todoTooltip'>{'Your todos'}</Tooltip>}
+                    overlay={<Tooltip id='myTodosTooltip'>{'Your Todos'}</Tooltip>}
                 >
                     <a
                         style={button}
-                        onClick={() => this.openRHS(RHSStates.ISSUES)}
+                        onClick={() => this.openRHS(RHSStates.InListName)}
                     >
-                        <i className='fa fa-check'/>
+                        <i className='icon icon-check'/>
                         {' ' + issues.length}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
-                    key='todoReviewsLink'
+                    key='incomingTodosLink'
                     placement={placement}
-                    overlay={<Tooltip id='reviewTooltip'>{'Todos received'}</Tooltip>}
+                    overlay={<Tooltip id='incomingTodosTooltip'>{'Incoming Todos'}</Tooltip>}
                 >
                     <a
-                        onClick={() => this.openRHS(RHSStates.IN_ISSUES)}
+                        onClick={() => this.openRHS(RHSStates.InListName)}
                         style={button}
                     >
-                        <i className='fa fa-angle-double-down'/>
+                        <i className='icon icon-arrow-down'/>
                         {' ' + inIssues.length}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
-                    key='todoAssignmentsLink'
+                    key='outgoingTodosLink'
                     placement={placement}
-                    overlay={<Tooltip id='reviewTooltip'>{'Todos sent'}</Tooltip>}
+                    overlay={<Tooltip id='outgoingTodosTooltip'>{'Outgoing Todos'}</Tooltip>}
                 >
                     <a
-                        onClick={() => this.openRHS(RHSStates.OUT_ISSUES)}
+                        onClick={() => this.openRHS(RHSStates.OutListName)}
                         style={button}
                     >
-                        <i className='fa fa-angle-double-up'/>
+                        <i className='icon icon-arrow-up'/>
                         {' ' + outIssues.length}
                     </a>
                 </OverlayTrigger>
@@ -126,7 +128,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                         onClick={this.getData}
                     >
-                        <i className={'fa fa-refresh' + refreshClass}/>
+                        <i className={'icon icon-sync' + refreshClass}/>
                     </a>
                 </OverlayTrigger>
             </div>

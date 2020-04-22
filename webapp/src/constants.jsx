@@ -114,9 +114,8 @@ export const Constants = {
 };
 
 export const RHSStates = {
-    ISSUES: 'issues',
-    IN_ISSUES: 'inIssues',
-    OUT_ISSUES: 'outIssues',
+    InListName: 'my',
+    OutListName: 'out',
 };
 
 export default Constants;

@@ -44,6 +44,7 @@ export default class SidebarRight extends React.PureComponent {
         outTodos: PropTypes.arrayOf(PropTypes.object),
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
+        rhsState: PropTypes.string,
         actions: PropTypes.shape({
             remove: PropTypes.func.isRequired,
             complete: PropTypes.func.isRequired,
@@ -58,7 +59,7 @@ export default class SidebarRight extends React.PureComponent {
         super(props);
 
         this.state = {
-            list: MyListName,
+            list: props.rhsState || MyListName,
             showInbox: true,
             showMy: true,
         };
@@ -82,6 +83,12 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.list(false, 'my');
         this.props.actions.list(false, 'in');
         this.props.actions.list(false, 'out');
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.rhsState !== this.props.rhsState) {
+            this.openList(this.props.rhsState);
+        }
     }
 
     getInIssues() {

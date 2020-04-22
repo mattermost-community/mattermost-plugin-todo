@@ -60,7 +60,7 @@ function rhsPluginAction(state = null, action) {
     }
 }
 
-function rhsState(state = null, action) {
+function rhsState(state = '', action) {
     switch (action.type) {
     case UPDATE_RHS_STATE:
         return action.state;
