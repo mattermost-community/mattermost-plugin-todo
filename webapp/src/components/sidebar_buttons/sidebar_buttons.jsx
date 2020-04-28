@@ -30,30 +30,6 @@ export default class SidebarButtons extends React.PureComponent {
         };
     }
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.issues !== this.props.issues || prevProps.inIssues !== this.props.inIssues || prevProps.outIssues !== this.props.outIssues) {
-            this.getData();
-        }
-    }
-
-    getData = async (e) => {
-        if (e) {
-            e.preventDefault();
-        }
-
-        if (this.state.refreshing) {
-            return;
-        }
-
-        this.setState({refreshing: true});
-        await Promise.all([
-            this.props.actions.list(false, 'my'),
-            this.props.actions.list(false, 'in'),
-            this.props.actions.list(false, 'out'),
-        ]);
-        this.setState({refreshing: false});
-    }
-
     openRHS = (rhsState) => {
         this.props.actions.updateRhsState(rhsState);
         this.props.showRHSPlugin();
