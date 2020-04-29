@@ -26,14 +26,14 @@ type ListManager interface {
 	SendIssue(senderID, receiverID, message, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
-	// CompleteIssue completes the todo issueID for userID, and returns the extended issue
-	CompleteIssue(userID, issueID string) (*ExtendedIssue, error)
+	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
+	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, err error)
 	// AcceptIssue moves one the todo issueID of userID from inbox to myList, and returns the message and the foreignUserID if any
 	AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, err error)
-	// RemoveIssue removes the todo issueID for userID and returns the extended issue, and whether the user sent the todo to someone else
-	RemoveIssue(userID, issueID string) (issue *ExtendedIssue, isSender bool, err error)
-	// PopIssue the first element of myList for userID and returns the extended issue
-	PopIssue(userID string) (*ExtendedIssue, error)
+	// RemoveIssue removes the todo issueID for userID and returns the issue, the foreign ID if any and whether the user sent the todo to someone else
+	RemoveIssue(userID, issueID string) (issue *Issue, foreignID string, isSender bool, err error)
+	// PopIssue the first element of myList for userID and returns the issue and the foreign ID if any
+	PopIssue(userID string) (issue *Issue, foreignID string, err error)
 	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
 	BumpIssue(userID string, issueID string) (todoMessage string, receiver string, foreignIssueID string, err error)
 	// GetUserName returns the readable username from userID
@@ -286,7 +286,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issue, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
+	issue, foreignID, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to complete issue err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
@@ -297,13 +297,13 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
 	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
 
-	if issue.ForeignUser == "" {
+	if foreignID == "" {
 		return
 	}
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
-	p.sendRefreshEvent(issue.ForeignUser)
-	p.PostBotDM(issue.ForeignUser, message)
+	p.sendRefreshEvent(foreignID)
+	p.PostBotDM(foreignID, message)
 }
 
 type removeAPIRequest struct {
@@ -326,7 +326,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issue, isSender, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
+	issue, foreignID, isSender, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to remove issue, err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
@@ -337,7 +337,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
 	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
 
-	if issue.ForeignUser == "" {
+	if foreignID == "" {
 		return
 	}
 
@@ -346,8 +346,8 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, issue.Message)
 	}
 
-	p.sendRefreshEvent(issue.ForeignUser)
-	p.PostBotDM(issue.ForeignUser, message)
+	p.sendRefreshEvent(foreignID)
+	p.PostBotDM(foreignID, message)
 }
 
 type bumpAPIRequest struct {
