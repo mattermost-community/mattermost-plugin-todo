@@ -15,8 +15,8 @@ const activityTimeout = 60 * 60 * 1000; // 1 hour
 
 export default class Plugin {
     initialize(registry, store) {
-        registry.registerRootComponent(Root);
         registry.registerReducer(reducer);
+        registry.registerRootComponent(Root);
 
         registry.registerPostDropdownMenuAction(
             'Add Todo',
