@@ -56,13 +56,13 @@ func getCommand() *model.Command {
 	}
 }
 
-func getCommandResponse(responseType, text string) *model.CommandResponse {
-	return &model.CommandResponse{
-		ResponseType: responseType,
-		Text:         text,
-		Username:     "todo",
-		//IconURL:      fmt.Sprintf("/plugins/%s/profile.png", manifest.ID),
+func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
+	post := &model.Post{
+		UserId:    p.BotUserID,
+		ChannelId: args.ChannelId,
+		Message:   text,
 	}
+	_ = p.API.SendEphemeralPost(args.UserId, post)
 }
 
 // ExecuteCommand executes a given command and returns a command response.
@@ -71,7 +71,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	lengthOfArgs := len(stringArgs)
 	restOfArgs := []string{}
 
-	var handler func([]string, *model.CommandArgs) (*model.CommandResponse, bool, error)
+	var handler func([]string, *model.CommandArgs) (bool, error)
 	if lengthOfArgs == 1 {
 		handler = p.runListCommand
 	} else {
@@ -89,24 +89,27 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		case "send":
 			handler = p.runSendCommand
 		default:
-			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
+			p.postCommandResponse(args, getHelp())
+			return &model.CommandResponse{}, nil
 		}
 	}
-	resp, isUserError, err := handler(restOfArgs, args)
+	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
 		if isUserError {
-			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("__Error: %s__\n\nRun `/todo help` for usage instructions.", err.Error())), nil
+			p.postCommandResponse(args, fmt.Sprintf("__Error: %s__\n\nRun `/todo help` for usage instructions.", err.Error()))
+		} else {
+			p.API.LogError(err.Error())
+			p.postCommandResponse(args, "An unknown error occurred. Please talk to your system administrator for help.")
 		}
-		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "An unknown error occurred. Please talk to your system administrator for help."), nil
 	}
 
-	return resp, nil
+	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	if len(args) < 2 {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "You must specify a user and a message.\n"+getHelp()), false, nil
+		p.postCommandResponse(extra, "You must specify a user and a message.\n"+getHelp())
+		return false, nil
 	}
 
 	userName := args[0]
@@ -115,7 +118,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 	}
 	receiver, appErr := p.API.GetUserByUsername(userName)
 	if appErr != nil {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please, provide a valid user.\n"+getHelp()), false, nil
+		p.postCommandResponse(extra, "Please, provide a valid user.\n"+getHelp())
+		return false, nil
 	}
 
 	if receiver.Id == extra.UserId {
@@ -126,7 +130,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "")
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
 
 	p.sendRefreshEvent(extra.UserId)
@@ -142,19 +146,20 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 	if err != nil {
 		p.API.LogError("Unable to post DM err=" + err.Error())
 	}
-
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+	p.postCommandResponse(extra, responseMessage)
+	return false, nil
 }
 
-func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	message := strings.Join(args, " ")
 
 	if message == "" {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please add a task."), false, nil
+		p.postCommandResponse(extra, "Please add a task.")
+		return false, nil
 	}
 
 	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
-		return nil, false, err
+		return false, err
 	}
 
 	p.sendRefreshEvent(extra.UserId)
@@ -164,16 +169,18 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+		p.postCommandResponse(extra, responseMessage)
+		return false, nil
 	}
 
 	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
+	p.postCommandResponse(extra, responseMessage)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+	return false, nil
 }
 
-func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	listID := MyListKey
 	responseMessage := "Todo List:\n\n"
 
@@ -187,25 +194,27 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 			listID = OutListKey
 			responseMessage = "Sent Todo list:\n\n"
 		default:
-			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), true, nil
+			p.postCommandResponse(extra, getHelp())
+			return true, nil
 		}
 	}
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, listID)
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
 	p.sendRefreshEvent(extra.UserId)
 
 	responseMessage += issuesListToString(issues)
+	p.postCommandResponse(extra, responseMessage)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+	return false, nil
 }
 
-func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	issue, foreignID, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
 
 	userName := p.listManager.GetUserName(extra.UserId)
@@ -229,11 +238,13 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {
 		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+		p.postCommandResponse(extra, responseMessage)
+		return false, nil
 	}
 
 	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
+	p.postCommandResponse(extra, responseMessage)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
+	return false, nil
 }
