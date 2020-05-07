@@ -51,7 +51,7 @@ type listManager struct {
 }
 
 // NewListManager creates a new listManager
-func NewListManager(api plugin.API) *listManager {
+func NewListManager(api plugin.API) ListManager {
 	return &listManager{
 		store: NewListStore(api),
 		api:   api,

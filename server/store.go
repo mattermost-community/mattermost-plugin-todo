@@ -47,7 +47,7 @@ type listStore struct {
 }
 
 // NewListStore creates a new listStore
-func NewListStore(api plugin.API) *listStore {
+func NewListStore(api plugin.API) ListStore {
 	return &listStore{
 		api: api,
 	}
