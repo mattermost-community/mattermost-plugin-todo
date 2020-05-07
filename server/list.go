@@ -33,7 +33,7 @@ type ListStore interface {
 	RemoveReference(userID, issueID, listID string) error
 	// PopReference removes the first IssueRef in listID for userID and returns it
 	PopReference(userID, listID string) (*IssueRef, error)
-	// BumpReference moves the Issue reference for issueID in listID for userID to the beggining of the list
+	// BumpReference moves the Issue reference for issueID in listID for userID to the beginning of the list
 	BumpReference(userID, issueID, listID string) error
 
 	// GetIssueReference gets the IssueRef and position of the issue issueID on user userID's list listID
@@ -277,10 +277,6 @@ func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, rec
 		return "", "", "", err
 	}
 
-	if ir == nil {
-		return "", "", "", fmt.Errorf("cannot find receiver issue")
-	}
-
 	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
 		l.api.LogError("cannot find foreigner issue after bump, Err=", err.Error())
@@ -307,7 +303,7 @@ func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue
 		Issue: *issue,
 	}
 
-	if ir == nil || ir.ForeignUserID == "" {
+	if ir.ForeignUserID == "" {
 		return feIssue
 	}
 
@@ -318,9 +314,9 @@ func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue
 	case MyListKey:
 		listName = ""
 	case InListKey:
-		listName = "in"
+		listName = InFlag
 	case OutListKey:
-		listName = "out"
+		listName = OutFlag
 	}
 
 	userName := l.GetUserName(ir.ForeignUserID)

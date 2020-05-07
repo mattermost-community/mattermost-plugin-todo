@@ -56,7 +56,7 @@ func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, iss
 // ReplyPostBot post a message and a todo in the same thread as the post postID
 func (p *Plugin) ReplyPostBot(postID, message, todo string) error {
 	if postID == "" {
-		return errors.New("Post ID not defined")
+		return errors.New("post ID not defined")
 	}
 
 	post, appErr := p.API.GetPost(postID)

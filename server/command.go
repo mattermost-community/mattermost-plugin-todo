@@ -8,6 +8,12 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+const (
+	listHeaderMessage = " Todo List:\n\n"
+	InFlag            = "in"
+	OutFlag           = "out"
+)
+
 func getHelp() string {
 	return `Available Commands:
 
@@ -132,7 +138,11 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (*model
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
-	p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
+	err = p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
+
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 }
 
@@ -157,7 +167,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
@@ -170,10 +180,10 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	if len(args) > 0 {
 		switch args[0] {
 		case "my":
-		case "in":
+		case InFlag:
 			listID = InListKey
 			responseMessage = "Received Todo list:\n\n"
-		case "out":
+		case OutFlag:
 			listID = OutListKey
 			responseMessage = "Sent Todo list:\n\n"
 		default:
@@ -203,7 +213,10 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 	if foreignID != "" {
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
 		p.sendRefreshEvent(foreignID)
-		p.PostBotDM(foreignID, message)
+		err = p.PostBotDM(foreignID, message)
+		if err != nil {
+			p.API.LogError("Unable to post DM err=" + err.Error())
+		}
 	}
 
 	p.sendRefreshEvent(extra.UserId)
@@ -219,7 +232,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (*model.
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, responseMessage), false, nil

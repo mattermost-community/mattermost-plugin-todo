@@ -18,7 +18,7 @@ const (
 	WSEventRefresh = "refresh"
 )
 
-// ListManager representes the logic on the lists
+// ListManager represents the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
 	AddIssue(userID, message, postID string) error
@@ -162,7 +162,10 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.sendRefreshEvent(receiver.Id)
-	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
+	err = p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
 	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
@@ -187,9 +190,9 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	listInput := r.URL.Query().Get("list")
 	listID := MyListKey
 	switch listInput {
-	case "out":
+	case OutFlag:
 		listID = OutListKey
-	case "in":
+	case InFlag:
 		listID = InListKey
 	}
 
@@ -218,8 +221,14 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		nt := time.Unix(now/1000, 0).In(timezone)
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
-			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			p.saveLastReminderTimeForUser(userID)
+			err = p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
+			if err != nil {
+				p.API.LogError("Unable to post DM err=" + err.Error())
+			}
+			err = p.saveLastReminderTimeForUser(userID)
+			if err != nil {
+				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
+			}
 		}
 	}
 
@@ -230,7 +239,10 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(issuesJSON)
+	_, err = w.Write(issuesJSON)
+	if err != nil {
+		p.API.LogError("Unable to write json response err=" + err.Error())
+	}
 }
 
 type acceptAPIRequest struct {
@@ -264,7 +276,10 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
 	p.sendRefreshEvent(sender)
-	p.PostBotDM(sender, message)
+	err = p.PostBotDM(sender, message)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
 }
 
 type completeAPIRequest struct {
@@ -303,7 +318,10 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
 	p.sendRefreshEvent(foreignID)
-	p.PostBotDM(foreignID, message)
+	err = p.PostBotDM(foreignID, message)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
 }
 
 type removeAPIRequest struct {
@@ -347,7 +365,10 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.sendRefreshEvent(foreignID)
-	p.PostBotDM(foreignID, message)
+	err = p.PostBotDM(foreignID, message)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
 }
 
 type bumpAPIRequest struct {
@@ -386,7 +407,10 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
 
 	p.sendRefreshEvent(foreignUser)
-	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
+	err = p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
+	if err != nil {
+		p.API.LogError("Unable to post DM err=" + err.Error())
+	}
 }
 
 func (p *Plugin) sendRefreshEvent(userID string) {
