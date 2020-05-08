@@ -142,10 +142,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
-	err = p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
 	p.postCommandResponse(extra, responseMessage)
 	return false, nil
 }

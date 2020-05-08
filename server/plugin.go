@@ -162,10 +162,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.sendRefreshEvent(receiver.Id)
-	err = p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
 	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
@@ -407,10 +404,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
 
 	p.sendRefreshEvent(foreignUser)
-	err = p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
 }
 
 func (p *Plugin) sendRefreshEvent(userID string) {
