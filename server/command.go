@@ -10,6 +10,7 @@ import (
 
 const (
 	listHeaderMessage = " Todo List:\n\n"
+	MyFlag            = "my"
 	InFlag            = "in"
 	OutFlag           = "out"
 )
@@ -183,7 +184,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	if len(args) > 0 {
 		switch args[0] {
-		case "my":
+		case MyFlag:
 		case InFlag:
 			listID = InListKey
 			responseMessage = "Received Todo list:\n\n"

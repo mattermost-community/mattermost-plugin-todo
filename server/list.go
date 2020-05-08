@@ -312,7 +312,7 @@ func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue
 	var listName string
 	switch list {
 	case MyListKey:
-		listName = ""
+		listName = MyListKey
 	case InListKey:
 		listName = InFlag
 	case OutListKey:
