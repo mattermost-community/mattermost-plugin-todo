@@ -220,10 +220,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	if foreignID != "" {
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
 		p.sendRefreshEvent(foreignID)
-		err = p.PostBotDM(foreignID, message)
-		if err != nil {
-			p.API.LogError("Unable to post DM err=" + err.Error())
-		}
+		p.PostBotDM(foreignID, message)
 	}
 
 	p.sendRefreshEvent(extra.UserId)

@@ -218,10 +218,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		nt := time.Unix(now/1000, 0).In(timezone)
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
-			err = p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			if err != nil {
-				p.API.LogError("Unable to post DM err=" + err.Error())
-			}
+			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
@@ -273,10 +270,7 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
 	p.sendRefreshEvent(sender)
-	err = p.PostBotDM(sender, message)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotDM(sender, message)
 }
 
 type completeAPIRequest struct {
@@ -315,10 +309,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
 	p.sendRefreshEvent(foreignID)
-	err = p.PostBotDM(foreignID, message)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotDM(foreignID, message)
 }
 
 type removeAPIRequest struct {
@@ -362,10 +353,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.sendRefreshEvent(foreignID)
-	err = p.PostBotDM(foreignID, message)
-	if err != nil {
-		p.API.LogError("Unable to post DM err=" + err.Error())
-	}
+	p.PostBotDM(foreignID, message)
 }
 
 type bumpAPIRequest struct {
