@@ -45,7 +45,7 @@ func getCommand() *model.Command {
 		DisplayName:      "Todo Bot",
 		Description:      "Interact with your Todo list.",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: add, list, pop",
+		AutoCompleteDesc: "Available commands: add, list, pop, send, help",
 		AutoCompleteHint: "[command]",
 	}
 }
