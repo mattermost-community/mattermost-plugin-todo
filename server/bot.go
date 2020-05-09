@@ -30,11 +30,18 @@ func (p *Plugin) PostBotDM(userID string, message string) error {
 // PostBotCustomDM posts a DM as the cloud bot user using custom post with action buttons.
 func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, issueID string) {
 	channel, appError := p.API.GetDirectChannel(userID, p.BotUserID)
-	if appError != nil || channel == nil {
+
+	if appError != nil {
+		p.API.LogError("Unable to get direct channel for bot err=" + appError.Error())
 		return
 	}
 
-	_, _ = p.API.CreatePost(&model.Post{
+	if channel == nil {
+		p.API.LogError("Could not get direct channel for bot and user_id=%s", userID)
+		return
+	}
+
+	_, appError = p.API.CreatePost(&model.Post{
 		UserId:    p.BotUserID,
 		ChannelId: channel.Id,
 		Message:   message + ": " + todo,
@@ -46,6 +53,10 @@ func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, iss
 			"issueId": issueID,
 		},
 	})
+
+	if appError != nil {
+		p.API.LogError("Unable to create bot post DM err=" + appError.Error())
+	}
 }
 
 // ReplyPostBot post a message and a todo in the same thread as the post postID
