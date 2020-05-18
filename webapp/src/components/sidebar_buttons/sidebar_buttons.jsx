@@ -51,7 +51,6 @@ export default class SidebarButtons extends React.PureComponent {
         const issues = this.props.issues || [];
         const inIssues = this.props.inIssues || [];
         const outIssues = this.props.outIssues || [];
-        const refreshClass = this.state.refreshing ? ' fa-spin' : '';
 
         return (
             <div style={container}>
@@ -92,19 +91,6 @@ export default class SidebarButtons extends React.PureComponent {
                     >
                         <i className='icon icon-arrow-up'/>
                         {' ' + outIssues.length}
-                    </a>
-                </OverlayTrigger>
-                <OverlayTrigger
-                    key='todoRefreshButton'
-                    placement={placement}
-                    overlay={<Tooltip id='refreshTooltip'>{'Refresh'}</Tooltip>}
-                >
-                    <a
-                        href='#'
-                        style={button}
-                        onClick={this.getData}
-                    >
-                        <i className={'icon icon-sync' + refreshClass}/>
                     </a>
                 </OverlayTrigger>
             </div>
