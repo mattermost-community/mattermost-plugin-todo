@@ -38,6 +38,7 @@ export default class Plugin {
         };
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
+        registry.registerReconnectHandler(refresh);
 
         store.dispatch(list(true));
         store.dispatch(list(false, 'in'));
