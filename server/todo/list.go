@@ -1,4 +1,4 @@
-package main
+package todo
 
 import (
 	"fmt"
@@ -43,22 +43,25 @@ type ListStore interface {
 
 	// GetList returns the list of IssueRef in listID for userID
 	GetList(userID, listID string) ([]*IssueRef, error)
+
+	SaveLastReminderTimeForUser(userID string) error
+	GetLastReminderTimeForUser(userID string) (int64, error)
 }
 
-type listManager struct {
+type ListManager struct {
 	store ListStore
 	api   plugin.API
 }
 
 // NewListManager creates a new listManager
-func NewListManager(api plugin.API) *listManager {
-	return &listManager{
+func NewListManager(api plugin.API) *ListManager {
+	return &ListManager{
 		store: NewListStore(api),
 		api:   api,
 	}
 }
 
-func (l *listManager) AddIssue(userID, message, postID string) error {
+func (l *ListManager) AddIssue(userID, message, postID string) error {
 	issue := newIssue(message, postID)
 
 	if err := l.store.AddIssue(issue); err != nil {
@@ -75,7 +78,7 @@ func (l *listManager) AddIssue(userID, message, postID string) error {
 	return nil
 }
 
-func (l *listManager) SendIssue(senderID, receiverID, message, postID string) (string, error) {
+func (l *ListManager) SendIssue(senderID, receiverID, message, postID string) (string, error) {
 	senderIssue := newIssue(message, postID)
 	if err := l.store.AddIssue(senderIssue); err != nil {
 		return "", err
@@ -115,10 +118,10 @@ func (l *listManager) SendIssue(senderID, receiverID, message, postID string) (s
 	return receiverIssue.ID, nil
 }
 
-func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, error) {
+func (l *ListManager) GetIssueList(userID, listID string) (ExtendedIssues, error) {
 	irs, err := l.store.GetList(userID, listID)
 	if err != nil {
-		return nil, err
+		return ExtendedIssues{}, err
 	}
 
 	extendedIssues := []*ExtendedIssue{}
@@ -132,10 +135,10 @@ func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, err
 		extendedIssues = append(extendedIssues, extendedIssue)
 	}
 
-	return extendedIssues, nil
+	return ExtendedIssues{extendedIssues}, nil
 }
 
-func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, err error) {
+func (l *ListManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, err error) {
 	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
 		return nil, "", fmt.Errorf("cannot find element")
@@ -167,7 +170,7 @@ func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, forei
 	return issue, ir.ForeignUserID, nil
 }
 
-func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
+func (l *ListManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
 	issue, err := l.store.GetIssue(issueID)
 	if err != nil {
 		return "", "", err
@@ -197,7 +200,7 @@ func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, f
 	return issue.Message, ir.ForeignUserID, nil
 }
 
-func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *Issue, foreignID string, isSender bool, outErr error) {
+func (l *ListManager) RemoveIssue(userID, issueID string) (outIssue *Issue, foreignID string, isSender bool, outErr error) {
 	issueList, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
 		return nil, "", false, fmt.Errorf("cannot find element")
@@ -231,7 +234,7 @@ func (l *listManager) RemoveIssue(userID, issueID string) (outIssue *Issue, fore
 	return issue, ir.ForeignUserID, list == OutListKey, nil
 }
 
-func (l *listManager) PopIssue(userID string) (issue *Issue, foreignID string, err error) {
+func (l *ListManager) PopIssue(userID string) (issue *Issue, foreignID string, err error) {
 	ir, err := l.store.PopReference(userID, MyListKey)
 	if err != nil {
 		return nil, "", err
@@ -262,7 +265,7 @@ func (l *listManager) PopIssue(userID string) (issue *Issue, foreignID string, e
 	return issue, ir.ForeignUserID, nil
 }
 
-func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {
+func (l *ListManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {
 	ir, _, err := l.store.GetIssueReference(userID, issueID, OutListKey)
 	if err != nil {
 		return "", "", "", err
@@ -290,7 +293,7 @@ func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, rec
 	return issue.Message, ir.ForeignUserID, ir.ForeignIssueID, nil
 }
 
-func (l *listManager) GetUserName(userID string) string {
+func (l *ListManager) GetUserName(userID string) string {
 	user, err := l.api.GetUser(userID)
 	if err != nil {
 		return "Someone"
@@ -298,7 +301,7 @@ func (l *listManager) GetUserName(userID string) string {
 	return user.Username
 }
 
-func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue {
+func (l *ListManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue {
 	if issue == nil || ir == nil {
 		return nil
 	}
@@ -330,4 +333,12 @@ func (l *listManager) extendIssueInfo(issue *Issue, ir *IssueRef) *ExtendedIssue
 	feIssue.ForeignPosition = n
 
 	return feIssue
+}
+
+func (l *ListManager) AddReminder(userID string) error {
+	return l.store.SaveLastReminderTimeForUser(userID)
+}
+
+func (l *ListManager) GetReminder(userID string) (int64, error) {
+	return l.store.GetLastReminderTimeForUser(userID)
 }

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	todoplugin "github.com/mattermost/mattermost-plugin-todo/server/plugin"
+	mattermost "github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 func main() {
-	plugin.ClientMain(&Plugin{})
+	mattermost.ClientMain(&todoplugin.Plugin{})
 }

@@ -61,6 +61,7 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
     let resp;
     let data;
     try {
+        var s = getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName
         resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, Client4.getOptions({
             method: 'get',
         }));

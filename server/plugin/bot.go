@@ -1,10 +1,11 @@
-package main
+package plugin
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
+
 	"github.com/pkg/errors"
 )
 
@@ -81,4 +82,13 @@ func (p *Plugin) ReplyPostBot(postID, message, todo string) error {
 	}
 
 	return nil
+}
+
+func (p *Plugin) PostCommandResponse(userID, channelID, text string) {
+	post := &model.Post{
+		UserId:    p.BotUserID,
+		ChannelId: channelID,
+		Message:   text,
+	}
+	_ = p.API.SendEphemeralPost(userID, post)
 }

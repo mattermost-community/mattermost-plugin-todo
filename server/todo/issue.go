@@ -1,4 +1,4 @@
-package main
+package todo
 
 import (
 	"fmt"
@@ -23,6 +23,10 @@ type ExtendedIssue struct {
 	ForeignPosition int    `json:"position"`
 }
 
+type ExtendedIssues struct {
+	Issues []*ExtendedIssue
+}
+
 func newIssue(message string, postID string) *Issue {
 	return &Issue{
 		ID:       model.NewId(),
@@ -32,14 +36,14 @@ func newIssue(message string, postID string) *Issue {
 	}
 }
 
-func issuesListToString(issues []*ExtendedIssue) string {
-	if len(issues) == 0 {
+func (issues ExtendedIssues) ToString() string {
+	if len(issues.Issues) == 0 {
 		return "Nothing to do!"
 	}
 
 	str := "\n\n"
 
-	for _, issue := range issues {
+	for _, issue := range issues.Issues {
 		createAt := time.Unix(issue.CreateAt/1000, 0)
 		str += fmt.Sprintf("* %s\n  * (%s)\n", issue.Message, createAt.Format("January 2, 2006 at 15:04"))
 	}

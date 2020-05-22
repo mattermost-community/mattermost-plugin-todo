@@ -1,4 +1,4 @@
-package main
+package todo
 
 import (
 	"encoding/json"
@@ -352,17 +352,17 @@ func (l *listStore) legacyIssueRef(userID, listID string) ([]*IssueRef, []byte, 
 	return newList, originalJSONList, nil
 }
 
-func (p *Plugin) saveLastReminderTimeForUser(userID string) error {
+func (l *listStore) SaveLastReminderTimeForUser(userID string) error {
 	strTime := strconv.FormatInt(model.GetMillis(), 10)
-	appErr := p.API.KVSet(reminderKey(userID), []byte(strTime))
+	appErr := l.api.KVSet(reminderKey(userID), []byte(strTime))
 	if appErr != nil {
 		return errors.New(appErr.Error())
 	}
 	return nil
 }
 
-func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
-	timeBytes, appErr := p.API.KVGet(reminderKey(userID))
+func (l *listStore) GetLastReminderTimeForUser(userID string) (int64, error) {
+	timeBytes, appErr := l.api.KVGet(reminderKey(userID))
 	if appErr != nil {
 		return 0, errors.New(appErr.Error())
 	}
