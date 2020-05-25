@@ -101,7 +101,7 @@ func (c *Command) runAddCommand(args []string, extra *model.CommandArgs) []*Resp
 	message := strings.Join(args, " ")
 
 	if message == "" {
-		message := "Please add a task."
+		message = "Please add a task."
 		return []*Response{{Type: ResponseTypeEphemeral, UserID: c.Args.UserId, ChannelID: c.Args.ChannelId, Message: message}}
 	}
 
