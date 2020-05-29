@@ -41,7 +41,7 @@ type logger interface {
 }
 
 type pluginAPI interface {
-	GetUserByUsername(name string) (*model.User, *model.AppError)
+	GetUserByUsername(name string) (*model.User, error)
 	SendRefreshEvent(userID string)
 }
 

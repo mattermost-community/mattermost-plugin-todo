@@ -15,6 +15,6 @@ func (p *Plugin) SendRefreshEvent(userID string) {
 	)
 }
 
-func (p *Plugin) GetUserByUsername(name string) (*model.User, *model.AppError) {
+func (p *Plugin) GetUserByUsername(name string) (*model.User, error) {
 	return p.API.GetUserByUsername(name)
 }
