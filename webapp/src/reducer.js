@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE} from './action_types';
 
 const rootModalVisible = (state = false, action) => {
     switch (action.type) {
@@ -60,11 +60,21 @@ function rhsPluginAction(state = null, action) {
     }
 }
 
+function rhsState(state = '', action) {
+    switch (action.type) {
+    case UPDATE_RHS_STATE:
+        return action.state;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     rootModalVisible,
     postID,
     issues,
     inIssues,
     outIssues,
+    rhsState,
     rhsPluginAction,
 });
