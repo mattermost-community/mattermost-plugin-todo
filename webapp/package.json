@@ -37,7 +37,7 @@
     "jest": "^26.0.1",
     "jest-canvas-mock": "^2.2.0",
     "jest-junit": "^10.0.0",
-    "mattermost-webapp": "github:mattermost/mattermost-webapp#v5.23.1",
+    "mattermost-webapp": "github:mattermost/mattermost-webapp#23f5f93d9f12a7e2b5623e5cee6814366abd9a0f",
     "node-sass": "^4.13.1",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.23.1",
