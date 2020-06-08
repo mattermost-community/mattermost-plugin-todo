@@ -8,6 +8,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+const (
+	listHeaderMessage = " Todo List:\n\n"
+	MyFlag            = "my"
+	InFlag            = "in"
+	OutFlag           = "out"
+)
+
 func getHelp() string {
 	return `Available Commands:
 
@@ -164,7 +171,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
 
@@ -177,11 +184,11 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	if len(args) > 0 {
 		switch args[0] {
-		case "my":
-		case "in":
+		case MyFlag:
+		case InFlag:
 			listID = InListKey
 			responseMessage = "Received Todo list:\n\n"
-		case "out":
+		case OutFlag:
 			listID = OutListKey
 			responseMessage = "Sent Todo list:\n\n"
 		default:
@@ -230,7 +237,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
 
