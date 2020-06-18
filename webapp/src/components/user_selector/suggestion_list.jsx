@@ -123,7 +123,7 @@ export default class SuggestionList extends React.PureComponent {
                     <i
                         className='fa fa-spinner fa-fw fa-pulse spinner'
                         key={item.type}
-                    />
+                    />,
                 );
                 continue;
             }
@@ -142,7 +142,7 @@ export default class SuggestionList extends React.PureComponent {
                     isSelection={isSelection}
                     onClick={this.props.onCompleteWord}
                     onMouseMove={this.props.onItemHover}
-                />
+                />,
             );
         }
         const mainClass = 'suggestion-list suggestion-list--' + this.props.location;
@@ -151,7 +151,7 @@ export default class SuggestionList extends React.PureComponent {
         if (this.props.wrapperHeight) {
             maxHeight = Math.min(
                 window.innerHeight - (this.props.wrapperHeight + Constants.SUGGESTION_LIST_MAXHEIGHT),
-                Constants.SUGGESTION_LIST_MAXHEIGHT
+                Constants.SUGGESTION_LIST_MAXHEIGHT,
             );
         }
 
