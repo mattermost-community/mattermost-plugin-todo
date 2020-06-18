@@ -6,3 +6,4 @@ export const GET_ISSUES = pluginId + '_get_issues';
 export const GET_OUT_ISSUES = pluginId + '_get_out_issues';
 export const GET_IN_ISSUES = pluginId + '_get_in_issues';
 export const RECEIVED_SHOW_RHS_ACTION = pluginId + '_show_rhs';
+export const UPDATE_RHS_STATE = pluginId + '_update_rhs_state';
