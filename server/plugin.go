@@ -18,7 +18,7 @@ const (
 	WSEventRefresh = "refresh"
 )
 
-// ListManager representes the logic on the lists
+// ListManager represents the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
 	AddIssue(userID, message, postID string) error
@@ -187,9 +187,9 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	listInput := r.URL.Query().Get("list")
 	listID := MyListKey
 	switch listInput {
-	case "out":
+	case OutFlag:
 		listID = OutListKey
-	case "in":
+	case InFlag:
 		listID = InListKey
 	}
 
@@ -219,7 +219,10 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			p.saveLastReminderTimeForUser(userID)
+			err = p.saveLastReminderTimeForUser(userID)
+			if err != nil {
+				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
+			}
 		}
 	}
 
@@ -230,7 +233,10 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write(issuesJSON)
+	_, err = w.Write(issuesJSON)
+	if err != nil {
+		p.API.LogError("Unable to write json response err=" + err.Error())
+	}
 }
 
 type acceptAPIRequest struct {

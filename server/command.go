@@ -8,6 +8,13 @@ import (
 	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
+const (
+	listHeaderMessage = " Todo List:\n\n"
+	MyFlag            = "my"
+	InFlag            = "in"
+	OutFlag           = "out"
+)
+
 func getHelp() string {
 	return `Available Commands:
 
@@ -47,6 +54,7 @@ func getCommand() *model.Command {
 		AutoComplete:     true,
 		AutoCompleteDesc: "Available commands: add, list, pop, send, help",
 		AutoCompleteHint: "[command]",
+		AutocompleteData: getAutocompleteData(),
 	}
 }
 
@@ -164,7 +172,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
 
@@ -177,11 +185,11 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	if len(args) > 0 {
 		switch args[0] {
-		case "my":
-		case "in":
+		case MyFlag:
+		case InFlag:
 			listID = InListKey
 			responseMessage = "Received Todo list:\n\n"
-		case "out":
+		case OutFlag:
 			listID = OutListKey
 			responseMessage = "Sent Todo list:\n\n"
 		default:
@@ -230,9 +238,42 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	responseMessage += " Todo List:\n\n"
+	responseMessage += listHeaderMessage
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
 
 	return false, nil
+}
+
+func getAutocompleteData() *model.AutocompleteData {
+	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, help")
+
+	add := model.NewAutocompleteData("add", "[message]", "Adds a Todo")
+	add.AddTextArgument("E.g. be awesome", "[message]", "")
+	todo.AddCommand(add)
+
+	list := model.NewAutocompleteData("list", "[name]", "Lists your Todo issues")
+	items := []model.AutocompleteListItem{{
+		HelpText: "Received Todos",
+		Hint:     "(optional)",
+		Item:     "in",
+	}, {
+		HelpText: "Sent Todos",
+		Hint:     "(optional)",
+		Item:     "out",
+	}}
+	list.AddStaticListArgument("Lists your Todo issues", false, items)
+	todo.AddCommand(list)
+
+	pop := model.NewAutocompleteData("pop", "", "Removes the Todo issue at the top of the list")
+	todo.AddCommand(pop)
+
+	send := model.NewAutocompleteData("send", "[user] [todo]", "Sends a Todo to a specified user")
+	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")
+	send.AddTextArgument("Todo message", "[message]", "")
+	todo.AddCommand(send)
+
+	help := model.NewAutocompleteData("help", "", "Display usage")
+	todo.AddCommand(help)
+	return todo
 }

@@ -15,7 +15,7 @@ const (
 	StoreRetries = 3
 	// StoreListKey is the key used to store lists in the plugin KV store. Still "order" for backwards compatibility.
 	StoreListKey = "order"
-	// StoreIssueKey is the key used to store issues in the plugin KV store. Still "item" for backwards compatibilty.
+	// StoreIssueKey is the key used to store issues in the plugin KV store. Still "item" for backwards compatibility.
 	StoreIssueKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
@@ -47,7 +47,7 @@ type listStore struct {
 }
 
 // NewListStore creates a new listStore
-func NewListStore(api plugin.API) *listStore {
+func NewListStore(api plugin.API) ListStore {
 	return &listStore{
 		api: api,
 	}
