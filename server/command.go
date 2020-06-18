@@ -54,6 +54,7 @@ func getCommand() *model.Command {
 		AutoComplete:     true,
 		AutoCompleteDesc: "Available commands: add, list, pop, send, help",
 		AutoCompleteHint: "[command]",
+		AutocompleteData: getAutocompleteData(),
 	}
 }
 
@@ -242,4 +243,37 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	p.postCommandResponse(extra, responseMessage)
 
 	return false, nil
+}
+
+func getAutocompleteData() *model.AutocompleteData {
+	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, help")
+
+	add := model.NewAutocompleteData("add", "[message]", "Adds a Todo")
+	add.AddTextArgument("E.g. be awesome", "[message]", "")
+	todo.AddCommand(add)
+
+	list := model.NewAutocompleteData("list", "[name]", "Lists your Todo issues")
+	items := []model.AutocompleteListItem{{
+		HelpText: "Received Todos",
+		Hint:     "(optional)",
+		Item:     "in",
+	}, {
+		HelpText: "Sent Todos",
+		Hint:     "(optional)",
+		Item:     "out",
+	}}
+	list.AddStaticListArgument("Lists your Todo issues", false, items)
+	todo.AddCommand(list)
+
+	pop := model.NewAutocompleteData("pop", "", "Removes the Todo issue at the top of the list")
+	todo.AddCommand(pop)
+
+	send := model.NewAutocompleteData("send", "[user] [todo]", "Sends a Todo to a specified user")
+	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")
+	send.AddTextArgument("Todo message", "[message]", "")
+	todo.AddCommand(send)
+
+	help := model.NewAutocompleteData("help", "", "Display usage")
+	todo.AddCommand(help)
+	return todo
 }
