@@ -246,7 +246,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func getAutocompleteData() *model.AutocompleteData {
-	todo := model.NewAutocompleteData("todo", "[command]", "Avaliable commands: list, add, pop, send, help")
+	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, help")
 
 	add := model.NewAutocompleteData("add", "[message]", "Adds a Todo")
 	add.AddTextArgument("E.g. be awesome", "[message]", "")
