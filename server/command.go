@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -69,7 +70,9 @@ func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
 
 // ExecuteCommand executes a given command and returns a command response.
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	stringArgs := strings.Split(strings.TrimSpace(args.Command), " ")
+	spaceRegExp := regexp.MustCompile(`\s+`)
+	trimmedArgs := spaceRegExp.ReplaceAllString(strings.TrimSpace(args.Command), " ")
+	stringArgs := strings.Split(trimmedArgs, " ")
 	lengthOfArgs := len(stringArgs)
 	restOfArgs := []string{}
 
