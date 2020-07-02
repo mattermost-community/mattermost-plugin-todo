@@ -42,6 +42,9 @@ send [user] [message]
 
 	example: /todo send @awesomePerson Don't forget to be awesome
 
+info 
+	Shows plugin information
+
 help
 	Display usage.
 `
@@ -53,7 +56,7 @@ func getCommand() *model.Command {
 		DisplayName:      "Todo Bot",
 		Description:      "Interact with your Todo list.",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: add, list, pop, send, help",
+		AutoCompleteDesc: "Available commands: add, list, pop, send, info, help",
 		AutoCompleteHint: "[command]",
 		AutocompleteData: getAutocompleteData(),
 	}
@@ -93,6 +96,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runPopCommand
 		case "send":
 			handler = p.runSendCommand
+		case "info":
+			handler = p.runInfoComand
 		default:
 			p.postCommandResponse(args, getHelp())
 			return &model.CommandResponse{}, nil
@@ -109,6 +114,12 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	return &model.CommandResponse{}, nil
+}
+
+func (p *Plugin) runInfoComand(args []string, extra *model.CommandArgs) (bool, error) {
+	versionString := fmt.Sprintf("Todo plugin version: %s", manifest.Version)
+	p.postCommandResponse(extra, versionString)
+	return false, nil
 }
 
 func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, error) {
