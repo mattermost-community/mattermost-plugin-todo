@@ -200,7 +200,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" {
+	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" && p.getReminderPreference(userID) {
 		var lastReminderAt int64
 		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -19,6 +20,8 @@ const (
 	StoreIssueKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
+	// StoreReminderEnabledKey is the key used to store the user preference of auto daily reminder
+	StoreReminderEnabledKey = "reminder_enabled"
 )
 
 // IssueRef denotes every element in any of the lists. Contains the issue that refers to,
@@ -40,6 +43,10 @@ func issueKey(issueID string) string {
 
 func reminderKey(userID string) string {
 	return fmt.Sprintf("%s_%s", StoreReminderKey, userID)
+}
+
+func reminderEnabledKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreReminderEnabledKey, userID)
 }
 
 type listStore struct {
@@ -377,4 +384,35 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	}
 
 	return reminderAt, nil
+}
+
+func (p *Plugin) saveReminderPreference(userID string, preference bool) error {
+	preferenceString := strconv.FormatBool(preference)
+	appErr := p.API.KVSet(reminderEnabledKey(userID), []byte(preferenceString))
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+	return nil
+}
+
+// getReminderPreference - gets user preference on reminder - default value will be true if in case any error
+func (p *Plugin) getReminderPreference(userID string) bool {
+	preferenceByte, appErr := p.API.KVGet(reminderEnabledKey(userID))
+	if appErr != nil {
+		log.Printf("error getting the reminder preference, err=%+v", appErr)
+		return true
+	}
+
+	if preferenceByte == nil {
+		log.Printf(`reminder preference is empty. Defaulting to "on"`)
+		return true
+	}
+
+	preference, err := strconv.ParseBool(string(preferenceByte))
+	if err != nil {
+		log.Printf("error parsing the reminder preference, err=%+v", err)
+		return true
+	}
+
+	return preference
 }
