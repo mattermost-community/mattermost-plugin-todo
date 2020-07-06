@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -390,7 +389,7 @@ func (p *Plugin) saveReminderPreference(userID string, preference bool) error {
 	preferenceString := strconv.FormatBool(preference)
 	appErr := p.API.KVSet(reminderEnabledKey(userID), []byte(preferenceString))
 	if appErr != nil {
-		return errors.New(appErr.Error())
+		return appErr
 	}
 	return nil
 }
@@ -399,18 +398,18 @@ func (p *Plugin) saveReminderPreference(userID string, preference bool) error {
 func (p *Plugin) getReminderPreference(userID string) bool {
 	preferenceByte, appErr := p.API.KVGet(reminderEnabledKey(userID))
 	if appErr != nil {
-		log.Printf("error getting the reminder preference, err=%+v", appErr)
+		p.API.LogError("error getting the reminder preference, err=", appErr.Error())
 		return true
 	}
 
 	if preferenceByte == nil {
-		log.Printf(`reminder preference is empty. Defaulting to "on"`)
+		p.API.LogInfo(`reminder preference is empty. Defaulting to "on"`)
 		return true
 	}
 
 	preference, err := strconv.ParseBool(string(preferenceByte))
 	if err != nil {
-		log.Printf("error parsing the reminder preference, err=%+v", err)
+		p.API.LogError("unable to parse the reminder preference, err=", err.Error())
 		return true
 	}
 

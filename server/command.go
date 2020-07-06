@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -256,10 +257,14 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	if len(args) != 2 {
+		p.postCommandResponse(extra, "invalid number of arguments")
+		return true, errors.New("invalid number of arguments")
+	}
+
 	if args[0] == "summary" {
 		var responseMessage string
 		var err error
-		invalid := false
 
 		switch args[1] {
 		case "on":
@@ -267,20 +272,15 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		case "off":
 			err = p.saveReminderPreference(extra.UserId, false)
 		default:
-			invalid = true
+			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
+			p.postCommandResponse(extra, responseMessage)
+			return true, errors.New("invalid argument")
 		}
 
 		if err != nil {
 			responseMessage = "error saving the reminder preference"
 			p.postCommandResponse(extra, responseMessage)
-
-			return false, nil
-		}
-
-		if invalid {
-			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
-			p.postCommandResponse(extra, responseMessage)
-			return false, nil
+			return false, err
 		}
 
 		responseMessage = fmt.Sprintf("reminder preference changed to %s", args[1])
