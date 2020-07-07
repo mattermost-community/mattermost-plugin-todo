@@ -7,11 +7,14 @@ import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
 
+const PostUtils = window.PostUtils; // import the post utilities
+
 export default class PostTypeTodo extends React.PureComponent {
     static propTypes = {
         post: PropTypes.object.isRequired,
         pendingAnswer: PropTypes.bool.isRequired,
         theme: PropTypes.object.isRequired,
+        siteURL: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             complete: PropTypes.func.isRequired,
             remove: PropTypes.func.isRequired,
@@ -31,8 +34,12 @@ export default class PostTypeTodo extends React.PureComponent {
         const style = getStyle(this.props.theme);
 
         const preText = 'Automated message';
-        const title = this.props.post.props.message;
-        const subtitle = this.props.post.props.todo;
+
+        const titleHTMLFormattedText = PostUtils.formatText(this.props.post.props.message, {siteURL: this.props.siteURL});
+        const title = PostUtils.messageHtmlToComponent(titleHTMLFormattedText);
+
+        const subtitleHTMLFormattedText = PostUtils.formatText(this.props.post.props.todo, {siteURL: this.props.siteURL});
+        const subtitle = PostUtils.messageHtmlToComponent(subtitleHTMLFormattedText);
 
         const content = (
             <div
