@@ -160,7 +160,8 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
+	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "")
+	if err != nil {
 		return false, err
 	}
 
@@ -173,6 +174,22 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		p.API.LogError(err.Error())
 		p.postCommandResponse(extra, responseMessage)
 		return false, nil
+	}
+
+	// It's possible that database replication delay has resulted in the issue
+	// list not containing the newly-added issue, so we check for that and
+	// append the issue manually if necessary.
+	var issueIncluded bool
+	for _, issue := range issues {
+		if newIssue.ID == issue.ID {
+			issueIncluded = true
+			break
+		}
+	}
+	if !issueIncluded {
+		issues = append(issues, &ExtendedIssue{
+			Issue: *newIssue,
+		})
 	}
 
 	responseMessage += listHeaderMessage
