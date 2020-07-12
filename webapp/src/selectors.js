@@ -46,3 +46,24 @@ export const getSiteURL = () => {
 
     return siteURL;
 };
+
+const getCurrentlyOpenRhsPluginId = (state) => {
+    const rhs = state.views.rhs;
+    if (rhs.rhsState !== 'plugin') {
+        return '';
+    }
+    const available = state.plugins.components.RightHandSidebarComponent || [];
+    if (!available.length) {
+        return '';
+    }
+    const plugin = available.find((p) => p.id === rhs.pluggableId);
+    if (!plugin) {
+        return '';
+    }
+    return plugin.pluginId;
+};
+
+export const isPluginRhsOpen = (state) => {
+    const activepluginID = getCurrentlyOpenRhsPluginId(state);
+    return activepluginID === pluginId;
+};
