@@ -20,7 +20,7 @@ export default class ChannelHeaderButton extends React.PureComponent {
 
     render() {
         return (
-            <span className={`channel-header__icon channel-header__icon--wide ${this.props.isTodoPluginRhsOpen ? 'channel-header__icon--active' : ''}`}>
+            <span className={this.props.isTodoPluginRhsOpen ? 'channel-header__icon--active' : ''}>
                 <i className='icon fa fa-list '/>
             </span>
         );
