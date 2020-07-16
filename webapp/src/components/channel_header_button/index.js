@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import { bindActionCreators } from 'redux';
 
+import {showRHSPlugin} from 'actions';
 import {isPluginRhsOpen} from 'selectors';
 
-import ChannelHeaderButton from './channel_header_buttons.tsx';
+import ChannelHeaderButton from './channel_header_button';
 
 function mapStateToProps(state) {
     return {
@@ -13,4 +15,12 @@ function mapStateToProps(state) {
     };
 }
 
-export default connect(mapStateToProps)(ChannelHeaderButton);
+function mapDispatchToProp(dispatch) {
+    return {
+        actions: bindActionCreators({
+            showRHSPlugin,
+        }, dispatch),
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProp)(ChannelHeaderButton);
