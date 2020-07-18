@@ -4,12 +4,12 @@
 import React from 'react';
 
 type Props = {
-    shouldHighlight: boolean
+    isVisible: boolean,
 };
 
 export default function ChannelHeaderButton(props: Props) {
     return (
-        <span className={props.shouldHighlight ? 'channel-header__icon--active' : ''}>
+        <span className={props.isVisible ? 'channel-header__icon--active' : ''} >
             <i className='icon fa fa-list '/>
         </span>
     );

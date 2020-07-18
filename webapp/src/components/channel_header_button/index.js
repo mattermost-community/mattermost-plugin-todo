@@ -5,13 +5,12 @@ import {connect} from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import {showRHSPlugin} from 'actions';
-import {isPluginRhsOpen} from 'selectors';
 
 import ChannelHeaderButton from './channel_header_button';
 
 function mapStateToProps(state) {
     return {
-        shouldHighlight: isPluginRhsOpen(state),
+        isVisible: state['plugins-com.mattermost.plugin-todo'].isVisible,
     };
 }
 
