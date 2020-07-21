@@ -4,13 +4,15 @@
 import {connect} from 'react-redux';
 import { bindActionCreators } from 'redux';
 
+import { isRhsVisible } from 'selectors';
+
 import {showRHSPlugin} from 'actions';
 
 import ChannelHeaderButton from './channel_header_button';
 
 function mapStateToProps(state) {
     return {
-        isVisible: state['plugins-com.mattermost.plugin-todo'].isVisible,
+        shouldHighlight: isRhsVisible(state),
     };
 }
 
