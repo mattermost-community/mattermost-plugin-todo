@@ -19,6 +19,7 @@ export default class PostTypeTodo extends React.PureComponent {
             complete: PropTypes.func.isRequired,
             remove: PropTypes.func.isRequired,
             accept: PropTypes.func.isRequired,
+            telemetry: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -48,16 +49,24 @@ export default class PostTypeTodo extends React.PureComponent {
             >
                 <RemoveButton
                     issueId={this.props.post.props.issueId}
-                    remove={this.props.actions.remove}
-                    list={'my'}
+                    remove={(issueID) => {
+                        this.props.actions.telemetry('custom_post_remove');
+                        this.props.actions.remove(issueID);
+                    }}
                 />
                 <AcceptButton
                     issueId={this.props.post.props.issueId}
-                    accept={this.props.actions.accept}
+                    accept={(issueID) => {
+                        this.props.actions.telemetry('custom_post_accept');
+                        this.props.actions.accept(issueID);
+                    }}
                 />
                 <CompleteButton
                     issueId={this.props.post.props.issueId}
-                    complete={this.props.actions.complete}
+                    complete={(issueID) => {
+                        this.props.actions.telemetry('custom_post_complete');
+                        this.props.actions.complete(issueID);
+                    }}
                 />
             </div>
         );

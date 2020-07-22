@@ -5,7 +5,7 @@ import { id as pluginId } from './manifest';
 import Root from './components/root';
 import SidebarRight from './components/sidebar_right';
 
-import { openRootModal, list, setShowRHSAction } from './actions';
+import { openRootModal, list, setShowRHSAction, telemetry } from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -23,13 +23,24 @@ export default class Plugin {
 
         registry.registerPostDropdownMenuAction(
             'Add Todo',
-            (postID) => store.dispatch(openRootModal(postID)),
+            (postID) => {
+                telemetry('post_action_click')
+                store.dispatch(openRootModal(postID))
+            },
         );
 
         const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'Todo', 'Open your list of Todo issues.');
+        registry.registerChannelHeaderButtonAction(
+            <i className='icon fa fa-list'/>,
+            () => {
+                telemetry('channel_header_click')
+                store.dispatch(showRHSPlugin)
+            },
+            'Todo',
+            'Open your list of Todo issues.'
+        );
 
         const refresh = () => {
             store.dispatch(list(false, 'my'));

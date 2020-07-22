@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
@@ -54,6 +55,9 @@ type Plugin struct {
 	configuration *configuration
 
 	listManager ListManager
+
+	telemetryClient telemetry.Client
+	tracker         telemetry.Tracker
 }
 
 func (p *Plugin) OnActivate() error {
@@ -74,6 +78,11 @@ func (p *Plugin) OnActivate() error {
 
 	p.listManager = NewListManager(p.API)
 
+	p.telemetryClient, err = telemetry.NewRudderClient()
+	if err != nil {
+		p.API.LogWarn("telemetry client not started", "error", err.Error())
+	}
+
 	return p.API.RegisterCommand(getCommand())
 }
 
@@ -92,8 +101,36 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleAccept(w, r)
 	case "/bump":
 		p.handleBump(w, r)
+	case "/telemetry":
+		p.handleTelemetry(w, r)
 	default:
 		http.NotFound(w, r)
+	}
+}
+
+type telemetryAPIRequest struct {
+	Event      string
+	Properties map[string]interface{}
+}
+
+func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var telemetryRequest *telemetryAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&telemetryRequest)
+	if err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	if telemetryRequest.Event != "" {
+		p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
 	}
 }
 
@@ -128,6 +165,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		return
@@ -147,6 +185,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		return
@@ -159,6 +198,8 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
 		return
 	}
+
+	p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.sendRefreshEvent(receiver.Id)
@@ -266,6 +307,8 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	p.trackAcceptIssue(userID)
+
 	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
@@ -298,6 +341,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
 		return
 	}
+	p.trackCompleteIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
@@ -338,6 +382,8 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
 		return
 	}
+
+	p.trackRemoveIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
@@ -382,6 +428,8 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to bump issue", err)
 		return
 	}
+
+	p.trackBumpIssue(userID)
 
 	if foreignUser == "" {
 		return

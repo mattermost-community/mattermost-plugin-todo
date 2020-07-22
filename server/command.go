@@ -79,8 +79,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	var handler func([]string, *model.CommandArgs) (bool, error)
 	if lengthOfArgs == 1 {
 		handler = p.runListCommand
+		p.trackCommand(args.UserId, "")
 	} else {
 		command := stringArgs[1]
+		p.trackCommand(args.UserId, command)
 		if lengthOfArgs > 2 {
 			restOfArgs = stringArgs[2:]
 		}
@@ -138,6 +140,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return false, err
 	}
 
+	p.trackSendIssue(extra.UserId, sourceCommand, false)
+
 	p.sendRefreshEvent(extra.UserId)
 	p.sendRefreshEvent(receiver.Id)
 
@@ -163,6 +167,8 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
 		return false, err
 	}
+
+	p.trackAddIssue(extra.UserId, sourceCommand, false)
 
 	p.sendRefreshEvent(extra.UserId)
 
