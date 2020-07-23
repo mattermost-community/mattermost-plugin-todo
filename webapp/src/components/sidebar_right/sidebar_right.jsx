@@ -52,6 +52,7 @@ export default class SidebarRight extends React.PureComponent {
             bump: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
             openRootModal: PropTypes.func.isRequired,
+            setVisible: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -83,6 +84,11 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.list(false, 'my');
         this.props.actions.list(false, 'in');
         this.props.actions.list(false, 'out');
+        this.props.actions.setVisible(true);
+    }
+
+    componentWillUnmount() {
+        this.props.actions.setVisible(false);
     }
 
     componentDidUpdate(prevProps) {
