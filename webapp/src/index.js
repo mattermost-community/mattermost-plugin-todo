@@ -26,10 +26,10 @@ export default class Plugin {
             (postID) => store.dispatch(openRootModal(postID)),
         );
 
-        const { showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
+        const { toggleRHSPlugin, showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
 
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'Todo', 'Open your list of Todo issues.');
+        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(toggleRHSPlugin), 'Todo', 'Open your list of Todo issues.');
 
         const refresh = () => {
             store.dispatch(list(false, 'my'));
