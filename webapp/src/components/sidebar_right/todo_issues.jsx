@@ -19,7 +19,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
 
-    const handleClick = (e) => handleFormattedTextClick(e, props.currentRelativeTeamUrl);
+    const handleClick = (e) => handleFormattedTextClick(e);
 
     return props.issues.length > 0 ? props.issues.map((issue) => {
         const date = new Date(issue.create_at);
