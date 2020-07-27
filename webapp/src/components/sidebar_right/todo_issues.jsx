@@ -143,6 +143,7 @@ const getStyle = makeStyleFromTheme((theme) => {
         message: {
             width: '100%',
             overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
         },
     };
 });
