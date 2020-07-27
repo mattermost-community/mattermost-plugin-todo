@@ -98,7 +98,7 @@ function ToDoIssues(props) {
                 key={issue.id}
                 style={style.container}
             >
-                <div style={style.message}>
+                <div className='todo-text'>
                     {issueComponent}
                 </div>
                 {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
