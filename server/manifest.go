@@ -7,5 +7,5 @@ var manifest = struct {
 	Version string
 }{
 	ID:      "com.mattermost.plugin-todo",
-	Version: "0.2.0",
+	Version: "0.3.0",
 }

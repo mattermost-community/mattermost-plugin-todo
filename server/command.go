@@ -224,6 +224,10 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	issue, foreignID, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
+		if err.Error() == "cannot find issue" {
+			p.postCommandResponse(extra, "There are no Todos to pop.")
+			return false, nil
+		}
 		return false, err
 	}
 
