@@ -305,10 +305,8 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		}
 
 		if err != nil {
-			responseMessage = "Error saving the reminder preference."
-			p.API.LogError("error saving reminder preference", "error", err.Error())
-			p.postCommandResponse(extra, responseMessage)
-			return false, nil
+			responseMessage = "error saving the reminder preference"
+			return false, errors.New(responseMessage)
 		}
 
 		p.postCommandResponse(extra, responseMessage)
