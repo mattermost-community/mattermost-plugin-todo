@@ -109,7 +109,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
 		if isUserError {
-			p.postCommandResponse(args, fmt.Sprintf("__Error: %s__\n\nRun `/todo help` for usage instructions.", err.Error()))
+			p.postCommandResponse(args, fmt.Sprintf("__Error: %s.__\n\nRun `/todo help` for usage instructions.", err.Error()))
 		} else {
 			p.API.LogError(err.Error())
 			p.postCommandResponse(args, "An unknown error occurred. Please talk to your system administrator for help.")
@@ -300,7 +300,7 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 			err = p.saveReminderPreference(extra.UserId, false)
 			responseMessage = "You will stop receiving daily summaries."
 		default:
-			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
+			responseMessage = "invalid input, allowed values for \"settings summary\" are `on` or `off`"
 			return true, errors.New(responseMessage)
 		}
 
