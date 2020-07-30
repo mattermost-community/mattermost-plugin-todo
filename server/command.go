@@ -278,34 +278,42 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
-	if len(args) != 2 {
-		p.postCommandResponse(extra, "invalid number of arguments")
-		return true, errors.New("invalid number of arguments")
+	if len(args) < 1 {
+		return true, errors.New("no setting selected")
 	}
 
 	if args[0] == "summary" {
+		if len(args) < 2 {
+			return true, errors.New("choose whether you want this setting `on` or `off`")
+		}
+		if len(args) > 2 {
+			return true, errors.New("too many arguments")
+		}
 		var responseMessage string
 		var err error
 
 		switch args[1] {
 		case "on":
 			err = p.saveReminderPreference(extra.UserId, true)
+			responseMessage = "You will start receiving daily summaries."
 		case "off":
 			err = p.saveReminderPreference(extra.UserId, false)
+			responseMessage = "You will stop receiving daily summaries."
 		default:
 			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
-			p.postCommandResponse(extra, responseMessage)
-			return true, errors.New("invalid argument")
+			return true, errors.New(responseMessage)
 		}
 
 		if err != nil {
-			responseMessage = "error saving the reminder preference"
+			responseMessage = "Error saving the reminder preference."
+			p.API.LogError("error saving reminder preference", "error", err.Error())
 			p.postCommandResponse(extra, responseMessage)
-			return false, err
+			return false, nil
 		}
 
-		responseMessage = fmt.Sprintf("reminder preference changed to %s", args[1])
 		p.postCommandResponse(extra, responseMessage)
+	} else {
+		return true, fmt.Errorf("setting `%s` not recognized", args[0])
 	}
 
 	return false, nil
