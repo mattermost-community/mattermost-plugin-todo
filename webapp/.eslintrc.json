@@ -473,7 +473,7 @@
       2,
       "never"
     ],
-    "react/jsx-filename-extension": 2,
+    "react/jsx-filename-extension": 0,
     "react/jsx-first-prop-new-line": [
       2,
       "multiline"
@@ -545,7 +545,6 @@
       }
     ],
     "react/prefer-es6-class": 2,
-    "react/prefer-stateless-function": 2,
     "react/prop-types": [
       2,
       {
@@ -657,12 +656,7 @@
             "variables": false
           }
         ],
-        "react/jsx-filename-extension": [
-          1,
-          {
-            "extensions": [".jsx", ".tsx"]
-          }
-        ]
+        "react/jsx-filename-extension": 0
       }
     }
   ]
