@@ -306,6 +306,7 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 
 		if err != nil {
 			responseMessage = "error saving the reminder preference"
+			p.API.LogDebug("runSettingsCommand: error saving the reminder preference", "error", err.Error())
 			return false, errors.New(responseMessage)
 		}
 
