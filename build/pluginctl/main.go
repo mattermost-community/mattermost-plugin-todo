@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"os"
 
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -19,8 +18,6 @@ Usage:
     pluginctl enable <plugin id>
     pluginctl reset <plugin id>
 `
-
-const defaultSocketPath = "/var/tmp/mattermost_local.socket"
 
 func main() {
 	err := pluginctl()
@@ -61,13 +58,17 @@ func pluginctl() error {
 func getClient() (*model.Client4, error) {
 	socketPath := os.Getenv("MM_LOCALSOCKETPATH")
 	if socketPath == "" {
-		socketPath = defaultSocketPath
+		socketPath = model.LOCAL_MODE_SOCKET_PATH
 	}
 
 	client, connected := getUnixClient(socketPath)
 	if connected {
 		log.Printf("Connecting using local mode over %s", socketPath)
 		return client, nil
+	}
+
+	if os.Getenv("MM_LOCALSOCKETPATH") != "" {
+		log.Printf("No socket found at %s for local mode deployment. Attempting to authenticate with credentials.", socketPath)
 	}
 
 	siteURL := os.Getenv("MM_SERVICESETTINGS_SITEURL")
@@ -79,7 +80,7 @@ func getClient() (*model.Client4, error) {
 		return nil, errors.New("MM_SERVICESETTINGS_SITEURL is not set")
 	}
 
-	client := model.NewAPIv4Client(siteURL)
+	client = model.NewAPIv4Client(siteURL)
 
 	if adminToken != "" {
 		log.Printf("Authenticating using token against %s.", siteURL)
@@ -106,15 +107,7 @@ func getUnixClient(socketPath string) (*model.Client4, bool) {
 		return nil, false
 	}
 
-	tr := &http.Transport{
-		Dial: func(network, addr string) (net.Conn, error) {
-			return net.Dial("unix", socketPath)
-		},
-	}
-	client := model.NewAPIv4Client("http://_")
-	client.HttpClient = &http.Client{Transport: tr}
-
-	return client, true
+	return model.NewAPIv4SocketClient(socketPath), true
 }
 
 // deploy attempts to upload and enable a plugin via the Client4 API.
