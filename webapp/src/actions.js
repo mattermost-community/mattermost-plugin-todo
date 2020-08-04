@@ -55,7 +55,7 @@ export const getPluginServerRoute = (state) => {
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
         method: 'post',
-        body: Json.stringify({event, properties}),
+        body: JSON.stringify({event, properties}),
     }));
 }
 
