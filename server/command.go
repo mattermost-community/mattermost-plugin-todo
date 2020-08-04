@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -41,6 +42,11 @@ send [user] [message]
 	Sends some user a Todo
 
 	example: /todo send @awesomePerson Don't forget to be awesome
+
+settings summary [on, off]
+	Sets user preference on daily reminders
+
+	example: /todo settings summary on
 
 help
 	Display usage.
@@ -95,6 +101,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runPopCommand
 		case "send":
 			handler = p.runSendCommand
+		case "settings":
+			handler = p.runSettingsCommand
 		default:
 			p.postCommandResponse(args, getHelp())
 			return &model.CommandResponse{}, nil
@@ -164,7 +172,8 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	if err := p.listManager.AddIssue(extra.UserId, message, ""); err != nil {
+	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "")
+	if err != nil {
 		return false, err
 	}
 
@@ -179,6 +188,22 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		p.API.LogError(err.Error())
 		p.postCommandResponse(extra, responseMessage)
 		return false, nil
+	}
+
+	// It's possible that database replication delay has resulted in the issue
+	// list not containing the newly-added issue, so we check for that and
+	// append the issue manually if necessary.
+	var issueIncluded bool
+	for _, issue := range issues {
+		if newIssue.ID == issue.ID {
+			issueIncluded = true
+			break
+		}
+	}
+	if !issueIncluded {
+		issues = append(issues, &ExtendedIssue{
+			Issue: *newIssue,
+		})
 	}
 
 	responseMessage += listHeaderMessage
@@ -222,6 +247,10 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	issue, foreignID, err := p.listManager.PopIssue(extra.UserId)
 	if err != nil {
+		if err.Error() == "cannot find issue" {
+			p.postCommandResponse(extra, "There are no Todos to pop.")
+			return false, nil
+		}
 		return false, err
 	}
 
@@ -254,8 +283,42 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	return false, nil
 }
 
+func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	if len(args) != 2 {
+		p.postCommandResponse(extra, "invalid number of arguments")
+		return true, errors.New("invalid number of arguments")
+	}
+
+	if args[0] == "summary" {
+		var responseMessage string
+		var err error
+
+		switch args[1] {
+		case "on":
+			err = p.saveReminderPreference(extra.UserId, true)
+		case "off":
+			err = p.saveReminderPreference(extra.UserId, false)
+		default:
+			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
+			p.postCommandResponse(extra, responseMessage)
+			return true, errors.New("invalid argument")
+		}
+
+		if err != nil {
+			responseMessage = "error saving the reminder preference"
+			p.postCommandResponse(extra, responseMessage)
+			return false, err
+		}
+
+		responseMessage = fmt.Sprintf("reminder preference changed to %s", args[1])
+		p.postCommandResponse(extra, responseMessage)
+	}
+
+	return false, nil
+}
+
 func getAutocompleteData() *model.AutocompleteData {
-	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, help")
+	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, settings, help")
 
 	add := model.NewAutocompleteData("add", "[message]", "Adds a Todo")
 	add.AddTextArgument("E.g. be awesome", "[message]", "")
@@ -281,6 +344,15 @@ func getAutocompleteData() *model.AutocompleteData {
 	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")
 	send.AddTextArgument("Todo message", "[message]", "")
 	todo.AddCommand(send)
+
+	settings := model.NewAutocompleteData("settings", "summary [on] [off]", "Sets the user settings")
+	summary := model.NewAutocompleteData("summary", "[on] [off]", "Sets the summary settings")
+	on := model.NewAutocompleteData("on", "", "sets the daily reminder to enable")
+	off := model.NewAutocompleteData("off", "", "sets the daily reminder to disable")
+	summary.AddCommand(on)
+	summary.AddCommand(off)
+	settings.AddCommand(summary)
+	todo.AddCommand(settings)
 
 	help := model.NewAutocompleteData("help", "", "Display usage")
 	todo.AddCommand(help)

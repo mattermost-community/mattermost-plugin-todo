@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {getIssues, getInIssues, getOutIssues, getSiteURL} from '../../selectors';
-import {remove, list, openRootModal, complete, bump, accept, telemetry} from '../../actions';
+import {remove, list, openRootModal, complete, bump, accept, telemetry, setRhsVisible} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
 
@@ -29,6 +29,7 @@ function mapDispatchToProps(dispatch) {
             list,
             openRootModal,
             telemetry,
+            setVisible: setRhsVisible,
         }, dispatch),
     };
 }
