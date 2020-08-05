@@ -260,6 +260,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
+			p.trackDailySummary(userID)
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())

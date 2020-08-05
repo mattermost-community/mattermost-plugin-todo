@@ -64,7 +64,7 @@ export const telemetry = (event, properties) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({event, properties}),
     }));
-}
+};
 
 export const add = (message, sendTo, postID) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({

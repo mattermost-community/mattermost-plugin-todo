@@ -25,8 +25,8 @@ export default class Plugin {
         registry.registerPostDropdownMenuAction(
             'Add Todo',
             (postID) => {
-                telemetry('post_action_click')
-                store.dispatch(openRootModal(postID))
+                telemetry('post_action_click');
+                store.dispatch(openRootModal(postID));
             },
         );
 
@@ -35,11 +35,11 @@ export default class Plugin {
         registry.registerChannelHeaderButtonAction(
             <ChannelHeaderButton/>,
             () => {
-                telemetry('channel_header_click')
-                store.dispatch(toggleRHSPlugin)
+                telemetry('channel_header_click');
+                store.dispatch(toggleRHSPlugin);
             },
             'Todo',
-            'Open your list of Todo issues.'
+            'Open your list of Todo issues.',
         );
 
         const refresh = () => {

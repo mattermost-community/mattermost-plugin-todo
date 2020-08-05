@@ -53,6 +53,7 @@ export default class SidebarRight extends React.PureComponent {
             list: PropTypes.func.isRequired,
             openRootModal: PropTypes.func.isRequired,
             setVisible: PropTypes.func.isRequired,
+            telemetry: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -73,12 +74,12 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     toggleInbox() {
-        this.props.actions.telemetry('toggle_inbox', {action: this.state.showInbox? 'collapse' : 'expand'})
+        this.props.actions.telemetry('toggle_inbox', {action: this.state.showInbox ? 'collapse' : 'expand'});
         this.setState({showInbox: !this.state.showInbox});
     }
 
     toggleMy() {
-        this.props.actions.telemetry('toggle_my', {action: this.state.showMy? 'collapse' : 'expand'})
+        this.props.actions.telemetry('toggle_my', {action: this.state.showMy ? 'collapse' : 'expand'});
         this.setState({showMy: !this.state.showMy});
     }
 
