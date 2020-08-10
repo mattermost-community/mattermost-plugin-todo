@@ -20,6 +20,11 @@
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [{
+            "key": "teamSidebarVisible",
+            "display_name": "Show buttons in left hand side",
+            "type": "bool",
+            "help_text": "When true, show buttons in the left hand side toolbar."
+        }]
     }
 }
