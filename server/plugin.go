@@ -21,7 +21,7 @@ const (
 // ListManager represents the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
-	AddIssue(userID, message, postID string) error
+	AddIssue(userID, message, postID string) (*Issue, error)
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
 	SendIssue(senderID, receiverID, message, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
@@ -122,7 +122,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	senderName := p.listManager.GetUserName(userID)
 
 	if addRequest.SendTo == "" {
-		err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
 		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
@@ -141,7 +141,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if receiver.Id == userID {
-		err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
 		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
@@ -200,7 +200,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" {
+	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" && p.getReminderPreference(userID) {
 		var lastReminderAt int64
 		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {

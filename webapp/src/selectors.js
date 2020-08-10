@@ -46,3 +46,5 @@ export const getSiteURL = () => {
 
     return siteURL;
 };
+
+export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;

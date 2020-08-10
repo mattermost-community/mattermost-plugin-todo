@@ -19,6 +19,8 @@ const (
 	StoreIssueKey = "item"
 	// StoreReminderKey is the key used to store the last time a user was reminded
 	StoreReminderKey = "reminder"
+	// StoreReminderEnabledKey is the key used to store the user preference of auto daily reminder
+	StoreReminderEnabledKey = "reminder_enabled"
 )
 
 // IssueRef denotes every element in any of the lists. Contains the issue that refers to,
@@ -40,6 +42,10 @@ func issueKey(issueID string) string {
 
 func reminderKey(userID string) string {
 	return fmt.Sprintf("%s_%s", StoreReminderKey, userID)
+}
+
+func reminderEnabledKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreReminderEnabledKey, userID)
 }
 
 type listStore struct {
@@ -377,4 +383,35 @@ func (p *Plugin) getLastReminderTimeForUser(userID string) (int64, error) {
 	}
 
 	return reminderAt, nil
+}
+
+func (p *Plugin) saveReminderPreference(userID string, preference bool) error {
+	preferenceString := strconv.FormatBool(preference)
+	appErr := p.API.KVSet(reminderEnabledKey(userID), []byte(preferenceString))
+	if appErr != nil {
+		return appErr
+	}
+	return nil
+}
+
+// getReminderPreference - gets user preference on reminder - default value will be true if in case any error
+func (p *Plugin) getReminderPreference(userID string) bool {
+	preferenceByte, appErr := p.API.KVGet(reminderEnabledKey(userID))
+	if appErr != nil {
+		p.API.LogError("error getting the reminder preference, err=", appErr.Error())
+		return true
+	}
+
+	if preferenceByte == nil {
+		p.API.LogInfo(`reminder preference is empty. Defaulting to "on"`)
+		return true
+	}
+
+	preference, err := strconv.ParseBool(string(preferenceByte))
+	if err != nil {
+		p.API.LogError("unable to parse the reminder preference, err=", err.Error())
+		return true
+	}
+
+	return preference
 }

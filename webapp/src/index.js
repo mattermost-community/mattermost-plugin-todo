@@ -9,6 +9,7 @@ import {openRootModal, list, setShowRHSAction} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
+import ChannelHeaderButton from './components/channel_header_button';
 
 let activityFunc;
 let lastActivityTime = Number.MAX_SAFE_INTEGER;
@@ -26,10 +27,9 @@ export default class Plugin {
             (postID) => store.dispatch(openRootModal(postID)),
         );
 
-        const {showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
+        const { toggleRHSPlugin, showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
-
-        registry.registerChannelHeaderButtonAction(<i className='icon fa fa-list'/>, () => store.dispatch(showRHSPlugin), 'Todo', 'Open your list of Todo issues.');
+        registry.registerChannelHeaderButtonAction(<ChannelHeaderButton/>, () => store.dispatch(toggleRHSPlugin), 'Todo', 'Open your list of Todo issues.');
 
         const refresh = () => {
             store.dispatch(list(false, 'my'));
