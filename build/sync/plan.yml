@@ -9,13 +9,9 @@ actions:
   - paths:
       - Makefile
       - .editorconfig
-    actions:
-      - type: overwrite_file
-        params:
-          create: true
-  - paths:
       - .circleci/config.yml
       - webapp/.eslintrc.json
+      - webapp/.gitignore
       - webapp/package.json
       - webapp/tsconfig.json
       - webapp/webpack.config.js
