@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { id as pluginId } from './manifest';
+import {id as pluginId} from './manifest';
 
 import Root from './components/root';
 import SidebarRight from './components/sidebar_right';
 
-import { openRootModal, list, setShowRHSAction } from './actions';
+import {openRootModal, list, setShowRHSAction} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -27,7 +27,7 @@ export default class Plugin {
             (postID) => store.dispatch(openRootModal(postID)),
         );
 
-        const { toggleRHSPlugin, showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
+        const {toggleRHSPlugin, showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
         registry.registerChannelHeaderButtonAction(<ChannelHeaderButton/>, () => store.dispatch(toggleRHSPlugin), 'Todo', 'Open your list of Todo issues.');
 
