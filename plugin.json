@@ -21,7 +21,7 @@
         "header": "",
         "footer": "",
         "settings": [{
-            "key": "teamSidebarVisible",
+            "key": "team_sidebar_visible",
             "display_name": "Show buttons in left hand side",
             "type": "bool",
             "help_text": "When true, show buttons in the left hand side toolbar."
