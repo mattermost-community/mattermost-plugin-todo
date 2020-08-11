@@ -5,7 +5,7 @@ import {id as pluginId} from './manifest';
 import Root from './components/root';
 import SidebarRight from './components/sidebar_right';
 
-import { openRootModal, list, setShowRHSAction, updateConfig } from './actions';
+import {openRootModal, list, setShowRHSAction, updateConfig} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
