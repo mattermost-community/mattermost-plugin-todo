@@ -3,7 +3,17 @@ import {Client4} from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {id as pluginId} from './manifest';
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_SHOW_RHS_ACTION, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, UPDATE_RHS_STATE, SET_RHS_VISIBLE} from './action_types';
+import {
+    OPEN_ROOT_MODAL,
+    CLOSE_ROOT_MODAL,
+    RECEIVED_SHOW_RHS_ACTION,
+    GET_ISSUES,
+    GET_IN_ISSUES,
+    GET_OUT_ISSUES,
+    UPDATE_RHS_STATE,
+    SET_RHS_VISIBLE,
+    SET_TEAM_SIDEBAR_BUTTON_VISIBLE,
+} from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -150,3 +160,27 @@ export function autocompleteUsers(username) {
         return data;
     };
 }
+
+export function setTeamSidebarVisible(payload) {
+    return {
+        type: SET_TEAM_SIDEBAR_BUTTON_VISIBLE,
+        payload,
+    };
+}
+
+export const updateConfig = () => async (dispatch, getState) => {
+    let resp;
+    let data;
+    try {
+        resp = await fetch(getPluginServerRoute(getState()) + '/config', Client4.getOptions({
+            method: 'get',
+        }));
+        data = await resp.json();
+    } catch (error) {
+        return {error};
+    }
+
+    dispatch(setTeamSidebarVisible(data.team_sidebar_visible));
+
+    return {data};
+};
