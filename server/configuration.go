@@ -84,5 +84,8 @@ func (p *Plugin) OnConfigurationChange() error {
 
 	p.setConfiguration(configuration)
 
+	// Send WebSocket event to get clients to update plugin config
+	p.sendConfigUpdateEvent()
+
 	return nil
 }
