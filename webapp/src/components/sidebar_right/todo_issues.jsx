@@ -10,7 +10,7 @@ import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
 import BumpButton from '../buttons/bump';
-import {canComplete, canRemove, canAccept, canBump} from '../../utils';
+import {canComplete, canRemove, canAccept, canBump, handleFormattedTextClick} from '../../utils';
 
 const PostUtils = window.PostUtils; // import the post utilities
 
@@ -18,6 +18,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
+
+    const handleClick = (e) => handleFormattedTextClick(e);
 
     return props.issues.length > 0 ? props.issues.map((issue) => {
         const date = new Date(issue.create_at);
@@ -98,7 +100,10 @@ function ToDoIssues(props) {
                 key={issue.id}
                 style={style.container}
             >
-                <div className='todo-text'>
+                <div
+                    className='todo-text'
+                    onClick={handleClick}
+                >
                     {issueComponent}
                 </div>
                 {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
