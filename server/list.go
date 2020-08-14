@@ -58,21 +58,21 @@ func NewListManager(api plugin.API) ListManager {
 	}
 }
 
-func (l *listManager) AddIssue(userID, message, postID string) error {
+func (l *listManager) AddIssue(userID, message, postID string) (*Issue, error) {
 	issue := newIssue(message, postID)
 
 	if err := l.store.AddIssue(issue); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := l.store.AddReference(userID, issue.ID, MyListKey, "", ""); err != nil {
 		if rollbackError := l.store.RemoveIssue(issue.ID); rollbackError != nil {
 			l.api.LogError("cannot rollback issue after add error, Err=", err.Error())
 		}
-		return err
+		return nil, err
 	}
 
-	return nil
+	return issue, nil
 }
 
 func (l *listManager) SendIssue(senderID, receiverID, message, postID string) (string, error) {
