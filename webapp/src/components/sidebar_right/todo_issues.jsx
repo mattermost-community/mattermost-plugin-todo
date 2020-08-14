@@ -101,7 +101,7 @@ function ToDoIssues(props) {
                 style={style.container}
             >
                 <div
-                    style={style.message}
+                    className='todo-text'
                     onClick={handleClick}
                 >
                     {issueComponent}
@@ -148,6 +148,7 @@ const getStyle = makeStyleFromTheme((theme) => {
         message: {
             width: '100%',
             overflowWrap: 'break-word',
+            whiteSpace: 'pre-wrap',
         },
     };
 });
