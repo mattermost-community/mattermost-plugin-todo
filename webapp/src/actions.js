@@ -12,7 +12,7 @@ import {
     GET_OUT_ISSUES,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
-    SET_TEAM_SIDEBAR_BUTTON_VISIBLE,
+    SET_HIDE_TEAM_SIDEBAR_BUTTON,
 } from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
@@ -161,9 +161,9 @@ export function autocompleteUsers(username) {
     };
 }
 
-export function setTeamSidebarVisible(payload) {
+export function setHideTeamSidebar(payload) {
     return {
-        type: SET_TEAM_SIDEBAR_BUTTON_VISIBLE,
+        type: SET_HIDE_TEAM_SIDEBAR_BUTTON,
         payload,
     };
 }
@@ -180,7 +180,7 @@ export const updateConfig = () => async (dispatch, getState) => {
         return {error};
     }
 
-    dispatch(setTeamSidebarVisible(data.hide_team_sidebar));
+    dispatch(setHideTeamSidebar(data.hide_team_sidebar));
 
     return {data};
 };

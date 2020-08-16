@@ -18,7 +18,7 @@ import (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	TeamSidebarVisible bool `json:"hide_team_sidebar"`
+	HideTeamSidebar bool `json:"hide_team_sidebar"`
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
