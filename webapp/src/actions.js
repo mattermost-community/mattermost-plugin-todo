@@ -180,7 +180,7 @@ export const updateConfig = () => async (dispatch, getState) => {
         return {error};
     }
 
-    dispatch(setTeamSidebarVisible(data.team_sidebar_visible));
+    dispatch(setTeamSidebarVisible(data.hide_team_sidebar));
 
     return {data};
 };

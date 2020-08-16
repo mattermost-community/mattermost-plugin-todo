@@ -21,10 +21,10 @@
         "header": "",
         "footer": "",
         "settings": [{
-            "key": "team_sidebar_visible",
-            "display_name": "Show buttons in team sidebar",
+            "key": "hide_team_sidebar",
+            "display_name": "Hide team sidebar buttons",
             "type": "bool",
-            "help_text": "When true, show todo buttons in the team sidebar on the left toolbar."
+            "help_text": "When true, the buttons in the team sidebar on the left toolbar will be hidden."
         }]
     }
 }
