@@ -416,7 +416,14 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if p.configuration != nil {
-		configJSON, err := json.Marshal(p.configuration)
+		// retrieve client only configurations
+		clientConfig := struct {
+			HideTeamSidebar bool `json:"hide_team_sidebar"`
+		}{
+			HideTeamSidebar: p.configuration.HideTeamSidebar,
+		}
+
+		configJSON, err := json.Marshal(clientConfig)
 		if err != nil {
 			p.API.LogError("Unable to marshal plugin configuration to json err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to marshal plugin configuration to json", err)
