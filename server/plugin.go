@@ -447,9 +447,13 @@ func (p *Plugin) sendRefreshEvent(userID string) {
 
 // Publish a WebSocket event to update the configuration of the application on the webapp end.
 func (p *Plugin) sendConfigUpdateEvent() {
+	clientConfigMap := map[string]interface{}{
+		"hide_team_sidebar": p.configuration.HideTeamSidebar,
+	}
+
 	p.API.PublishWebSocketEvent(
 		WSEventConfigUpdate,
-		nil,
+		clientConfigMap,
 		&model.WebsocketBroadcast{},
 	)
 }
