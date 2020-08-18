@@ -408,9 +408,7 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestMethod := r.Method
-
-	if requestMethod != http.MethodGet {
+    if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
