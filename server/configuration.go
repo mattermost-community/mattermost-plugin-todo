@@ -73,6 +73,15 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 	p.configuration = configuration
 }
 
+// Check whether client configuration are different
+func (p *Plugin) hasClientConfigChanged(prev *configuration, current *configuration) bool {
+	if prev.HideTeamSidebar != current.HideTeamSidebar {
+		return true
+	}
+
+	return false
+}
+
 // OnConfigurationChange is invoked when configuration changes may have been made.
 func (p *Plugin) OnConfigurationChange() error {
 	var configuration = new(configuration)
@@ -82,10 +91,13 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
 
+	sendEvent := p.hasClientConfigChanged(p.configuration, configuration)
 	p.setConfiguration(configuration)
 
-	// Send WebSocket event to get clients to update plugin config
-	p.sendConfigUpdateEvent()
+	// Dispatch WebSocket event to send all users updated client configs
+	if sendEvent {
+		p.sendConfigUpdateEvent()
+	}
 
 	return nil
 }

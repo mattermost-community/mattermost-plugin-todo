@@ -408,7 +408,7 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    if r.Method != http.MethodGet {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -443,7 +443,7 @@ func (p *Plugin) sendRefreshEvent(userID string) {
 	)
 }
 
-// Publish a WebSocket event to update the configuration of the application on the webapp end.
+// Publish a WebSocket event to update the client config of the plugin on the webapp end.
 func (p *Plugin) sendConfigUpdateEvent() {
 	clientConfigMap := map[string]interface{}{
 		"hide_team_sidebar": p.configuration.HideTeamSidebar,
