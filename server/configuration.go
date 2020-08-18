@@ -87,11 +87,11 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
 
-	sendEvent := p.hasClientConfigChanged(p.configuration, configuration)
+	shouldUpdateClient := p.hasClientConfigChanged(p.configuration, configuration)
 	p.setConfiguration(configuration)
 
 	// Dispatch WebSocket event to send all users updated client configs
-	if sendEvent {
+	if shouldUpdateClient {
 		p.sendConfigUpdateEvent()
 	}
 
