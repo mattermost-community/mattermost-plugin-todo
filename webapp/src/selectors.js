@@ -48,4 +48,4 @@ export const getSiteURL = () => {
 };
 
 export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;
-export const isTeamSidebarHidden = (state) => getPluginState(state).isTeamSidebarHidden;
+export const isTeamSidebarVisible = (state) => !getPluginState(state).isTeamSidebarHidden;

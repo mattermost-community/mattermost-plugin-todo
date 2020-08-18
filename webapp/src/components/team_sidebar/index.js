@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 
-import {isTeamSidebarHidden} from 'selectors';
+import {isTeamSidebarVisible} from 'selectors';
 
 import TeamSidebar from './team_sidebar.jsx';
 
@@ -11,7 +11,7 @@ function mapStateToProps(state) {
     const members = state.entities.teams.myMembers || {};
     return {
         show: Object.keys(members).length > 1,
-        visible: !isTeamSidebarHidden(state),
+        visible: isTeamSidebarVisible(state),
     };
 }
 
