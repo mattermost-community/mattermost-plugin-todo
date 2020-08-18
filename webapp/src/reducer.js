@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE, SET_HIDE_TEAM_SIDEBAR_BUTTON} from './action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE, SET_HIDE_TEAM_SIDEBAR_BUTTONS} from './action_types';
 
 const rootModalVisible = (state = false, action) => {
     switch (action.type) {
@@ -80,7 +80,7 @@ function isRhsVisible(state = false, action) {
 
 function isTeamSidebarHidden(state = false, action) {
     switch (action.type) {
-    case SET_HIDE_TEAM_SIDEBAR_BUTTON:
+    case SET_HIDE_TEAM_SIDEBAR_BUTTONS:
         return action.payload;
     default:
         return state;

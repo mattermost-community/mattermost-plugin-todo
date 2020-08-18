@@ -8,4 +8,4 @@ export const GET_IN_ISSUES = pluginId + '_get_in_issues';
 export const RECEIVED_SHOW_RHS_ACTION = pluginId + '_show_rhs';
 export const UPDATE_RHS_STATE = pluginId + '_update_rhs_state';
 export const SET_RHS_VISIBLE = pluginId + '_set_rhs_visible';
-export const SET_HIDE_TEAM_SIDEBAR_BUTTON = pluginId + '_set_hide_team_sidebar';
+export const SET_HIDE_TEAM_SIDEBAR_BUTTONS = pluginId + '_set_hide_team_sidebar';

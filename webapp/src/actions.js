@@ -12,7 +12,7 @@ import {
     GET_OUT_ISSUES,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
-    SET_HIDE_TEAM_SIDEBAR_BUTTON,
+    SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
 
 export const openRootModal = (postID) => (dispatch) => {
@@ -163,7 +163,7 @@ export function autocompleteUsers(username) {
 
 export function setHideTeamSidebar(payload) {
     return {
-        type: SET_HIDE_TEAM_SIDEBAR_BUTTON,
+        type: SET_HIDE_TEAM_SIDEBAR_BUTTONS,
         payload,
     };
 }
