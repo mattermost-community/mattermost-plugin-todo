@@ -86,6 +86,17 @@ func (p *Plugin) OnActivate() error {
 	return p.API.RegisterCommand(getCommand())
 }
 
+func (p *Plugin) OnDeactivate() error {
+	if p.telemetryClient != nil {
+		err := p.telemetryClient.Close()
+		if err != nil {
+			p.API.LogWarn("OnDeactivate: failed to close telemetryClient", "error", err.Error())
+		}
+	}
+
+	return nil
+}
+
 // ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
