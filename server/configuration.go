@@ -75,7 +75,7 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 
 // Check whether client configuration are different
 func (p *Plugin) hasClientConfigChanged(prev *configuration, current *configuration) bool {
-	return prev.HideTeamSidebar != current.HideTeamSidebar
+	return prev == nil || prev.HideTeamSidebar != current.HideTeamSidebar
 }
 
 // OnConfigurationChange is invoked when configuration changes may have been made.
