@@ -1,0 +1,8 @@
+.header-button {
+    &:active,
+    &--active,
+    &--active:hover {
+        fill: var(--button-bg) !important;
+        color: var(--button-bg) !important;
+    }
+}
