@@ -2,7 +2,7 @@
     &:active,
     &--active,
     &--active:hover {
-        fill: var(--button-bg) !important;
-        color: var(--button-bg) !important;
+        fill: var(--button-bg);
+        color: var(--button-bg);
     }
 }
