@@ -12,7 +12,7 @@ type Props = {
 export default function ChannelHeaderButton(props: Props) {
     let btnClass = 'icon fa fa-list';
     if (props.shouldHighlight) {
-        btnClass += ' header-button--active';
+        btnClass += ' todo-plugin-icon--active';
     }
 
     return (
