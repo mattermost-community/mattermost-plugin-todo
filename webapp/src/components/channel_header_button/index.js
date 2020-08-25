@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import { bindActionCreators } from 'redux';
+import {bindActionCreators} from 'redux';
 
-import { isRhsVisible } from 'selectors';
+import {isRhsVisible} from 'selectors';
 
 import {showRHSPlugin} from 'actions';
 
