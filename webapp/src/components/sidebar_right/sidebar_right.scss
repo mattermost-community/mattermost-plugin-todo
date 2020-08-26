@@ -4,10 +4,13 @@
         text-align: center;
         cursor: pointer;
         &:hover {
-            background-color: var(--button-bg-10);
+            background-color: var(--center-channel-color-04);
+        }
+        &:active {
+            background-color: var(--center-channel-color-08);
         }
         i {
-            color: var(--center-channel-color-90);
+            color: var(--center-channel-color);
         }
     }
     .header-menu {
