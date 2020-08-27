@@ -159,7 +159,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             backgroundColor: theme.buttonBg,
         },
         inactiveButton: {
-            color: changeOpacity(theme.buttonColor, 0.32),
+            color: changeOpacity(theme.buttonColor, 0.88),
             backgroundColor: changeOpacity(theme.buttonBg, 0.32),
         },
     };
