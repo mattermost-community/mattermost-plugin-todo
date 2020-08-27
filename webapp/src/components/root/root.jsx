@@ -146,21 +146,21 @@ export default class Root extends React.Component {
 const getStyle = makeStyleFromTheme((theme) => {
     return {
         modal: {
-            color: changeOpacity(theme.centerChannelColor, 0.9),
+            color: changeOpacity(theme.centerChannelColor, 0.88),
         },
         textarea: {
             backgroundColor: theme.centerChannelBg,
         },
         helpText: {
-            color: changeOpacity(theme.centerChannelColor, 0.6),
+            color: changeOpacity(theme.centerChannelColor, 0.64),
         },
         button: {
             color: theme.buttonColor,
             backgroundColor: theme.buttonBg,
         },
         inactiveButton: {
-            color: changeOpacity(theme.buttonColor, 0.7),
-            backgroundColor: changeOpacity(theme.buttonBg, 0.3),
+            color: changeOpacity(theme.buttonColor, 0.32),
+            backgroundColor: changeOpacity(theme.buttonBg, 0.32),
         },
     };
 });
