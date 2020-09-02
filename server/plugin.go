@@ -16,6 +16,9 @@ import (
 const (
 	// WSEventRefresh is the WebSocket event for refreshing the Todo list
 	WSEventRefresh = "refresh"
+
+	// WSEventConfigUpdate is the WebSocket event to update the Todo list's configurations on webapp
+	WSEventConfigUpdate = "config_update"
 )
 
 // ListManager represents the logic on the lists
@@ -92,6 +95,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleAccept(w, r)
 	case "/bump":
 		p.handleBump(w, r)
+	case "/config":
+		p.handleConfig(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -395,11 +400,59 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
 }
 
+// API endpoint to retrieve plugin configurations
+func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if p.configuration != nil {
+		// retrieve client only configurations
+		clientConfig := struct {
+			HideTeamSidebar bool `json:"hide_team_sidebar"`
+		}{
+			HideTeamSidebar: p.configuration.HideTeamSidebar,
+		}
+
+		configJSON, err := json.Marshal(clientConfig)
+		if err != nil {
+			p.API.LogError("Unable to marshal plugin configuration to json err=" + err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to marshal plugin configuration to json", err)
+			return
+		}
+
+		_, err = w.Write(configJSON)
+		if err != nil {
+			p.API.LogError("Unable to write json response err=" + err.Error())
+		}
+	}
+}
+
 func (p *Plugin) sendRefreshEvent(userID string) {
 	p.API.PublishWebSocketEvent(
 		WSEventRefresh,
 		nil,
 		&model.WebsocketBroadcast{UserId: userID},
+	)
+}
+
+// Publish a WebSocket event to update the client config of the plugin on the webapp end.
+func (p *Plugin) sendConfigUpdateEvent() {
+	clientConfigMap := map[string]interface{}{
+		"hide_team_sidebar": p.configuration.HideTeamSidebar,
+	}
+
+	p.API.PublishWebSocketEvent(
+		WSEventConfigUpdate,
+		clientConfigMap,
+		&model.WebsocketBroadcast{},
 	)
 }
 

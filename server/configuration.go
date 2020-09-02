@@ -18,6 +18,7 @@ import (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
+	HideTeamSidebar bool `json:"hide_team_sidebar"`
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -72,6 +73,11 @@ func (p *Plugin) setConfiguration(configuration *configuration) {
 	p.configuration = configuration
 }
 
+// Check whether client configuration are different
+func (p *Plugin) hasClientConfigChanged(prev *configuration, current *configuration) bool {
+	return prev == nil || prev.HideTeamSidebar != current.HideTeamSidebar
+}
+
 // OnConfigurationChange is invoked when configuration changes may have been made.
 func (p *Plugin) OnConfigurationChange() error {
 	var configuration = new(configuration)
@@ -81,7 +87,13 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
 
+	shouldUpdateClient := p.hasClientConfigChanged(p.configuration, configuration)
 	p.setConfiguration(configuration)
+
+	// Dispatch WebSocket event to send all users updated client configs
+	if shouldUpdateClient {
+		p.sendConfigUpdateEvent()
+	}
 
 	return nil
 }

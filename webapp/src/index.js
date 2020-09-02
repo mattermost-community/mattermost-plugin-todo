@@ -5,7 +5,7 @@ import {id as pluginId} from './manifest';
 import Root from './components/root';
 import SidebarRight from './components/sidebar_right';
 
-import {openRootModal, list, setShowRHSAction} from './actions';
+import {openRootModal, list, setShowRHSAction, updateConfig, setHideTeamSidebar} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -43,6 +43,15 @@ export default class Plugin {
         store.dispatch(list(true));
         store.dispatch(list(false, 'in'));
         store.dispatch(list(false, 'out'));
+
+        // register websocket event to track config changes
+        const configUpdate = ({data}) => {
+            store.dispatch(setHideTeamSidebar(data.hide_team_sidebar));
+        };
+
+        registry.registerWebSocketEventHandler(`custom_${pluginId}_config_update`, configUpdate);
+
+        store.dispatch(updateConfig());
 
         activityFunc = () => {
             const now = new Date().getTime();

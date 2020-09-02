@@ -10,10 +10,11 @@ export default class TeamSidebar extends React.PureComponent {
     static propTypes = {
         show: PropTypes.bool.isRequired,
         theme: PropTypes.object.isRequired,
+        visible: PropTypes.bool.isRequired,
     };
 
     render() {
-        if (!this.props.show) {
+        if (!this.props.show || !this.props.visible) {
             return null;
         }
 
