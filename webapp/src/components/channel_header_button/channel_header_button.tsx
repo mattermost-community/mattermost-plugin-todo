@@ -3,14 +3,19 @@
 
 import React from 'react';
 
+import './channel_header_button.scss';
+
 type Props = {
     shouldHighlight: boolean,
 };
 
 export default function ChannelHeaderButton(props: Props) {
+    let btnClass = 'icon fa fa-list';
+    if (props.shouldHighlight) {
+        btnClass += ' todo-plugin-icon--active';
+    }
+
     return (
-        <span className={props.shouldHighlight ? 'channel-header__icon--active' : ''} >
-            <i className='icon fa fa-list '/>
-        </span>
+        <i className={btnClass}/>
     );
 }
