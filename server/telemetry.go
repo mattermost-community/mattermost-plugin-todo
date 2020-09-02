@@ -1,8 +1,10 @@
 package main
 
+type telemetrySource string
+
 const (
-	sourceCommand = "command"
-	sourceWebapp  = "webapp"
+	sourceCommand telemetrySource = "command"
+	sourceWebapp  telemetrySource = "webapp"
 )
 
 func (p *Plugin) trackCommand(userID, command string) {
@@ -11,14 +13,14 @@ func (p *Plugin) trackCommand(userID, command string) {
 	})
 }
 
-func (p *Plugin) trackAddIssue(userID, source string, attached bool) {
+func (p *Plugin) trackAddIssue(userID string, source telemetrySource, attached bool) {
 	p.tracker.TrackUserEvent("add_issue", userID, map[string]interface{}{
 		"source":   source,
 		"attached": attached,
 	})
 }
 
-func (p *Plugin) trackSendIssue(userID, source string, attached bool) {
+func (p *Plugin) trackSendIssue(userID string, source telemetrySource, attached bool) {
 	p.tracker.TrackUserEvent("send_issue", userID, map[string]interface{}{
 		"source":   source,
 		"attached": attached,
