@@ -109,7 +109,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
 		if isUserError {
-			p.postCommandResponse(args, fmt.Sprintf("__Error: %s__\n\nRun `/todo help` for usage instructions.", err.Error()))
+			p.postCommandResponse(args, fmt.Sprintf("__Error: %s.__\n\nRun `/todo help` for usage instructions.", err.Error()))
 		} else {
 			p.API.LogError(err.Error())
 			p.postCommandResponse(args, "An unknown error occurred. Please talk to your system administrator for help.")
@@ -278,34 +278,41 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
-	if len(args) != 2 {
-		p.postCommandResponse(extra, "invalid number of arguments")
-		return true, errors.New("invalid number of arguments")
+	if len(args) < 1 {
+		return true, errors.New("no setting selected")
 	}
 
 	if args[0] == "summary" {
+		if len(args) < 2 {
+			return true, errors.New("choose whether you want this setting `on` or `off`")
+		}
+		if len(args) > 2 {
+			return true, errors.New("too many arguments")
+		}
 		var responseMessage string
 		var err error
 
 		switch args[1] {
 		case "on":
 			err = p.saveReminderPreference(extra.UserId, true)
+			responseMessage = "You will start receiving daily summaries."
 		case "off":
 			err = p.saveReminderPreference(extra.UserId, false)
+			responseMessage = "You will stop receiving daily summaries."
 		default:
-			responseMessage = `invalid input, allowed values for "settings summary" are [on] or [off]"`
-			p.postCommandResponse(extra, responseMessage)
-			return true, errors.New("invalid argument")
+			responseMessage = "invalid input, allowed values for \"settings summary\" are `on` or `off`"
+			return true, errors.New(responseMessage)
 		}
 
 		if err != nil {
 			responseMessage = "error saving the reminder preference"
-			p.postCommandResponse(extra, responseMessage)
-			return false, err
+			p.API.LogDebug("runSettingsCommand: error saving the reminder preference", "error", err.Error())
+			return false, errors.New(responseMessage)
 		}
 
-		responseMessage = fmt.Sprintf("reminder preference changed to %s", args[1])
 		p.postCommandResponse(extra, responseMessage)
+	} else {
+		return true, fmt.Errorf("setting `%s` not recognized", args[0])
 	}
 
 	return false, nil

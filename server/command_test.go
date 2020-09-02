@@ -16,6 +16,7 @@ func TestSetttingsCommand(t *testing.T) {
 	apiKVSetFailed := &plugintest.API{}
 	apiKVSetFailed.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	apiKVSetFailed.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(model.NewAppError("failed", "", nil, "", 400))
+	apiKVSetFailed.On("LogDebug", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"))
 
 	tests := []struct {
 		name    string
