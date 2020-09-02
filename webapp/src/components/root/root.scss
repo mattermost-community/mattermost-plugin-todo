@@ -44,7 +44,7 @@
         margin-bottom: 28px;
         .todoplugin-input {
             height: 144px;
-            border: 1px solid rgba(0, 0, 0, .3);
+            border: 1px solid var(--center-channel-color-16);
             border-radius: 4px;
             padding: 12px 14px;
             width: 100%;
@@ -53,6 +53,9 @@
             overflow: auto;
             &.todoplugin-one-line {
                 height: 48px;
+            }
+            &:focus {
+                border-color: var(--center-channel-color-32);
             }
         }
         .todoplugin-help-text {
@@ -75,7 +78,7 @@
     }
 
     .todoplugin-divider {
-        border-bottom: 1px solid rgba(0, 0, 0, .3);
+        border-bottom: 1px solid var(--center-channel-color-32);
         height: 1px;
         width: 65%;
         margin-top: 28px;

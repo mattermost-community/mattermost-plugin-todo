@@ -4,10 +4,13 @@
         text-align: center;
         cursor: pointer;
         &:hover {
-            background-color: var(--button-bg-10);
+            background-color: var(--center-channel-color-04);
+        }
+        &:active {
+            background-color: var(--center-channel-color-08);
         }
         i {
-            color: var(--center-channel-color-90);
+            color: var(--center-channel-color);
         }
     }
     .header-menu {
@@ -20,14 +23,21 @@
             height: 100%;
             margin-left: 5px;
             margin-right: 5px;
-            background-color: var(--button-bg-10);
-            color: #000000;
+            color: var(--center-channel-color-56);
+            background-color: unset;
+            box-shadow: unset;
+            border: 3px solid transparent;
             &:hover {
-                color: var(--button-color);
+                background-color: var(--center-channel-color-04);
+            }
+            &:active {
+                background-color: var(--center-channel-color-08);
+                color: var(--center-channel-color);
             }
             &.selected {
-                background-color: var(--button-bg);
-                color: var(--button-color);
+                background-color: var(--center-channel-color-08);
+                border-bottom: 3px solid var(--button-bg);
+                color: var(--center-channel-color);
             }
         }
     }
