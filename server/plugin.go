@@ -30,11 +30,11 @@ type ListManager interface {
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
 	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
-	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, err error)
+	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error)
 	// AcceptIssue moves one the todo issueID of userID from inbox to myList, and returns the message and the foreignUserID if any
 	AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, err error)
 	// RemoveIssue removes the todo issueID for userID and returns the issue, the foreign ID if any and whether the user sent the todo to someone else
-	RemoveIssue(userID, issueID string) (issue *Issue, foreignID string, isSender bool, err error)
+	RemoveIssue(userID, issueID string) (issue *Issue, foreignID string, isSender bool, listToUpdate string, err error)
 	// PopIssue the first element of myList for userID and returns the issue and the foreign ID if any
 	PopIssue(userID string) (issue *Issue, foreignID string, err error)
 	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
@@ -135,6 +135,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		}
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+		p.sendRefreshEvent(userID, []string{MyListKey})
 		return
 	}
 
@@ -154,10 +155,12 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		}
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+		p.sendRefreshEvent(userID, []string{MyListKey})
 		return
 	}
 
 	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostID)
+	p.sendRefreshEvent(userID, []string{OutListKey})
 
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
@@ -166,7 +169,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-	p.sendRefreshEvent(receiver.Id)
+	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
@@ -270,11 +273,12 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to accept issue", err)
 		return
 	}
+	p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
 
 	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
-	p.sendRefreshEvent(sender)
+	p.sendRefreshEvent(sender, []string{OutListKey})
 	p.PostBotDM(sender, message)
 }
 
@@ -296,13 +300,15 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	p.API.LogError("user ID: " + userID + "completeRequest.ID: " + completeRequest.ID)
 
-	issue, foreignID, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
+	issue, foreignID, listToUpdate, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to complete issue err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
 		return
 	}
+	p.sendRefreshEvent(userID, []string{listToUpdate}) // p.sendRefereshEvent(userId, [listToUpdate])
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
@@ -313,7 +319,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
-	p.sendRefreshEvent(foreignID)
+	p.sendRefreshEvent(foreignID, []string{OutListKey})
 	p.PostBotDM(foreignID, message)
 }
 
@@ -337,11 +343,15 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issue, foreignID, isSender, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
+	issue, foreignID, isSender, listToUpdate, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
 	if err != nil {
 		p.API.LogError("Unable to remove issue, err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
 		return
+	}
+	p.sendRefreshEvent(userID, []string{listToUpdate})
+	if isSender {
+		p.sendRefreshEvent(userID, []string{OutListKey})
 	}
 
 	userName := p.listManager.GetUserName(userID)
@@ -352,12 +362,15 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	list := InListKey
+
 	message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, issue.Message)
 	if isSender {
 		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, issue.Message)
+		list = OutListKey
 	}
 
-	p.sendRefreshEvent(foreignID)
+	p.sendRefreshEvent(foreignID, []string{list})
 	p.PostBotDM(foreignID, message)
 }
 
@@ -396,7 +409,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
 
-	p.sendRefreshEvent(foreignUser)
+	p.sendRefreshEvent(foreignUser, []string{InListKey})
 	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
 }
 
@@ -435,10 +448,10 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Plugin) sendRefreshEvent(userID string) {
+func (p *Plugin) sendRefreshEvent(userID string, lists []string) {
 	p.API.PublishWebSocketEvent(
 		WSEventRefresh,
-		nil,
+		map[string]interface{}{"lists": lists},
 		&model.WebsocketBroadcast{UserId: userID},
 	)
 }

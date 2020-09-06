@@ -146,8 +146,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return false, err
 	}
 
-	p.sendRefreshEvent(extra.UserId)
-	p.sendRefreshEvent(receiver.Id)
+	p.sendRefreshEvent(extra.UserId, []string{OutListKey})
+	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 
 	responseMessage := fmt.Sprintf("Todo sent to @%s.", userName)
 
@@ -173,7 +173,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, err
 	}
 
-	p.sendRefreshEvent(extra.UserId)
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
 
 	responseMessage := "Added Todo."
 
@@ -230,7 +230,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 	if err != nil {
 		return false, err
 	}
-	p.sendRefreshEvent(extra.UserId)
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
 
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
@@ -252,11 +252,11 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 
 	if foreignID != "" {
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
-		p.sendRefreshEvent(foreignID)
+		p.sendRefreshEvent(foreignID, []string{OutListKey})
 		p.PostBotDM(foreignID, message)
 	}
 
-	p.sendRefreshEvent(extra.UserId)
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
 
 	responseMessage := "Removed top Todo."
 
