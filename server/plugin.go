@@ -300,7 +300,6 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	p.API.LogError("user ID: " + userID + "completeRequest.ID: " + completeRequest.ID)
 
 	issue, foreignID, listToUpdate, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
 	if err != nil {
@@ -308,7 +307,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
 		return
 	}
-	p.sendRefreshEvent(userID, []string{listToUpdate}) // p.sendRefereshEvent(userId, [listToUpdate])
+	p.sendRefreshEvent(userID, []string{listToUpdate})
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
