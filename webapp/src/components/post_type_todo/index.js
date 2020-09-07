@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {remove, complete, accept} from '../../actions';
+import {remove, complete, accept, telemetry} from '../../actions';
 import {getSiteURL} from '../../selectors';
 
 import PostTypeTodo from './post_type_todo';
@@ -23,6 +23,7 @@ function mapDispatchToProps(dispatch) {
             remove,
             complete,
             accept,
+            telemetry,
         }, dispatch),
     };
 }

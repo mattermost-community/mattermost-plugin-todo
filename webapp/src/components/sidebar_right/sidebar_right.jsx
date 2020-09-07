@@ -53,6 +53,7 @@ export default class SidebarRight extends React.PureComponent {
             list: PropTypes.func.isRequired,
             openRootModal: PropTypes.func.isRequired,
             setVisible: PropTypes.func.isRequired,
+            telemetry: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -73,10 +74,12 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     toggleInbox() {
+        this.props.actions.telemetry('toggle_inbox', {action: this.state.showInbox ? 'collapse' : 'expand'});
         this.setState({showInbox: !this.state.showInbox});
     }
 
     toggleMy() {
+        this.props.actions.telemetry('toggle_my', {action: this.state.showMy ? 'collapse' : 'expand'});
         this.setState({showMy: !this.state.showMy});
     }
 
@@ -190,7 +193,10 @@ export default class SidebarRight extends React.PureComponent {
                     </div>
                     <div
                         className='section-header'
-                        onClick={() => this.props.actions.openRootModal('')}
+                        onClick={() => {
+                            this.props.actions.telemetry('rhs_add', {list: this.state.list});
+                            this.props.actions.openRootModal('');
+                        }}
                     >
                         {addButton + ' '}
                         <i className='icon fa fa-plus-circle'/>

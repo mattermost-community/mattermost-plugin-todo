@@ -19,6 +19,7 @@ export default class SidebarButtons extends React.PureComponent {
         actions: PropTypes.shape({
             list: PropTypes.func.isRequired,
             updateRhsState: PropTypes.func.isRequired,
+            telemetry: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -61,7 +62,10 @@ export default class SidebarButtons extends React.PureComponent {
                 >
                     <a
                         style={button}
-                        onClick={() => this.openRHS(RHSStates.InListName)}
+                        onClick={() => {
+                            this.props.actions.telemetry('click_lhs_my');
+                            this.openRHS(RHSStates.InListName);
+                        }}
                     >
                         <i className='icon icon-check'/>
                         {' ' + issues.length}
@@ -73,7 +77,10 @@ export default class SidebarButtons extends React.PureComponent {
                     overlay={<Tooltip id='incomingTodosTooltip'>{'Incoming Todos'}</Tooltip>}
                 >
                     <a
-                        onClick={() => this.openRHS(RHSStates.InListName)}
+                        onClick={() => {
+                            this.props.actions.telemetry('click_lhs_in');
+                            this.openRHS(RHSStates.InListName);
+                        }}
                         style={button}
                     >
                         <i className='icon icon-arrow-down'/>
@@ -86,7 +93,10 @@ export default class SidebarButtons extends React.PureComponent {
                     overlay={<Tooltip id='outgoingTodosTooltip'>{'Outgoing Todos'}</Tooltip>}
                 >
                     <a
-                        onClick={() => this.openRHS(RHSStates.OutListName)}
+                        onClick={() => {
+                            this.props.actions.telemetry('click_lhs_out');
+                            this.openRHS(RHSStates.OutListName);
+                        }}
                         style={button}
                     >
                         <i className='icon icon-arrow-up'/>
