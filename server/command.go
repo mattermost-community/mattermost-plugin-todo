@@ -88,7 +88,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		p.trackCommand(args.UserId, "")
 	} else {
 		command := stringArgs[1]
-		p.trackCommand(args.UserId, command)
 		if lengthOfArgs > 2 {
 			restOfArgs = stringArgs[2:]
 		}
@@ -104,9 +103,15 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		case "settings":
 			handler = p.runSettingsCommand
 		default:
+			if command == "help" {
+				p.trackCommand(args.UserId, command)
+			} else {
+				p.trackCommand(args.UserId, "not found")
+			}
 			p.postCommandResponse(args, getHelp())
 			return &model.CommandResponse{}, nil
 		}
+		p.trackCommand(args.UserId, command)
 	}
 	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
