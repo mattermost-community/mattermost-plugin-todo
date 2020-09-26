@@ -241,6 +241,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 	if err != nil {
 		return false, err
 	}
+
 	go p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
 
 	responseMessage += issuesListToString(issues)
@@ -262,8 +263,9 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	userName := p.listManager.GetUserName(extra.UserId)
 
 	if foreignID != "" {
-		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
 		go p.sendRefreshEvent(foreignID, []string{OutListKey})
+
+		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
 		p.PostBotDM(foreignID, message)
 	}
 
