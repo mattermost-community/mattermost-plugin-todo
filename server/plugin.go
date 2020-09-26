@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"github.com/pkg/errors"
@@ -57,6 +58,9 @@ type Plugin struct {
 	configuration *configuration
 
 	listManager ListManager
+
+	telemetryClient telemetry.Client
+	tracker         telemetry.Tracker
 }
 
 func (p *Plugin) OnActivate() error {
@@ -77,7 +81,23 @@ func (p *Plugin) OnActivate() error {
 
 	p.listManager = NewListManager(p.API)
 
+	p.telemetryClient, err = telemetry.NewRudderClient()
+	if err != nil {
+		p.API.LogWarn("telemetry client not started", "error", err.Error())
+	}
+
 	return p.API.RegisterCommand(getCommand())
+}
+
+func (p *Plugin) OnDeactivate() error {
+	if p.telemetryClient != nil {
+		err := p.telemetryClient.Close()
+		if err != nil {
+			p.API.LogWarn("OnDeactivate: failed to close telemetryClient", "error", err.Error())
+		}
+	}
+
+	return nil
 }
 
 // ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
@@ -95,10 +115,38 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleAccept(w, r)
 	case "/bump":
 		p.handleBump(w, r)
+	case "/telemetry":
+		p.handleTelemetry(w, r)
 	case "/config":
 		p.handleConfig(w, r)
 	default:
 		http.NotFound(w, r)
+	}
+}
+
+type telemetryAPIRequest struct {
+	Event      string
+	Properties map[string]interface{}
+}
+
+func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var telemetryRequest *telemetryAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&telemetryRequest)
+	if err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	if telemetryRequest.Event != "" {
+		p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
 	}
 }
 
@@ -133,6 +181,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		p.sendRefreshEvent(userID, []string{MyListKey})
@@ -153,6 +202,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		p.sendRefreshEvent(userID, []string{MyListKey})
@@ -167,6 +217,8 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
 		return
 	}
+
+	p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.sendRefreshEvent(receiver.Id, []string{InListKey})
@@ -227,6 +279,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
+			p.trackDailySummary(userID)
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
@@ -275,6 +328,8 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	}
 	p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
 
+	p.trackAcceptIssue(userID)
+
 	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
@@ -307,7 +362,10 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
 		return
 	}
+
 	p.sendRefreshEvent(userID, []string{listToUpdate})
+
+	p.trackCompleteIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
@@ -352,6 +410,8 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	if isSender {
 		p.sendRefreshEvent(userID, []string{OutListKey})
 	}
+
+	p.trackRemoveIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
@@ -399,6 +459,8 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to bump issue", err)
 		return
 	}
+
+	p.trackBumpIssue(userID)
 
 	if foreignUser == "" {
 		return

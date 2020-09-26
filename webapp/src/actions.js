@@ -69,6 +69,13 @@ export const getPluginServerRoute = (state) => {
     return basePath + '/plugins/' + pluginId;
 };
 
+export const telemetry = (event, properties) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({event, properties}),
+    }));
+};
+
 export const add = (message, sendTo, postID) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
         method: 'post',

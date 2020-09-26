@@ -85,6 +85,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	var handler func([]string, *model.CommandArgs) (bool, error)
 	if lengthOfArgs == 1 {
 		handler = p.runListCommand
+		p.trackCommand(args.UserId, "")
 	} else {
 		command := stringArgs[1]
 		if lengthOfArgs > 2 {
@@ -102,9 +103,15 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		case "settings":
 			handler = p.runSettingsCommand
 		default:
+			if command == "help" {
+				p.trackCommand(args.UserId, command)
+			} else {
+				p.trackCommand(args.UserId, "not found")
+			}
 			p.postCommandResponse(args, getHelp())
 			return &model.CommandResponse{}, nil
 		}
+		p.trackCommand(args.UserId, command)
 	}
 	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
@@ -146,6 +153,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return false, err
 	}
 
+	p.trackSendIssue(extra.UserId, sourceCommand, false)
+
 	p.sendRefreshEvent(extra.UserId, []string{OutListKey})
 	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 
@@ -172,6 +181,8 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 	if err != nil {
 		return false, err
 	}
+
+	p.trackAddIssue(extra.UserId, sourceCommand, false)
 
 	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
 
