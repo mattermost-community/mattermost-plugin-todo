@@ -184,7 +184,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
-		p.sendRefreshEvent(userID, []string{MyListKey})
+		go p.sendRefreshEvent(userID, []string{MyListKey})
 		return
 	}
 
@@ -205,12 +205,12 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
-		p.sendRefreshEvent(userID, []string{MyListKey})
+		go p.sendRefreshEvent(userID, []string{MyListKey})
 		return
 	}
 
 	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostID)
-	p.sendRefreshEvent(userID, []string{OutListKey})
+	go p.sendRefreshEvent(userID, []string{OutListKey})
 
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
@@ -221,7 +221,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-	p.sendRefreshEvent(receiver.Id, []string{InListKey})
+	go p.sendRefreshEvent(receiver.Id, []string{InListKey})
 	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
@@ -326,14 +326,14 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to accept issue", err)
 		return
 	}
-	p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
+	go p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
 
 	p.trackAcceptIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
-	p.sendRefreshEvent(sender, []string{OutListKey})
+	go p.sendRefreshEvent(sender, []string{OutListKey})
 	p.PostBotDM(sender, message)
 }
 
@@ -363,7 +363,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.sendRefreshEvent(userID, []string{listToUpdate})
+	go p.sendRefreshEvent(userID, []string{listToUpdate})
 
 	p.trackCompleteIssue(userID)
 
@@ -376,7 +376,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
-	p.sendRefreshEvent(foreignID, []string{OutListKey})
+	go p.sendRefreshEvent(foreignID, []string{OutListKey})
 	p.PostBotDM(foreignID, message)
 }
 
@@ -406,9 +406,9 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
 		return
 	}
-	p.sendRefreshEvent(userID, []string{listToUpdate})
+	go p.sendRefreshEvent(userID, []string{listToUpdate})
 	if isSender {
-		p.sendRefreshEvent(userID, []string{OutListKey})
+		go p.sendRefreshEvent(userID, []string{OutListKey})
 	}
 
 	p.trackRemoveIssue(userID)
@@ -429,7 +429,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		list = OutListKey
 	}
 
-	p.sendRefreshEvent(foreignID, []string{list})
+	go p.sendRefreshEvent(foreignID, []string{list})
 	p.PostBotDM(foreignID, message)
 }
 
@@ -470,7 +470,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
 
-	p.sendRefreshEvent(foreignUser, []string{InListKey})
+	go p.sendRefreshEvent(foreignUser, []string{InListKey})
 	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
 }
 
