@@ -146,7 +146,7 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if telemetryRequest.Event != "" {
-		p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
+		go p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
 	}
 }
 
@@ -181,7 +181,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
-		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
+		go p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		go p.sendRefreshEvent(userID, []string{MyListKey})
@@ -202,7 +202,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
-		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
+		go p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
 		go p.sendRefreshEvent(userID, []string{MyListKey})
@@ -218,7 +218,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
+	go p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	go p.sendRefreshEvent(receiver.Id, []string{InListKey})
@@ -279,7 +279,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			p.trackDailySummary(userID)
+			go p.trackDailySummary(userID)
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
@@ -328,7 +328,7 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	}
 	go p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
 
-	p.trackAcceptIssue(userID)
+	go p.trackAcceptIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 
@@ -365,7 +365,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	go p.sendRefreshEvent(userID, []string{listToUpdate})
 
-	p.trackCompleteIssue(userID)
+	go p.trackCompleteIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
@@ -411,7 +411,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		go p.sendRefreshEvent(userID, []string{OutListKey})
 	}
 
-	p.trackRemoveIssue(userID)
+	go p.trackRemoveIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
@@ -460,7 +460,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.trackBumpIssue(userID)
+	go p.trackBumpIssue(userID)
 
 	if foreignUser == "" {
 		return
