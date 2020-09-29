@@ -85,7 +85,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	var handler func([]string, *model.CommandArgs) (bool, error)
 	if lengthOfArgs == 1 {
 		handler = p.runListCommand
-		go p.trackCommand(args.UserId, "")
+		p.trackCommand(args.UserId, "")
 	} else {
 		command := stringArgs[1]
 		if lengthOfArgs > 2 {
@@ -104,14 +104,14 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runSettingsCommand
 		default:
 			if command == "help" {
-				go p.trackCommand(args.UserId, command)
+				p.trackCommand(args.UserId, command)
 			} else {
-				go p.trackCommand(args.UserId, "not found")
+				p.trackCommand(args.UserId, "not found")
 			}
 			p.postCommandResponse(args, getHelp())
 			return &model.CommandResponse{}, nil
 		}
-		go p.trackCommand(args.UserId, command)
+		p.trackCommand(args.UserId, command)
 	}
 	isUserError, err := handler(restOfArgs, args)
 	if err != nil {
@@ -153,10 +153,10 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return false, err
 	}
 
-	go p.trackSendIssue(extra.UserId, sourceCommand, false)
+	p.trackSendIssue(extra.UserId, sourceCommand, false)
 
-	go p.sendRefreshEvent(extra.UserId, []string{OutListKey})
-	go p.sendRefreshEvent(receiver.Id, []string{InListKey})
+	p.sendRefreshEvent(extra.UserId, []string{OutListKey})
+	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 
 	responseMessage := fmt.Sprintf("Todo sent to @%s.", userName)
 
@@ -182,9 +182,9 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, err
 	}
 
-	go p.trackAddIssue(extra.UserId, sourceCommand, false)
+	p.trackAddIssue(extra.UserId, sourceCommand, false)
 
-	go p.sendRefreshEvent(extra.UserId, []string{MyListKey})
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
 
 	responseMessage := "Added Todo."
 
@@ -242,7 +242,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 		return false, err
 	}
 
-	go p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
 
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
@@ -263,13 +263,13 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	userName := p.listManager.GetUserName(extra.UserId)
 
 	if foreignID != "" {
-		go p.sendRefreshEvent(foreignID, []string{OutListKey})
+		p.sendRefreshEvent(foreignID, []string{OutListKey})
 
 		message := fmt.Sprintf("@%s popped a Todo you sent: %s", userName, issue.Message)
 		p.PostBotDM(foreignID, message)
 	}
 
-	go p.sendRefreshEvent(extra.UserId, []string{MyListKey})
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
 
 	responseMessage := "Removed top Todo."
 

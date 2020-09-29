@@ -146,7 +146,7 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if telemetryRequest.Event != "" {
-		go p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
+		p.trackFrontend(userID, telemetryRequest.Event, telemetryRequest.Properties)
 	}
 }
 
@@ -182,9 +182,9 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 
-		go p.sendRefreshEvent(userID, []string{MyListKey})
+		p.sendRefreshEvent(userID, []string{MyListKey})
 
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
@@ -207,9 +207,9 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		go p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
+		p.trackAddIssue(userID, sourceWebapp, addRequest.PostID != "")
 
-		go p.sendRefreshEvent(userID, []string{MyListKey})
+		p.sendRefreshEvent(userID, []string{MyListKey})
 
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
 		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
@@ -223,10 +223,10 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
+	p.trackSendIssue(userID, sourceWebapp, addRequest.PostID != "")
 
-	go p.sendRefreshEvent(userID, []string{OutListKey})
-	go p.sendRefreshEvent(receiver.Id, []string{InListKey})
+	p.sendRefreshEvent(userID, []string{OutListKey})
+	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
@@ -286,7 +286,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
 			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			go p.trackDailySummary(userID)
+			p.trackDailySummary(userID)
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
@@ -333,10 +333,10 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go p.trackAcceptIssue(userID)
+	p.trackAcceptIssue(userID)
 
-	go p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
-	go p.sendRefreshEvent(sender, []string{OutListKey})
+	p.sendRefreshEvent(userID, []string{MyListKey, InListKey})
+	p.sendRefreshEvent(sender, []string{OutListKey})
 
 	userName := p.listManager.GetUserName(userID)
 	message := fmt.Sprintf("@%s accepted a Todo you sent: %s", userName, todoMessage)
@@ -369,9 +369,9 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go p.sendRefreshEvent(userID, []string{listToUpdate})
+	p.sendRefreshEvent(userID, []string{listToUpdate})
 
-	go p.trackCompleteIssue(userID)
+	p.trackCompleteIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
@@ -381,7 +381,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go p.sendRefreshEvent(foreignID, []string{OutListKey})
+	p.sendRefreshEvent(foreignID, []string{OutListKey})
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
 	p.PostBotDM(foreignID, message)
@@ -413,12 +413,12 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
 		return
 	}
-	go p.sendRefreshEvent(userID, []string{listToUpdate})
+	p.sendRefreshEvent(userID, []string{listToUpdate})
 	if isSender {
-		go p.sendRefreshEvent(userID, []string{OutListKey})
+		p.sendRefreshEvent(userID, []string{OutListKey})
 	}
 
-	go p.trackRemoveIssue(userID)
+	p.trackRemoveIssue(userID)
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
@@ -436,7 +436,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		list = OutListKey
 	}
 
-	go p.sendRefreshEvent(foreignID, []string{list})
+	p.sendRefreshEvent(foreignID, []string{list})
 
 	p.PostBotDM(foreignID, message)
 }
@@ -468,13 +468,13 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go p.trackBumpIssue(userID)
+	p.trackBumpIssue(userID)
 
 	if foreignUser == "" {
 		return
 	}
 
-	go p.sendRefreshEvent(foreignUser, []string{InListKey})
+	p.sendRefreshEvent(foreignUser, []string{InListKey})
 
 	userName := p.listManager.GetUserName(userID)
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
