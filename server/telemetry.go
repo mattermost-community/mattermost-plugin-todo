@@ -20,6 +20,13 @@ func (p *Plugin) trackAddIssue(userID string, source telemetrySource, attached b
 	})
 }
 
+func (p *Plugin) trackUpdateIssue(userID string, source telemetrySource, attached bool) {
+	p.tracker.TrackUserEvent("update_issue", userID, map[string]interface{}{
+		"source":   source,
+		"attached": attached,
+	})
+}
+
 func (p *Plugin) trackSendIssue(userID string, source telemetrySource, attached bool) {
 	p.tracker.TrackUserEvent("send_issue", userID, map[string]interface{}{
 		"source":   source,

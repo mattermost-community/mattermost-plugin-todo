@@ -92,6 +92,20 @@ func (l *listStore) GetIssue(issueID string) (*Issue, error) {
 	return issue, nil
 }
 
+func (l *listStore) UpdateIssue(issue *Issue) error {
+	jsonIssue, jsonErr := json.Marshal(issue)
+	if jsonErr != nil {
+		return jsonErr
+	}
+
+	appErr := l.api.KVSet(issueKey(issue.ID), jsonIssue)
+	if appErr != nil {
+		return errors.New(appErr.Error())
+	}
+
+	return nil
+}
+
 func (l *listStore) RemoveIssue(issueID string) error {
 	appErr := l.api.KVDelete(issueKey(issueID))
 	if appErr != nil {

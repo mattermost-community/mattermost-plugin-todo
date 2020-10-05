@@ -14,6 +14,7 @@ export default class Root extends React.Component {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
         postID: PropTypes.string.isRequired,
+        selectedPost: PropTypes.object.isRequired,
         close: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
@@ -30,7 +31,11 @@ export default class Root extends React.Component {
     }
 
     static getDerivedStateFromProps(props, state) {
+        const isEditing = props.selectedPost !== null;
         if (props.visible && state.message == null) {
+            if(isEditing){
+                return {message: props.selectedPost.message, sendTo: props.selectedPost.sendTo, attachToThread: props.selectedPost.attachToThread};
+            }
             return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
@@ -49,9 +54,12 @@ export default class Root extends React.Component {
     }
 
     submit = () => {
-        const {submit, close, postID} = this.props;
+        const {submit, update, close, postID, selectedPost} = this.props;
         const {message, sendTo, attachToThread} = this.state;
-        if (attachToThread) {
+        const isEditing = selectedPost !== null;
+        if(isEditing){
+            update(message, sendTo, postID);
+        } else if (attachToThread) {
             submit(message, sendTo, postID);
         } else {
             submit(message, sendTo);
@@ -61,7 +69,7 @@ export default class Root extends React.Component {
     }
 
     render() {
-        const {visible, theme, close} = this.props;
+        const {visible, theme, close, selectedPost} = this.props;
 
         if (!visible) {
             return null;
@@ -70,6 +78,8 @@ export default class Root extends React.Component {
         const {message} = this.state;
 
         const style = getStyle(theme);
+
+        const isEditing = selectedPost !== null;
 
         return (
             <FullScreenModal
@@ -80,10 +90,10 @@ export default class Root extends React.Component {
                     style={style.modal}
                     className='ToDoPluginRootModal'
                 >
-                    <h1>{'Add a Todo'}</h1>
+                    <h1>{isEditing ? 'Edit Todo' : 'Add a Todo'}</h1>
                     <div className='todoplugin-issue'>
                         <h2>
-                            {'Todo Message'}
+                            {isEditing ? 'Edit Todo Message' : 'Todo Message'}
                         </h2>
                         <textarea
                             className='todoplugin-input'
@@ -98,7 +108,7 @@ export default class Root extends React.Component {
                             checked={this.state.attachToThread}
                             onChange={this.handleAttachChange}
                         />
-                        <b>{' Add to thread'}</b>
+                        <b>{isEditing ? 'Update thread' : ' Add to thread'}</b>
                         <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
                     </div>)}
                     <div>
@@ -119,7 +129,7 @@ export default class Root extends React.Component {
                             onClick={this.submit}
                             disabled={!message}
                         >
-                            {'Add Todo'}
+                            {isEditing ? 'Update Todo' : 'Add Todo'}
                         </button>
                     </div>
                     <div className='todoplugin-divider'/>

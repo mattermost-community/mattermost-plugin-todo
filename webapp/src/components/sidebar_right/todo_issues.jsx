@@ -35,6 +35,10 @@ function ToDoIssues(props) {
         const htmlFormattedText = PostUtils.formatText(issue.message, {siteURL: props.siteURL});
         const issueComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
 
+        const handleEdit = (e)=>{
+            props.edit(issue, e);
+        }
+
         let createdMessage = 'Created ';
         let listPositionMessage = '';
         if (issue.user) {
@@ -105,6 +109,9 @@ function ToDoIssues(props) {
                     onClick={handleClick}
                 >
                     {issueComponent}
+                    <button className="btn btn-secondary edit" onClick={handleEdit}>
+                        <i className='fa fa-pencil'/>
+                    </button>
                 </div>
                 {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
                 <div
@@ -127,6 +134,7 @@ ToDoIssues.propTypes = {
     complete: PropTypes.func.isRequired,
     accept: PropTypes.func.isRequired,
     bump: PropTypes.func.isRequired,
+    edit: PropTypes.func.isRequired,
     siteURL: PropTypes.string.isRequired,
 };
 

@@ -15,10 +15,11 @@ import {
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
 
-export const openRootModal = (postID) => (dispatch) => {
+export const openRootModal = (postID, selectedPost) => (dispatch) => {
     dispatch({
         type: OPEN_ROOT_MODAL,
         postID,
+        selectedPost
     });
 };
 
@@ -81,6 +82,18 @@ export const add = (message, sendTo, postID) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
     }));
+};
+
+export const update = (message, sendTo, postID) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/update', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
+    }));
+
+    dispatch(list());
+    if (sendTo) {
+        dispatch(list(false, 'out'));
+    }
 };
 
 export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {

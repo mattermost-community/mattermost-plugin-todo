@@ -20,6 +20,7 @@ const (
 type ListStore interface {
 	// Issue related function
 	AddIssue(issue *Issue) error
+	UpdateIssue(issue *Issue) error
 	GetIssue(issueID string) (*Issue, error)
 	RemoveIssue(issueID string) error
 	GetAndRemoveIssue(issueID string) (*Issue, error)
@@ -69,6 +70,22 @@ func (l *listManager) AddIssue(userID, message, postID string) (*Issue, error) {
 		if rollbackError := l.store.RemoveIssue(issue.ID); rollbackError != nil {
 			l.api.LogError("cannot rollback issue after add error, Err=", err.Error())
 		}
+		return nil, err
+	}
+
+	return issue, nil
+}
+
+func (l *listManager) UpdateIssue(userID, message, postID string) (*Issue, error) {
+	issue, err := l.store.GetIssue(postID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	issue.Message = message
+
+	if err := l.store.UpdateIssue(issue); err != nil {
 		return nil, err
 	}
 

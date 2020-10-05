@@ -26,6 +26,8 @@ const (
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
 	AddIssue(userID, message, postID string) (*Issue, error)
+	// AddIssue adds a todo to userID's myList with the message
+	UpdateIssue(userID, message, postID string) (*Issue, error)
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
 	SendIssue(senderID, receiverID, message, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
@@ -105,6 +107,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	switch r.URL.Path {
 	case "/add":
 		p.handleAdd(w, r)
+	case "/update":
+		p.handleUpdate(w, r)
 	case "/list":
 		p.handleList(w, r)
 	case "/remove":
@@ -233,6 +237,82 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
 	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+}
+
+type updateAPIRequest struct {
+	Message string `json:"message"`
+	SendTo  string `json:"send_to"`
+	PostID  string `json:"post_id"`
+}
+
+
+func (p *Plugin) handleUpdate(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var updateRequest *updateAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&updateRequest)
+	if err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	senderName := p.listManager.GetUserName(userID)
+
+	if updateRequest.SendTo == "" {
+		_, err = p.listManager.UpdateIssue(userID, updateRequest.Message, updateRequest.PostID)
+		if err != nil {
+			p.API.LogError("Unable to add issue err=" + err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			return
+		}
+		p.trackUpdateIssue(userID, sourceWebapp, updateRequest.PostID != "")
+		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
+		p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
+		return
+	}
+
+	receiver, appErr := p.API.GetUserByUsername(updateRequest.SendTo)
+	if appErr != nil {
+		p.API.LogError("username not valid, err=" + appErr.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", err)
+		return
+	}
+
+	if receiver.Id == userID {
+		_, err = p.listManager.UpdateIssue(userID, updateRequest.Message, updateRequest.PostID)
+		if err != nil {
+			p.API.LogError("Unable to add issue err=" + err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			return
+		}
+		p.trackUpdateIssue(userID, sourceWebapp, updateRequest.PostID != "")
+		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
+		p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
+		return
+	}
+
+	issueID, err := p.listManager.SendIssue(userID, receiver.Id, updateRequest.Message, updateRequest.PostID)
+
+	if err != nil {
+		p.API.LogError("Unable to send issue err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
+		return
+	}
+
+	p.trackSendIssue(userID, sourceWebapp, updateRequest.PostID != "")
+
+	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
+	p.sendRefreshEvent(receiver.Id)
+	p.PostBotCustomDM(receiver.Id, receiverMessage, updateRequest.Message, issueID)
+
+	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, updateRequest.SendTo)
+	p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
 }
 
 func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
