@@ -414,9 +414,6 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.sendRefreshEvent(userID, []string{listToUpdate})
-	if isSender {
-		p.sendRefreshEvent(userID, []string{OutListKey})
-	}
 
 	p.trackRemoveIssue(userID)
 
