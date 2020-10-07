@@ -339,7 +339,6 @@ func (p *Plugin) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	
 		p.PostBotDM(foreignID, message)
 	}
-
 }
 
 func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
