@@ -112,7 +112,7 @@ export default class SidebarRight extends React.PureComponent {
         return this.props.todos.length;
     }
 
-    edit(issue) {
+    edit(issue){
         this.props.actions.telemetry('rhs_edit', {list: this.state.list});
         this.props.actions.openRootModal(issue.id, issue);
     }
