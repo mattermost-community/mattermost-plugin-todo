@@ -14,7 +14,7 @@ export default class Root extends React.Component {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
         postID: PropTypes.string.isRequired,
-        selectedPost: PropTypes.object.isRequired,
+        selectedIssue: PropTypes.object.isRequired,
         close: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         update: PropTypes.func.isRequired,
@@ -32,10 +32,10 @@ export default class Root extends React.Component {
     }
 
     static getDerivedStateFromProps(props, state) {
-        const isEditing = props.selectedPost !== null;
+        const isEditing = props.selectedIssue !== null;
         if (props.visible && state.message == null) {
             if (isEditing) {
-                return {message: props.selectedPost.message, sendTo: props.selectedPost.user, attachToThread: props.selectedPost.attachToThread};
+                return {message: props.selectedIssue.message, sendTo: props.selectedIssue.user, attachToThread: props.selectedIssue.attachToThread};
             }
             return {message: props.message};
         }
@@ -55,9 +55,9 @@ export default class Root extends React.Component {
     }
 
     submit = () => {
-        const {submit, update, close, postID, selectedPost} = this.props;
+        const {submit, update, close, postID, selectedIssue} = this.props;
         const {message, sendTo, attachToThread} = this.state;
-        const isEditing = selectedPost !== null;
+        const isEditing = selectedIssue !== null;
         if (isEditing) {
             update(message, sendTo, postID);
         } else if (attachToThread) {
@@ -70,7 +70,7 @@ export default class Root extends React.Component {
     }
 
     render() {
-        const {visible, theme, close, selectedPost} = this.props;
+        const {visible, theme, close, selectedIssue} = this.props;
 
         if (!visible) {
             return null;
@@ -80,7 +80,7 @@ export default class Root extends React.Component {
 
         const style = getStyle(theme);
 
-        const isEditing = selectedPost !== null;
+        const isEditing = selectedIssue !== null;
 
         return (
             <FullScreenModal
@@ -103,13 +103,13 @@ export default class Root extends React.Component {
                             onChange={(e) => this.setState({message: e.target.value})}
                         />
                     </div>
-                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
+                    {this.props.postID && !isEditing && (<div className='todoplugin-add-to-thread'>
                         <input
                             type='checkbox'
                             checked={this.state.attachToThread}
                             onChange={this.handleAttachChange}
                         />
-                        <b>{isEditing ? 'Update thread' : ' Add to thread'}</b>
+                        <b>{' Add to thread'}</b>
                         <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
                     </div>)}
                     <div>

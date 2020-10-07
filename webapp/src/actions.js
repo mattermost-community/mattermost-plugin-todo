@@ -15,11 +15,11 @@ import {
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
 
-export const openRootModal = (postID, selectedPost) => (dispatch) => {
+export const openRootModal = (postID, selectedIssue) => (dispatch) => {
     dispatch({
         type: OPEN_ROOT_MODAL,
         postID,
-        selectedPost,
+        selectedIssue,
     });
 };
 

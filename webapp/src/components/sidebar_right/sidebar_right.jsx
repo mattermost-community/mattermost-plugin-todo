@@ -112,6 +112,11 @@ export default class SidebarRight extends React.PureComponent {
         return this.props.todos.length;
     }
 
+    edit(issue) {
+        this.props.actions.telemetry('rhs_edit', {list: this.state.list});
+        this.props.actions.openRootModal(issue.id, issue);
+    }
+
     render() {
         let todos = [];
         let addButton = '';
@@ -148,10 +153,7 @@ export default class SidebarRight extends React.PureComponent {
                             complete={this.props.actions.complete}
                             accept={this.props.actions.accept}
                             bump={this.props.actions.bump}
-                            edit={(issue, e) => {
-                                this.props.actions.telemetry('rhs_edit', {list: this.state.list});
-                                this.props.actions.openRootModal(issue.id, issue, e);
-                            }}
+                            edit={(issue) => this.edit(issue)}
                         /> : ''}
                 </div>
             );
@@ -217,10 +219,7 @@ export default class SidebarRight extends React.PureComponent {
                                 complete={this.props.actions.complete}
                                 accept={this.props.actions.accept}
                                 bump={this.props.actions.bump}
-                                edit={(issue, e) => {
-                                    this.props.actions.telemetry('rhs_add', {list: this.state.list});
-                                    this.props.actions.openRootModal(issue.id, issue, e);
-                                }}
+                                edit={(issue) => this.edit(issue)}
                                 siteURL={this.props.siteURL}
                             /> : ''}
                     </div>

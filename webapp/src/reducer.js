@@ -24,11 +24,11 @@ const postID = (state = '', action) => {
     }
 };
 
-const selectedPost = (state = null, action) => {
+const selectedIssue = (state = null, action) => {
     switch (action.type) {
     case OPEN_ROOT_MODAL:
-        if (typeof action.selectedPost !== 'undefined') {
-            return action.selectedPost;
+        if (typeof action.selectedIssue !== 'undefined') {
+            return action.selectedIssue;
         }
         return null;
     case CLOSE_ROOT_MODAL:
@@ -104,7 +104,7 @@ function isTeamSidebarHidden(state = false, action) {
 export default combineReducers({
     rootModalVisible,
     postID,
-    selectedPost,
+    selectedIssue,
     issues,
     inIssues,
     outIssues,
