@@ -34,7 +34,7 @@ export default class Root extends React.Component {
         const isEditing = props.selectedPost !== null;
         if (props.visible && state.message == null) {
             if(isEditing){
-                return {message: props.selectedPost.message, sendTo: props.selectedPost.sendTo, attachToThread: props.selectedPost.attachToThread};
+                return {message: props.selectedPost.message, sendTo: props.selectedPost.user, attachToThread: props.selectedPost.attachToThread};
             }
             return {message: props.message};
         }
