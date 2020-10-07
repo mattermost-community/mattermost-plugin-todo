@@ -35,9 +35,9 @@ function ToDoIssues(props) {
         const htmlFormattedText = PostUtils.formatText(issue.message, {siteURL: props.siteURL});
         const issueComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
 
-        const handleEdit = (e)=>{
+        const handleEdit = (e) => {
             props.edit(issue, e);
-        }
+        };
 
         let createdMessage = 'Created ';
         let listPositionMessage = '';
@@ -109,7 +109,10 @@ function ToDoIssues(props) {
                     onClick={handleClick}
                 >
                     {issueComponent}
-                    <button className="btn btn-secondary edit" onClick={handleEdit}>
+                    <button
+                        className='btn btn-secondary edit'
+                        onClick={handleEdit}
+                    >
                         <i className='fa fa-pencil'/>
                     </button>
                 </div>

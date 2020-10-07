@@ -19,7 +19,7 @@ export const openRootModal = (postID, selectedPost) => (dispatch) => {
     dispatch({
         type: OPEN_ROOT_MODAL,
         postID,
-        selectedPost
+        selectedPost,
     });
 };
 

@@ -17,6 +17,7 @@ export default class Root extends React.Component {
         selectedPost: PropTypes.object.isRequired,
         close: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
+        update: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
         autocompleteUsers: PropTypes.func.isRequired,
     }
@@ -33,7 +34,7 @@ export default class Root extends React.Component {
     static getDerivedStateFromProps(props, state) {
         const isEditing = props.selectedPost !== null;
         if (props.visible && state.message == null) {
-            if(isEditing){
+            if (isEditing) {
                 return {message: props.selectedPost.message, sendTo: props.selectedPost.user, attachToThread: props.selectedPost.attachToThread};
             }
             return {message: props.message};
@@ -57,7 +58,7 @@ export default class Root extends React.Component {
         const {submit, update, close, postID, selectedPost} = this.props;
         const {message, sendTo, attachToThread} = this.state;
         const isEditing = selectedPost !== null;
-        if(isEditing){
+        if (isEditing) {
             update(message, sendTo, postID);
         } else if (attachToThread) {
             submit(message, sendTo, postID);

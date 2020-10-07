@@ -27,7 +27,7 @@ const postID = (state = '', action) => {
 const selectedPost = (state = null, action) => {
     switch (action.type) {
     case OPEN_ROOT_MODAL:
-        if(action.selectedPost !== undefined){
+        if (typeof action.selectedPost !== 'undefined') {
             return action.selectedPost;
         }
         return null;

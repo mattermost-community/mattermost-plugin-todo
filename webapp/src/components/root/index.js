@@ -10,7 +10,7 @@ const mapStateToProps = (state) => ({
     visible: isRootModalVisible(state),
     message: getMessage(state) + (getPostID(state) ? '\n[Permalink](' + getCurrentTeamRoute(state) + 'pl/' + getPostID(state) + ')' : ''),
     postID: getPostID(state),
-    selectedPost: getSelectedPost(state)
+    selectedPost: getSelectedPost(state),
 });
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
