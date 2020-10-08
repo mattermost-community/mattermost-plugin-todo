@@ -81,11 +81,6 @@ export const add = (message, sendTo, postID) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
     }));
-
-    dispatch(list());
-    if (sendTo) {
-        dispatch(list(false, 'out'));
-    }
 };
 
 export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
@@ -126,10 +121,6 @@ export const remove = (id) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({id}),
     }));
-
-    dispatch(list(false, 'my'));
-    dispatch(list(false, 'in'));
-    dispatch(list(false, 'out'));
 };
 
 export const complete = (id) => async (dispatch, getState) => {
@@ -137,9 +128,6 @@ export const complete = (id) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({id}),
     }));
-
-    dispatch(list(false, 'my'));
-    dispatch(list(false, 'in'));
 };
 
 export const accept = (id) => async (dispatch, getState) => {
@@ -147,9 +135,6 @@ export const accept = (id) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({id}),
     }));
-
-    dispatch(list(false, 'in'));
-    dispatch(list(false, 'my'));
 };
 
 export const bump = (id) => async (dispatch, getState) => {
@@ -157,8 +142,6 @@ export const bump = (id) => async (dispatch, getState) => {
         method: 'post',
         body: JSON.stringify({id}),
     }));
-
-    dispatch(list(false, 'out'));
 };
 
 export function autocompleteUsers(username) {

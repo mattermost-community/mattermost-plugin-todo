@@ -42,11 +42,26 @@ export default class Plugin {
             'Open your list of Todo issues.',
         );
 
-        const refresh = () => {
-            store.dispatch(list(false, 'my'));
-            store.dispatch(list(false, 'in'));
-            store.dispatch(list(false, 'out'));
+        const getFrontendListName = (backendListName) => {
+            let frontendListName = 'my';
+            switch (backendListName) {
+            case '':
+                frontendListName = 'my';
+                break;
+            case '_in':
+                frontendListName = 'in';
+                break;
+            case '_out':
+                frontendListName = 'out';
+                break;
+            default:
+                frontendListName = 'my';
+                break;
+            }
+            return frontendListName;
         };
+
+        const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refresh);
