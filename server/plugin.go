@@ -271,8 +271,6 @@ func (p *Plugin) handleUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		p.trackUpdateIssue(userID, sourceWebapp, updateRequest.PostID != "")
-		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
-		p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
 		return
 	}
 
