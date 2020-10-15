@@ -293,47 +293,6 @@ func (p *Plugin) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
 		return
 	}
-
-	if receiver.Id != userID {
-		issueID, err := p.listManager.SendIssue(userID, receiver.Id, updateRequest.Message, updateRequest.PostID)
-
-		if err != nil {
-			p.API.LogError("Unable to send issue err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
-			return
-		}
-		p.trackSendIssue(userID, sourceWebapp, updateRequest.PostID != "")
-
-		receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-		p.sendRefreshEvent(receiver.Id)
-		p.PostBotCustomDM(receiver.Id, receiverMessage, updateRequest.Message, issueID)
-
-		replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, updateRequest.SendTo)
-		p.postReplyIfNeeded(updateRequest.PostID, replyMessage, updateRequest.Message)
-
-		issue, foreignID, isSender, err := p.listManager.RemoveIssue(userID, updateRequest.PostID)
-		if err != nil {
-			p.API.LogError("Unable to remove issue, err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
-			return
-		}
-		p.trackRemoveIssue(userID)
-
-		userName := p.listManager.GetUserName(userID)
-		replyMessage = fmt.Sprintf("@%s removed a todo attached to this thread", userName)
-		p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
-
-		if foreignID == "" {
-			return
-		}
-
-		message := fmt.Sprintf("@%s removed a Todo you received: %s", userName, issue.Message)
-		if isSender {
-			message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, issue.Message)
-		}
-
-		p.PostBotDM(foreignID, message)
-	}
 }
 
 func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {

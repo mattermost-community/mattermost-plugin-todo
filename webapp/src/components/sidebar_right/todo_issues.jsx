@@ -99,6 +99,8 @@ function ToDoIssues(props) {
             {canBump(props.list, issue.list) && bumpButton}
         </div>);
 
+        const isEditable = props.isEditable && issue.list === '';
+
         return (
             <div
                 key={issue.id}
@@ -109,12 +111,14 @@ function ToDoIssues(props) {
                     onClick={handleClick}
                 >
                     {issueComponent}
-                    <button
-                        className='btn btn-secondary edit'
-                        onClick={handleEdit}
-                    >
-                        <i className='fa fa-pencil'/>
-                    </button>
+                    {isEditable &&
+                        <button
+                            className='btn btn-secondary edit'
+                            onClick={handleEdit}
+                        >
+                            <i className='fa fa-pencil'/>
+                        </button>
+                    }
                 </div>
                 {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
                 <div
@@ -138,6 +142,7 @@ ToDoIssues.propTypes = {
     accept: PropTypes.func.isRequired,
     bump: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
+    isEditable: PropTypes.bool.isRequired,
     siteURL: PropTypes.string.isRequired,
 };
 

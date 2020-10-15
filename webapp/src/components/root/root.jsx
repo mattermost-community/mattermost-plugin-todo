@@ -14,7 +14,7 @@ export default class Root extends React.Component {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
         postID: PropTypes.string.isRequired,
-        selectedIssue: PropTypes.object.isRequired,
+        selectedIssue: PropTypes.object,
         close: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         update: PropTypes.func.isRequired,
@@ -112,7 +112,7 @@ export default class Root extends React.Component {
                         <b>{' Add to thread'}</b>
                         <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
                     </div>)}
-                    <div>
+                    {!isEditing && <div>
                         <AutocompleteSelector
                             id='send_to_user'
                             providers={[new GenericUserProvider(this.props.autocompleteUsers)]}
@@ -122,7 +122,7 @@ export default class Root extends React.Component {
                             placeholder={''}
                             value={this.state.sendTo}
                         />
-                    </div>
+                    </div>}
                     <div className='todoplugin-button-container'>
                         <button
                             className={'btn btn-primary'}
