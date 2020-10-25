@@ -104,12 +104,11 @@ export default class Root extends React.Component {
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
-                            providers={[new GenericUserProvider(this.props.autocompleteUsers)]}
-                            onSelected={(selected) => this.setState({sendTo: selected.username})}
+                            loadOptions={this.props.autocompleteUsers}
+                            onSelected={(selected) => this.setState({sendTo: selected?.username})}
                             label={'Send to user'}
                             helpText={'Select a user if you want to send this todo.'}
                             placeholder={''}
-                            value={this.state.sendTo}
                         />
                     </div>
                     <div className='todoplugin-button-container'>
