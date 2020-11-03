@@ -7,7 +7,6 @@ import FullScreenModal from '../modals/full_screen_modal.jsx';
 
 import './root.scss';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.jsx';
-import GenericUserProvider from '../user_selector/generic_user_provider.jsx';
 
 export default class Root extends React.Component {
     static propTypes = {
