@@ -6,7 +6,7 @@ import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_ut
 import FullScreenModal from '../modals/full_screen_modal.jsx';
 
 import './root.scss';
-import AutocompleteSelector from '../user_selector/autocomplete_selector.jsx';
+import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
 
 export default class Root extends React.Component {
     static propTypes = {

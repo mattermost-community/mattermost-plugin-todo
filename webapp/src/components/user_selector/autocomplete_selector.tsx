@@ -1,15 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import PropTypes from 'prop-types';
 import React from 'react';
 
 import AsyncSelect from 'react-select/async';
+import {OptionsType, ValueType} from 'react-select/src/types';
+import {UserProfile} from 'mattermost-redux/types/users';
 
-export default function AutocompleteSelector(props) {
+type Props = {
+    loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
+    label?: string,
+    labelClassName?: string,
+    helpText?: string,
+    inputClassName?: string,
+    placeholder?: string,
+    disabled?: boolean,
+    onSelected?: (value: ValueType<UserProfile>) => void,
+}
+
+export default function AutocompleteSelector(props: Props) {
     const {
         loadOptions,
-        footer,
         label,
         labelClassName,
         helpText,
@@ -19,7 +30,7 @@ export default function AutocompleteSelector(props) {
         onSelected,
     } = props;
 
-    const handleSelected = (selected) => {
+    const handleSelected = (selected: ValueType<UserProfile>) => {
         if (onSelected) {
             onSelected(selected);
         }
@@ -45,7 +56,7 @@ export default function AutocompleteSelector(props) {
         );
     }
 
-    const getOptionData = (option) => option.username;
+    const getOptionData = (option: UserProfile) => option.username;
 
     return (
         <div
@@ -66,27 +77,7 @@ export default function AutocompleteSelector(props) {
                     onChange={handleSelected}
                 />
                 {helpTextContent}
-                {footer}
             </div>
         </div>
     );
 }
-
-AutocompleteSelector.propTypes = {
-    loadOptions: PropTypes.func.isRequired,
-    onSelected: PropTypes.func,
-    label: PropTypes.node,
-    labelClassName: PropTypes.string,
-    inputClassName: PropTypes.string,
-    helpText: PropTypes.node,
-    placeholder: PropTypes.string,
-    footer: PropTypes.node,
-    disabled: PropTypes.bool,
-};
-
-AutocompleteSelector.defaultProps = {
-    value: '',
-    id: '',
-    labelClassName: '',
-    inputClassName: '',
-};
