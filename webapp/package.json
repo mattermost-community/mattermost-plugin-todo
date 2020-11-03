@@ -63,6 +63,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
+    "@types/react-select": "3.0.23",
     "core-js": "3.6.5",
     "mattermost-redux": "5.23.0",
     "prop-types": "15.7.2",
