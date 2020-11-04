@@ -4,6 +4,7 @@
 import React from 'react';
 
 import AsyncSelect from 'react-select/async';
+import {Theme} from 'mattermost-redux/types/preferences';
 import {OptionsType, ValueType} from 'react-select/src/types';
 import {UserProfile} from 'mattermost-redux/types/users';
 
@@ -16,6 +17,7 @@ type Props = {
     placeholder?: string,
     disabled?: boolean,
     onSelected?: (value: ValueType<UserProfile>) => void,
+    theme: Theme,
 }
 
 export default function AutocompleteSelector(props: Props) {
@@ -28,6 +30,7 @@ export default function AutocompleteSelector(props: Props) {
         placeholder,
         disabled,
         onSelected,
+        theme,
     } = props;
 
     const handleSelected = (selected: ValueType<UserProfile>) => {

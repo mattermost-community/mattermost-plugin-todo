@@ -108,6 +108,7 @@ export default class Root extends React.Component {
                             label={'Send to user'}
                             helpText={'Select a user if you want to send this todo.'}
                             placeholder={''}
+                            theme={theme}
                         />
                     </div>
                     <div className='todoplugin-button-container'>
