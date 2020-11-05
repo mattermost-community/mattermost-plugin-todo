@@ -4,10 +4,10 @@
 import React from 'react';
 
 import AsyncSelect from 'react-select/async';
-import {blendColors, changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
-
-import {Theme} from 'mattermost-redux/types/preferences';
 import {OptionsType, ValueType} from 'react-select/src/types';
+
+import {blendColors, changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
+import {Theme} from 'mattermost-redux/types/preferences';
 import {UserProfile} from 'mattermost-redux/types/users';
 
 type Props = {
