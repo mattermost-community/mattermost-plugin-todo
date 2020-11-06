@@ -26,7 +26,7 @@ type Props = {
 }
 
 const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
-    const [colors] = useState(getColorStyles(mattermostTheme));
+    const colors = getColorStyles(mattermostTheme);
 
     const styles: StylesConfig = {
         option: (provided: CSSProperties, state: ComponentProps) => ({
