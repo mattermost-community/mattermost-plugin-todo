@@ -59,6 +59,10 @@ export default function AutocompleteSelector(props: Props) {
         theme,
     } = props;
 
+    const [styles, componentTheme] = useTheme(theme);
+
+    const getOptionData = (option: UserProfile) => option.username;
+
     const handleSelected = (selected: ValueType<UserProfile>) => {
         if (onSelected) {
             onSelected(selected);
@@ -84,10 +88,6 @@ export default function AutocompleteSelector(props: Props) {
             </div>
         );
     }
-
-    const getOptionData = (option: UserProfile) => option.username;
-
-    const [styles, componentTheme] = useTheme(theme);
 
     return (
         <div
