@@ -51,7 +51,7 @@ settings summary [on, off]
 settings block_incoming [on, off]
 	Sets block_incoming preference on todos
 
-		example: /todo settings block_incoming on
+	example: /todo settings block_incoming on
 
 
 help
