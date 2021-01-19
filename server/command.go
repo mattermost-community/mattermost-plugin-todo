@@ -59,6 +59,27 @@ help
 `
 }
 
+func getSummarySetting(flag bool) string {
+	if flag {
+		return "Reminder setting is set to `on`. **You will receive daily reminders.**"
+	}
+	return "Reminder setting is set to `off`. **You will not receive daily reminders.**"
+}
+func getBlockIncomingSetting(flag bool) string {
+	if flag {
+		return "Block incoming todos setting is set to `on`. **You will not receive todos from other users.**"
+	}
+	return "Block incoming todos setting is set to `off`. **You will receive todos from other users.**"
+}
+
+func getAllSettings(summaryFlag, blockIncomingFlag bool) string {
+	return fmt.Sprintf(`Current Settings:
+
+%s
+%s
+	`, getSummarySetting(summaryFlag), getBlockIncomingSetting(blockIncomingFlag))
+}
+
 func getCommand() *model.Command {
 	return &model.Command{
 		Trigger:          "todo",
@@ -308,13 +329,18 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		off = "off"
 	)
 	if len(args) < 1 {
-		return true, errors.New("no setting selected")
+		currentSummarySetting := p.getReminderPreference(extra.UserId)
+		currentBlockIncomingSetting := p.getBlockIncomingTodoPreference(extra.UserId)
+		p.postCommandResponse(extra, getAllSettings(currentSummarySetting, currentBlockIncomingSetting))
+		return false, nil
 	}
 
 	switch args[0] {
 	case "summary":
 		if len(args) < 2 {
-			return true, errors.New("choose whether you want this setting `on` or `off`")
+			currentSummarySetting := p.getReminderPreference(extra.UserId)
+			p.postCommandResponse(extra, getSummarySetting(currentSummarySetting))
+			return false, nil
 		}
 		if len(args) > 2 {
 			return true, errors.New("too many arguments")
@@ -344,7 +370,9 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 
 	case "block_incoming":
 		if len(args) < 2 {
-			return true, errors.New("choose whether you want this setting `on` or `off`")
+			currentBlockIncomingSetting := p.getBlockIncomingTodoPreference(extra.UserId)
+			p.postCommandResponse(extra, getBlockIncomingSetting(currentBlockIncomingSetting))
+			return false, nil
 		}
 		if len(args) > 2 {
 			return true, errors.New("too many arguments")
