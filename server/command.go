@@ -48,6 +48,12 @@ settings summary [on, off]
 
 	example: /todo settings summary on
 
+settings block_incoming [on, off]
+	Sets block_incoming preference on todos
+
+		example: /todo settings block_incoming on
+
+
 help
 	Display usage.
 `
@@ -144,6 +150,12 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	if receiver.Id == extra.UserId {
 		return p.runAddCommand(args[1:], extra)
+	}
+
+	receiverBlockIncomingPreference := p.getBlockIncomingTodoPreference(receiver.Id)
+	if receiverBlockIncomingPreference {
+		p.postCommandResponse(extra, fmt.Sprintf("@%s has blocked incoming todos", userName))
+		return false, nil
 	}
 
 	message := strings.Join(args[1:], " ")
@@ -324,6 +336,35 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		}
 
 		p.postCommandResponse(extra, responseMessage)
+	} else if args[0] == "block_incoming" {
+		if len(args) < 2 {
+			return true, errors.New("choose whether you want this setting `on` or `off`")
+		}
+		if len(args) > 2 {
+			return true, errors.New("too many arguments")
+		}
+		var responseMessage string
+		var err error
+
+		switch args[1] {
+		case "on":
+			err = p.saveBlockIncomingTodoPreference(extra.UserId, true)
+			responseMessage = "You will stop receiving todos from other users."
+		case "off":
+			err = p.saveBlockIncomingTodoPreference(extra.UserId, false)
+			responseMessage = "You will start receiving todos from other users."
+		default:
+			responseMessage = "invalid input, allowed values for \"settings block_incoming\" are `on` or `off`"
+			return true, errors.New(responseMessage)
+		}
+
+		if err != nil {
+			responseMessage = "error saving the block_incoming preference"
+			p.API.LogDebug("runSettingsCommand: error saving the block_incoming preference", "error", err.Error())
+			return false, errors.New(responseMessage)
+		}
+
+		p.postCommandResponse(extra, responseMessage)
 	} else {
 		return true, fmt.Errorf("setting `%s` not recognized", args[0])
 	}
@@ -359,13 +400,21 @@ func getAutocompleteData() *model.AutocompleteData {
 	send.AddTextArgument("Todo message", "[message]", "")
 	todo.AddCommand(send)
 
-	settings := model.NewAutocompleteData("settings", "summary [on] [off]", "Sets the user settings")
+	settings := model.NewAutocompleteData("settings", "[setting] [on] [off]", "Sets the user settings")
 	summary := model.NewAutocompleteData("summary", "[on] [off]", "Sets the summary settings")
-	on := model.NewAutocompleteData("on", "", "sets the daily reminder to enable")
-	off := model.NewAutocompleteData("off", "", "sets the daily reminder to disable")
-	summary.AddCommand(on)
-	summary.AddCommand(off)
+	summaryOn := model.NewAutocompleteData("on", "", "sets the daily reminder to enable")
+	summaryOff := model.NewAutocompleteData("off", "", "sets the daily reminder to disable")
+	summary.AddCommand(summaryOn)
+	summary.AddCommand(summaryOff)
+
+	blockIncoming := model.NewAutocompleteData("block_incoming", "[on] [off]", "Sets the block_incoming settings")
+	blockIncomingOn := model.NewAutocompleteData("on", "", "blocks other users from sending you todos")
+	blockIncomingOff := model.NewAutocompleteData("off", "", "allows other users to send you todos")
+	blockIncoming.AddCommand(blockIncomingOn)
+	blockIncoming.AddCommand(blockIncomingOff)
+
 	settings.AddCommand(summary)
+	settings.AddCommand(blockIncoming)
 	todo.AddCommand(settings)
 
 	help := model.NewAutocompleteData("help", "", "Display usage")

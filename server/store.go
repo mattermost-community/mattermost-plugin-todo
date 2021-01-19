@@ -21,6 +21,8 @@ const (
 	StoreReminderKey = "reminder"
 	// StoreReminderEnabledKey is the key used to store the user preference of auto daily reminder
 	StoreReminderEnabledKey = "reminder_enabled"
+	// StoreBlockIncomingTodoKey is the key used to store user preference for blocking any incoming todos
+	StoreBlockIncomingTodoKey = "block_incoming_todo"
 )
 
 // IssueRef denotes every element in any of the lists. Contains the issue that refers to,
@@ -46,6 +48,10 @@ func reminderKey(userID string) string {
 
 func reminderEnabledKey(userID string) string {
 	return fmt.Sprintf("%s_%s", StoreReminderEnabledKey, userID)
+}
+
+func blockIncomingKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreBlockIncomingTodoKey, userID)
 }
 
 type listStore struct {
@@ -411,6 +417,38 @@ func (p *Plugin) getReminderPreference(userID string) bool {
 	if err != nil {
 		p.API.LogError("unable to parse the reminder preference, err=", err.Error())
 		return true
+	}
+
+	return preference
+}
+
+func (p *Plugin) saveBlockIncomingTodoPreference(userID string, preference bool) error {
+	preferenceString := strconv.FormatBool(preference)
+	appErr := p.API.KVSet(blockIncomingKey(userID), []byte(preferenceString))
+	if appErr != nil {
+		return appErr
+	}
+	return nil
+
+}
+
+// getBlockIncomingTodoPreference - gets user preference on blocking incoming todos sent from other people - default value will be false if in case any error
+func (p *Plugin) getBlockIncomingTodoPreference(userID string) bool {
+	preferenceByte, appErr := p.API.KVGet(blockIncomingKey(userID))
+	if appErr != nil {
+		p.API.LogError("error getting the block incoming todo preference, err=", appErr.Error())
+		return false
+	}
+
+	if preferenceByte == nil {
+		p.API.LogInfo(`block incoming todo preference is empty. Defaulting to "off"`)
+		return false
+	}
+
+	preference, err := strconv.ParseBool(string(preferenceByte))
+	if err != nil {
+		p.API.LogError("unable to parse the block incoming todo preference, err=", err.Error())
+		return false
 	}
 
 	return preference
