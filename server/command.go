@@ -303,11 +303,16 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	const (
+		on  = "on"
+		off = "off"
+	)
 	if len(args) < 1 {
 		return true, errors.New("no setting selected")
 	}
 
-	if args[0] == "summary" {
+	switch args[0] {
+	case "summary":
 		if len(args) < 2 {
 			return true, errors.New("choose whether you want this setting `on` or `off`")
 		}
@@ -318,10 +323,10 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		var err error
 
 		switch args[1] {
-		case "on":
+		case on:
 			err = p.saveReminderPreference(extra.UserId, true)
 			responseMessage = "You will start receiving daily summaries."
-		case "off":
+		case off:
 			err = p.saveReminderPreference(extra.UserId, false)
 			responseMessage = "You will stop receiving daily summaries."
 		default:
@@ -336,7 +341,8 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		}
 
 		p.postCommandResponse(extra, responseMessage)
-	} else if args[0] == "block_incoming" {
+
+	case "block_incoming":
 		if len(args) < 2 {
 			return true, errors.New("choose whether you want this setting `on` or `off`")
 		}
@@ -347,10 +353,10 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		var err error
 
 		switch args[1] {
-		case "on":
+		case on:
 			err = p.saveBlockIncomingTodoPreference(extra.UserId, true)
 			responseMessage = "You will stop receiving todos from other users."
-		case "off":
+		case off:
 			err = p.saveBlockIncomingTodoPreference(extra.UserId, false)
 			responseMessage = "You will start receiving todos from other users."
 		default:
@@ -365,10 +371,9 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		}
 
 		p.postCommandResponse(extra, responseMessage)
-	} else {
+	default:
 		return true, fmt.Errorf("setting `%s` not recognized", args[0])
 	}
-
 	return false, nil
 }
 

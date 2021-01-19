@@ -429,7 +429,6 @@ func (p *Plugin) saveBlockIncomingTodoPreference(userID string, preference bool)
 		return appErr
 	}
 	return nil
-
 }
 
 // getBlockIncomingTodoPreference - gets user preference on blocking incoming todos sent from other people - default value will be false if in case any error
