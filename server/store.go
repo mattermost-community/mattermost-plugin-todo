@@ -21,8 +21,9 @@ const (
 	StoreReminderKey = "reminder"
 	// StoreReminderEnabledKey is the key used to store the user preference of auto daily reminder
 	StoreReminderEnabledKey = "reminder_enabled"
-	// StoreBlockIncomingTodoKey is the key used to store user preference for blocking any incoming todos
-	StoreBlockIncomingTodoKey = "block_incoming_todo"
+
+	// StoreAllowIncomingTaskRequestsKey is the key used to store user preference for wallowing any incoming todo requests
+	StoreAllowIncomingTaskRequestsKey = "allow_incoming_task"
 )
 
 // IssueRef denotes every element in any of the lists. Contains the issue that refers to,
@@ -50,8 +51,8 @@ func reminderEnabledKey(userID string) string {
 	return fmt.Sprintf("%s_%s", StoreReminderEnabledKey, userID)
 }
 
-func blockIncomingKey(userID string) string {
-	return fmt.Sprintf("%s_%s", StoreBlockIncomingTodoKey, userID)
+func allowIncomingTaskRequestsKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreAllowIncomingTaskRequestsKey, userID)
 }
 
 type listStore struct {
@@ -422,32 +423,32 @@ func (p *Plugin) getReminderPreference(userID string) bool {
 	return preference
 }
 
-func (p *Plugin) saveBlockIncomingTodoPreference(userID string, preference bool) error {
+func (p *Plugin) saveAllowIncomingTaskRequestsPreference(userID string, preference bool) error {
 	preferenceString := strconv.FormatBool(preference)
-	appErr := p.API.KVSet(blockIncomingKey(userID), []byte(preferenceString))
+	appErr := p.API.KVSet(allowIncomingTaskRequestsKey(userID), []byte(preferenceString))
 	if appErr != nil {
 		return appErr
 	}
 	return nil
 }
 
-// getBlockIncomingTodoPreference - gets user preference on blocking incoming todos sent from other people - default value will be false if in case any error
-func (p *Plugin) getBlockIncomingTodoPreference(userID string) bool {
-	preferenceByte, appErr := p.API.KVGet(blockIncomingKey(userID))
+// getAllowIncomingTaskRequestsPreference - gets user preference on allowing incoming task requests from other users - default value will be true if in case any error
+func (p *Plugin) getAllowIncomingTaskRequestsPreference(userID string) bool {
+	preferenceByte, appErr := p.API.KVGet(allowIncomingTaskRequestsKey(userID))
 	if appErr != nil {
-		p.API.LogError("error getting the block incoming todo preference, err=", appErr.Error())
-		return false
+		p.API.LogError("error getting the allow incoming task requests preference, err=", appErr.Error())
+		return true
 	}
 
 	if preferenceByte == nil {
-		p.API.LogInfo(`block incoming todo preference is empty. Defaulting to "off"`)
-		return false
+		p.API.LogInfo(`allow incoming task requests is empty. Defaulting to "on"`)
+		return true
 	}
 
 	preference, err := strconv.ParseBool(string(preferenceByte))
 	if err != nil {
-		p.API.LogError("unable to parse the block incoming todo preference, err=", err.Error())
-		return false
+		p.API.LogError("unable to parse the allow incoming task requests preference, err=", err.Error())
+		return true
 	}
 
 	return preference

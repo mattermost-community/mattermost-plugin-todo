@@ -48,10 +48,10 @@ settings summary [on, off]
 
 	example: /todo settings summary on
 
-settings block_incoming [on, off]
-	Sets block_incoming preference on todos
+settings allow_incoming_task_requests [on, off]
+	Allow other Mattermost users to send a task for you to accept/decline?
 
-	example: /todo settings block_incoming on
+	example: /todo settings allow_incoming_task_requests on
 
 
 help
@@ -65,11 +65,11 @@ func getSummarySetting(flag bool) string {
 	}
 	return "Reminder setting is set to `off`. **You will not receive daily reminders.**"
 }
-func getBlockIncomingSetting(flag bool) string {
+func getAllowIncomingTaskRequestsSetting(flag bool) string {
 	if flag {
-		return "Block incoming todos setting is set to `on`. **You will not receive todos from other users.**"
+		return "Allow incoming task requests setting is set to `on`. **Other users can send you task request that you can accept/decline.**"
 	}
-	return "Block incoming todos setting is set to `off`. **You will receive todos from other users.**"
+	return "Allow incoming task requests setting is set to `off`. **Other users cannot send you task request. They will see a message saying you don't accept Todo requests.**"
 }
 
 func getAllSettings(summaryFlag, blockIncomingFlag bool) string {
@@ -77,7 +77,7 @@ func getAllSettings(summaryFlag, blockIncomingFlag bool) string {
 
 %s
 %s
-	`, getSummarySetting(summaryFlag), getBlockIncomingSetting(blockIncomingFlag))
+	`, getSummarySetting(summaryFlag), getAllowIncomingTaskRequestsSetting(blockIncomingFlag))
 }
 
 func getCommand() *model.Command {
@@ -173,9 +173,9 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return p.runAddCommand(args[1:], extra)
 	}
 
-	receiverBlockIncomingPreference := p.getBlockIncomingTodoPreference(receiver.Id)
-	if receiverBlockIncomingPreference {
-		p.postCommandResponse(extra, fmt.Sprintf("@%s has blocked incoming todos", userName))
+	receiverAllowIncomingTaskRequestsPreference := p.getAllowIncomingTaskRequestsPreference(receiver.Id)
+	if !receiverAllowIncomingTaskRequestsPreference {
+		p.postCommandResponse(extra, fmt.Sprintf("@%s has blocked Todo requests", userName))
 		return false, nil
 	}
 
@@ -330,8 +330,8 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 	)
 	if len(args) < 1 {
 		currentSummarySetting := p.getReminderPreference(extra.UserId)
-		currentBlockIncomingSetting := p.getBlockIncomingTodoPreference(extra.UserId)
-		p.postCommandResponse(extra, getAllSettings(currentSummarySetting, currentBlockIncomingSetting))
+		currentAllowIncomingTaskRequestsSetting := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+		p.postCommandResponse(extra, getAllSettings(currentSummarySetting, currentAllowIncomingTaskRequestsSetting))
 		return false, nil
 	}
 
@@ -368,10 +368,10 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 
 		p.postCommandResponse(extra, responseMessage)
 
-	case "block_incoming":
+	case "allow_incoming_task_requests":
 		if len(args) < 2 {
-			currentBlockIncomingSetting := p.getBlockIncomingTodoPreference(extra.UserId)
-			p.postCommandResponse(extra, getBlockIncomingSetting(currentBlockIncomingSetting))
+			currentAllowIncomingTaskRequestsSetting := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+			p.postCommandResponse(extra, getAllowIncomingTaskRequestsSetting(currentAllowIncomingTaskRequestsSetting))
 			return false, nil
 		}
 		if len(args) > 2 {
@@ -382,13 +382,13 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 
 		switch args[1] {
 		case on:
-			err = p.saveBlockIncomingTodoPreference(extra.UserId, true)
-			responseMessage = "You will stop receiving todos from other users."
+			err = p.saveAllowIncomingTaskRequestsPreference(extra.UserId, true)
+			responseMessage = "Other users can send task for you to accept/decline"
 		case off:
-			err = p.saveBlockIncomingTodoPreference(extra.UserId, false)
-			responseMessage = "You will start receiving todos from other users."
+			err = p.saveAllowIncomingTaskRequestsPreference(extra.UserId, false)
+			responseMessage = "Other users cannot send you task request. They will see a message saying you have blocked incoming task requests"
 		default:
-			responseMessage = "invalid input, allowed values for \"settings block_incoming\" are `on` or `off`"
+			responseMessage = "invalid input, allowed values for \"settings allow_incoming_task_requests\" are `on` or `off`"
 			return true, errors.New(responseMessage)
 		}
 
@@ -440,14 +440,14 @@ func getAutocompleteData() *model.AutocompleteData {
 	summary.AddCommand(summaryOn)
 	summary.AddCommand(summaryOff)
 
-	blockIncoming := model.NewAutocompleteData("block_incoming", "[on] [off]", "Sets the block_incoming settings")
-	blockIncomingOn := model.NewAutocompleteData("on", "", "blocks other users from sending you todos")
-	blockIncomingOff := model.NewAutocompleteData("off", "", "allows other users to send you todos")
-	blockIncoming.AddCommand(blockIncomingOn)
-	blockIncoming.AddCommand(blockIncomingOff)
+	allowIncomingTask := model.NewAutocompleteData("allow_incoming_task_requests", "[on] [off]", "Allow other Mattermost users to send a task for you to accept/decline?")
+	allowIncomingTaskOn := model.NewAutocompleteData("on", "", "Allow others to send you a Task, you can accept/decline")
+	allowIncomingTaskOff := model.NewAutocompleteData("off", "", "Block others from sending you a Task, they will see a message saying you don't accept Todo requests")
+	allowIncomingTask.AddCommand(allowIncomingTaskOn)
+	allowIncomingTask.AddCommand(allowIncomingTaskOff)
 
 	settings.AddCommand(summary)
-	settings.AddCommand(blockIncoming)
+	settings.AddCommand(allowIncomingTask)
 	todo.AddCommand(settings)
 
 	help := model.NewAutocompleteData("help", "", "Display usage")
