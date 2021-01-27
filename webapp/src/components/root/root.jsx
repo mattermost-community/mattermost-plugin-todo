@@ -98,7 +98,9 @@ export default class Root extends React.Component {
                                 onClick={() => {
                                     this.setState({previewMarkdown: false});
                                 }}
-                            >{'Write'}</button>
+                            >
+                                {'Write'}
+                            </button>
                             <button
                                 className={previewButtonClass}
                                 onClick={() => {
