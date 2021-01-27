@@ -441,7 +441,7 @@ func (p *Plugin) getAllowIncomingTaskRequestsPreference(userID string) bool {
 	}
 
 	if preferenceByte == nil {
-		p.API.LogInfo(`allow incoming task requests is empty. Defaulting to "on"`)
+		p.API.LogDebug(`allow incoming task requests is empty. Defaulting to "on"`)
 		return true
 	}
 
