@@ -114,7 +114,8 @@ export default class Root extends React.Component {
                             <div
                                 className='todoplugin-input'
                                 style={style.markdown}
-                            >{PostUtils.messageHtmlToComponent(
+                            >
+                                {PostUtils.messageHtmlToComponent(
                                     PostUtils.formatText(this.state.message),
                                 )}
                             </div>
