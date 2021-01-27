@@ -106,7 +106,9 @@ export default class Root extends React.Component {
                                 onClick={() => {
                                     this.setState({previewMarkdown: true});
                                 }}
-                            >{'Preview'}</button>
+                            >
+                                {'Preview'}
+                            </button>
                         </div>
                         {this.state.previewMarkdown ? (
                             <div
