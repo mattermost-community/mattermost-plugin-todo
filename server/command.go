@@ -173,7 +173,11 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 		return p.runAddCommand(args[1:], extra)
 	}
 
-	receiverAllowIncomingTaskRequestsPreference := p.getAllowIncomingTaskRequestsPreference(receiver.Id)
+	receiverAllowIncomingTaskRequestsPreference, err := p.getAllowIncomingTaskRequestsPreference(receiver.Id)
+	if err != nil {
+		p.API.LogError("Error when getting allow incoming task request preference, err=", err)
+		receiverAllowIncomingTaskRequestsPreference = true
+	}
 	if !receiverAllowIncomingTaskRequestsPreference {
 		p.postCommandResponse(extra, fmt.Sprintf("@%s has blocked Todo requests", userName))
 		return false, nil
@@ -330,7 +334,11 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 	)
 	if len(args) < 1 {
 		currentSummarySetting := p.getReminderPreference(extra.UserId)
-		currentAllowIncomingTaskRequestsSetting := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+		currentAllowIncomingTaskRequestsSetting, err := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+		if err != nil {
+			p.API.LogError("Error when getting allow incoming task request preference, err=", err)
+			currentAllowIncomingTaskRequestsSetting = true
+		}
 		p.postCommandResponse(extra, getAllSettings(currentSummarySetting, currentAllowIncomingTaskRequestsSetting))
 		return false, nil
 	}
@@ -370,7 +378,11 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 
 	case "allow_incoming_task_requests":
 		if len(args) < 2 {
-			currentAllowIncomingTaskRequestsSetting := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+			currentAllowIncomingTaskRequestsSetting, err := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+			if err != nil {
+				p.API.LogError("unable to parse the allow incoming task requests preference, err=", err.Error())
+				currentAllowIncomingTaskRequestsSetting = true
+			}
 			p.postCommandResponse(extra, getAllowIncomingTaskRequestsSetting(currentAllowIncomingTaskRequestsSetting))
 			return false, nil
 		}

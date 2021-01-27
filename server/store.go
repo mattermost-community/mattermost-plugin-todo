@@ -433,23 +433,23 @@ func (p *Plugin) saveAllowIncomingTaskRequestsPreference(userID string, preferen
 }
 
 // getAllowIncomingTaskRequestsPreference - gets user preference on allowing incoming task requests from other users - default value will be true if in case any error
-func (p *Plugin) getAllowIncomingTaskRequestsPreference(userID string) bool {
+func (p *Plugin) getAllowIncomingTaskRequestsPreference(userID string) (bool, error) {
 	preferenceByte, appErr := p.API.KVGet(allowIncomingTaskRequestsKey(userID))
 	if appErr != nil {
-		p.API.LogError("error getting the allow incoming task requests preference, err=", appErr.Error())
-		return true
+		err := errors.Wrap(appErr, "error getting the allow incoming task requests preference")
+		return true, err
 	}
 
 	if preferenceByte == nil {
 		p.API.LogDebug(`allow incoming task requests is empty. Defaulting to "on"`)
-		return true
+		return true, nil
 	}
 
 	preference, err := strconv.ParseBool(string(preferenceByte))
 	if err != nil {
-		p.API.LogError("unable to parse the allow incoming task requests preference, err=", err.Error())
-		return true
+		err := errors.Wrap(appErr, "unable to parse the allow incoming task requests preference")
+		return true, err
 	}
 
-	return preference
+	return preference, nil
 }
