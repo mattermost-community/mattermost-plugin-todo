@@ -37,7 +37,7 @@ const manifestStr = `
     "settings": [
       {
         "key": "hide_team_sidebar",
-        "display_name": "Hide team sidebar buttons",
+        "display_name": "Hide team sidebar buttons:",
         "type": "bool",
         "help_text": "When true, the buttons in the team sidebar on the left toolbar will be hidden.",
         "placeholder": "",
