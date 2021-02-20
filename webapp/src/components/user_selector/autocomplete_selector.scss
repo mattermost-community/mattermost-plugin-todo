@@ -1,14 +1,8 @@
-.todo-select {
-    .option-container {
-        display: flex;
-    }
-
-    .option-name {
-        max-width: 40%;
-    }
-    
+.todo-select {    
     .option-nickname {
-        padding-left: 4px;
-        color: var(--center-channel-color-40);
+        padding-left: 5px;
+        color: var(--center-channel-color-48);
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 }

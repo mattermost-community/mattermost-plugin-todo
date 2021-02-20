@@ -11,8 +11,10 @@ import {ThemeConfig} from 'react-select/src/theme';
 import {Theme} from 'mattermost-redux/types/preferences';
 import {UserProfile} from 'mattermost-redux/types/users';
 
-import {getColorStyles, getDescription} from '../../utils';
+import {FormatOptionLabelContext} from 'react-select/src/Select';
+
 import './autocomplete_selector.scss';
+import {getColorStyles, getDescription} from '../../utils';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -45,6 +47,25 @@ const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     });
 
     return [styles, compTheme];
+};
+
+const renderOption = (option: UserProfile, {context} : {context: FormatOptionLabelContext}) => {
+    const {username} = option;
+    const name = `@${username}`;
+    const description = getDescription(option);
+
+    if (context === 'menu') {
+        return (
+            <div>
+                <span>{name}</span>
+                {description !== '' && (
+                    <span className='option-nickname'>{description}</span>
+                )}
+            </div>
+        );
+    }
+
+    return <div>{name}</div>;
 };
 
 export default function AutocompleteSelector(props: Props) {
@@ -104,25 +125,7 @@ export default function AutocompleteSelector(props: Props) {
                     placeholder={placeholder}
                     getOptionLabel={(option: UserProfile) => option.username}
                     getOptionValue={(option: UserProfile) => option.id}
-                    formatOptionLabel={
-                        (option, {context}) => {
-                            const {username} = option;
-                            const description = getDescription(option);
-
-                            if (context === 'menu') {
-                                return (
-                                    <div className='option-container'>
-                                        <div className='option-name'>{`@${username}`}</div>
-                                        {description !== '' && (
-                                            <div className='option-nickname'>{description}</div>
-                                        )}
-                                    </div>
-                                );
-                            }
-
-                            return <div>{`@${username}`}</div>;
-                        }
-                    }
+                    formatOptionLabel={renderOption}
                     onChange={handleSelected}
                     styles={styles}
                     theme={componentTheme}
