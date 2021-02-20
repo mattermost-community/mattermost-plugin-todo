@@ -11,7 +11,8 @@ import {ThemeConfig} from 'react-select/src/theme';
 import {Theme} from 'mattermost-redux/types/preferences';
 import {UserProfile} from 'mattermost-redux/types/users';
 
-import {getColorStyles} from '../../utils';
+import {getColorStyles, getDescription} from '../../utils';
+import './autocomplete_selector.scss';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -26,12 +27,12 @@ type Props = {
 }
 
 const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
-    const colors = getColorStyles(mattermostTheme);
+    const mmColors = getColorStyles(mattermostTheme);
 
     const styles: StylesConfig = {
         option: (provided: CSSProperties, state: ComponentProps) => ({
             ...provided,
-            color: state.isDisabled ? colors.neutral30 : colors.neutral90,
+            color: state.isDisabled ? mmColors.neutral30 : mmColors.neutral90,
         }),
     };
 
@@ -39,7 +40,7 @@ const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
         ...componentTheme,
         colors: {
             ...componentTheme.colors,
-            ...colors,
+            ...mmColors,
         },
     });
 
@@ -60,8 +61,6 @@ export default function AutocompleteSelector(props: Props) {
     } = props;
 
     const [styles, componentTheme] = useTheme(theme);
-
-    const getOptionData = (option: UserProfile) => option.username;
 
     const handleSelected = (selected: ValueType<UserProfile>) => {
         if (onSelected) {
@@ -92,7 +91,7 @@ export default function AutocompleteSelector(props: Props) {
     return (
         <div
             data-testid='autoCompleteSelector'
-            className='form-group'
+            className='form-group todo-select'
         >
             {labelContent}
             <div className={inputClassName}>
@@ -103,8 +102,27 @@ export default function AutocompleteSelector(props: Props) {
                     isClearable={true}
                     disabled={disabled}
                     placeholder={placeholder}
-                    getOptionLabel={getOptionData}
-                    getOptionValue={getOptionData}
+                    getOptionLabel={(option: UserProfile) => option.username}
+                    getOptionValue={(option: UserProfile) => option.id}
+                    formatOptionLabel={
+                        (option, {context}) => {
+                            const {username} = option;
+                            const description = getDescription(option);
+
+                            if (context === 'menu') {
+                                return (
+                                    <div className='option-container'>
+                                        <div className='option-name'>{`@${username}`}</div>
+                                        {description !== '' && (
+                                            <div className='option-nickname'>{description}</div>
+                                        )}
+                                    </div>
+                                );
+                            }
+
+                            return <div>{`@${username}`}</div>;
+                        }
+                    }
                     onChange={handleSelected}
                     styles={styles}
                     theme={componentTheme}
