@@ -56,6 +56,20 @@ export function isKeyPressed(event, key) {
     return event.keyCode === key[1];
 }
 
+export function getDescription(item) {
+    let description = '';
+
+    if ((item.first_name || item.last_name) && item.nickname) {
+        description = `- ${getFullName(item)} (${item.nickname})`;
+    } else if (item.nickname) {
+        description = `- (${item.nickname})`;
+    } else if (item.first_name || item.last_name) {
+        description = `- ${getFullName(item)}`;
+    }
+
+    return description;
+}
+
 export function getFullName(user) {
     if (user.first_name && user.last_name) {
         return user.first_name + ' ' + user.last_name;
