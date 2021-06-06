@@ -216,6 +216,17 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	receiverAllowIncomingTaskRequestsPreference, err := p.getAllowIncomingTaskRequestsPreference(receiver.Id)
+	if err != nil {
+		p.API.LogError("Error when getting allow incoming task request preference, err=", err)
+		receiverAllowIncomingTaskRequestsPreference = true
+	}
+	if !receiverAllowIncomingTaskRequestsPreference {
+		replyMessage := fmt.Sprintf("@%s has blocked Todo requests", receiver.Username)
+		p.PostBotDM(userID, replyMessage)
+		return
+	}
+
 	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostID)
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
