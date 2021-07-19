@@ -6,8 +6,7 @@ import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_ut
 import FullScreenModal from '../modals/full_screen_modal.jsx';
 
 import './root.scss';
-import AutocompleteSelector from '../user_selector/autocomplete_selector.jsx';
-import GenericUserProvider from '../user_selector/generic_user_provider.jsx';
+import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
 
 const PostUtils = window.PostUtils;
 
@@ -141,12 +140,12 @@ export default class Root extends React.Component {
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
-                            providers={[new GenericUserProvider(this.props.autocompleteUsers)]}
-                            onSelected={(selected) => this.setState({sendTo: selected.username})}
+                            loadOptions={this.props.autocompleteUsers}
+                            onSelected={(selected) => this.setState({sendTo: selected?.username})}
                             label={'Send to user'}
                             helpText={'Select a user if you want to send this todo.'}
                             placeholder={''}
-                            value={this.state.sendTo}
+                            theme={theme}
                         />
                     </div>
                     <div className='todoplugin-button-container'>

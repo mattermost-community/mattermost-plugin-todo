@@ -147,7 +147,7 @@ export const bump = (id) => async (dispatch, getState) => {
 export function autocompleteUsers(username) {
     return async (doDispatch) => {
         const {data} = await doDispatch(UserActions.autocompleteUsers(username));
-        return data;
+        return data.users;
     };
 }
 
