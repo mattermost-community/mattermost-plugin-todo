@@ -63,6 +63,7 @@
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
+    "@types/react-select": "3.0.23",
     "core-js": "3.6.5",
     "mattermost-redux": "5.23.0",
     "prop-types": "15.7.2",
@@ -71,6 +72,7 @@
     "react-custom-scrollbars": "4.2.1",
     "react-dom": "16.13.1",
     "react-redux": "7.2.0",
+    "react-select": "3.2.0",
     "react-transition-group": "4.4.1",
     "redux": "4.0.5",
     "typescript": "3.9.6"

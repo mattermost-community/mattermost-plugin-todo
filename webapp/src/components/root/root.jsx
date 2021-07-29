@@ -6,8 +6,9 @@ import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_ut
 import FullScreenModal from '../modals/full_screen_modal.jsx';
 
 import './root.scss';
-import AutocompleteSelector from '../user_selector/autocomplete_selector.jsx';
-import GenericUserProvider from '../user_selector/generic_user_provider.jsx';
+import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
+
+const PostUtils = window.PostUtils;
 
 export default class Root extends React.Component {
     static propTypes = {
@@ -26,6 +27,7 @@ export default class Root extends React.Component {
             message: null,
             sendTo: null,
             attachToThread: false,
+            previewMarkdown: false,
         };
     }
 
@@ -34,7 +36,7 @@ export default class Root extends React.Component {
             return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
-            return {message: null, sendTo: null, attachToThread: false};
+            return {message: null, sendTo: null, attachToThread: false, previewMarkdown: false};
         }
         return null;
     }
@@ -70,6 +72,10 @@ export default class Root extends React.Component {
         const {message} = this.state;
 
         const style = getStyle(theme);
+        const activeClass = 'btn btn-primary';
+        const inactiveClass = 'btn';
+        const writeButtonClass = this.state.previewMarkdown ? inactiveClass : activeClass;
+        const previewButtonClass = this.state.previewMarkdown ? activeClass : inactiveClass;
 
         return (
             <FullScreenModal
@@ -85,12 +91,42 @@ export default class Root extends React.Component {
                         <h2>
                             {'Todo Message'}
                         </h2>
-                        <textarea
-                            className='todoplugin-input'
-                            style={style.textarea}
-                            value={message}
-                            onChange={(e) => this.setState({message: e.target.value})}
-                        />
+                        <div className='btn-group'>
+                            <button
+                                className={writeButtonClass}
+                                onClick={() => {
+                                    this.setState({previewMarkdown: false});
+                                }}
+                            >
+                                {'Write'}
+                            </button>
+                            <button
+                                className={previewButtonClass}
+                                onClick={() => {
+                                    this.setState({previewMarkdown: true});
+                                }}
+                            >
+                                {'Preview'}
+                            </button>
+                        </div>
+                        {this.state.previewMarkdown ? (
+                            <div
+                                className='todoplugin-input'
+                                style={style.markdown}
+                            >
+                                {PostUtils.messageHtmlToComponent(
+                                    PostUtils.formatText(this.state.message),
+                                )}
+                            </div>
+                        ) : (
+                            <textarea
+                                className='todoplugin-input'
+                                style={style.textarea}
+                                value={message}
+                                onChange={(e) => this.setState({message: e.target.value})}
+                            />)
+                        }
+
                     </div>
                     {this.props.postID && (<div className='todoplugin-add-to-thread'>
                         <input
@@ -104,12 +140,12 @@ export default class Root extends React.Component {
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
-                            providers={[new GenericUserProvider(this.props.autocompleteUsers)]}
-                            onSelected={(selected) => this.setState({sendTo: selected.username})}
+                            loadOptions={this.props.autocompleteUsers}
+                            onSelected={(selected) => this.setState({sendTo: selected?.username})}
                             label={'Send to user'}
                             helpText={'Select a user if you want to send this todo.'}
                             placeholder={''}
-                            value={this.state.sendTo}
+                            theme={theme}
                         />
                     </div>
                     <div className='todoplugin-button-container'>
@@ -161,6 +197,13 @@ const getStyle = makeStyleFromTheme((theme) => {
         inactiveButton: {
             color: changeOpacity(theme.buttonColor, 0.88),
             backgroundColor: changeOpacity(theme.buttonBg, 0.32),
+        },
+        markdown: {
+            minHeight: '149px',
+            fontSize: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'end',
         },
     };
 });
