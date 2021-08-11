@@ -12,6 +12,7 @@ func TestSetttingsCommand(t *testing.T) {
 	api := &plugintest.API{}
 	api.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	api.On("KVSet", mock.AnythingOfType("string"), mock.Anything).Return(nil)
+	api.On("KVGet", mock.AnythingOfType("string"), mock.Anything).Return([]byte("true"), nil)
 
 	apiKVSetFailed := &plugintest.API{}
 	apiKVSetFailed.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(nil)
@@ -25,6 +26,13 @@ func TestSetttingsCommand(t *testing.T) {
 		wantErr bool
 		want    bool
 	}{
+		{
+			name:    "Setting successful without any arguments",
+			api:     api,
+			args:    []string{},
+			wantErr: false,
+			want:    false,
+		},
 		{
 			name:    "Setting summary successful",
 			api:     api,
@@ -47,16 +55,51 @@ func TestSetttingsCommand(t *testing.T) {
 			want:    true,
 		},
 		{
-			name:    "Setting summary failed due to no arguments",
+			name:    "Setting summary successful due to no arguments",
 			api:     api,
-			args:    []string{},
-			wantErr: true,
-			want:    true,
+			args:    []string{"summary"},
+			wantErr: false,
+			want:    false,
 		},
 		{
 			name:    "Setting summary failed due to invalid argument",
 			api:     api,
 			args:    []string{"summary", "test"},
+			wantErr: true,
+			want:    true,
+		},
+		{
+			name:    "Setting allow_incoming_task_requests successful",
+			api:     api,
+			args:    []string{"allow_incoming_task_requests", "on"},
+			wantErr: false,
+			want:    false,
+		},
+		{
+			name:    "Setting allow_incoming_task_requests failed due to KVSet failed",
+			api:     apiKVSetFailed,
+			args:    []string{"allow_incoming_task_requests", "on"},
+			wantErr: true,
+			want:    false,
+		},
+		{
+			name:    "Setting allow_incoming_task_requests failed due to invalid number of arguments",
+			api:     api,
+			args:    []string{"allow_incoming_task_requests", "on", "extraValue"},
+			wantErr: true,
+			want:    true,
+		},
+		{
+			name:    "Setting allow_incoming_task_requests successful due to no arguments",
+			api:     api,
+			args:    []string{"allow_incoming_task_requests"},
+			wantErr: false,
+			want:    false,
+		},
+		{
+			name:    "Setting allow_incoming_task_requests failed due to invalid argument",
+			api:     api,
+			args:    []string{"allow_incoming_task_requests", "test"},
 			wantErr: true,
 			want:    true,
 		},

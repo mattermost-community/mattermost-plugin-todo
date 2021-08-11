@@ -48,9 +48,36 @@ settings summary [on, off]
 
 	example: /todo settings summary on
 
+settings allow_incoming_task_requests [on, off]
+	Allow other Mattermost users to send a task for you to accept/decline?
+
+	example: /todo settings allow_incoming_task_requests on
+
+
 help
 	Display usage.
 `
+}
+
+func getSummarySetting(flag bool) string {
+	if flag {
+		return "Reminder setting is set to `on`. **You will receive daily reminders.**"
+	}
+	return "Reminder setting is set to `off`. **You will not receive daily reminders.**"
+}
+func getAllowIncomingTaskRequestsSetting(flag bool) string {
+	if flag {
+		return "Allow incoming task requests setting is set to `on`. **Other users can send you task request that you can accept/decline.**"
+	}
+	return "Allow incoming task requests setting is set to `off`. **Other users cannot send you task request. They will see a message saying you don't accept Todo requests.**"
+}
+
+func getAllSettings(summaryFlag, blockIncomingFlag bool) string {
+	return fmt.Sprintf(`Current Settings:
+
+%s
+%s
+	`, getSummarySetting(summaryFlag), getAllowIncomingTaskRequestsSetting(blockIncomingFlag))
 }
 
 func getCommand() *model.Command {
@@ -144,6 +171,16 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	if receiver.Id == extra.UserId {
 		return p.runAddCommand(args[1:], extra)
+	}
+
+	receiverAllowIncomingTaskRequestsPreference, err := p.getAllowIncomingTaskRequestsPreference(receiver.Id)
+	if err != nil {
+		p.API.LogError("Error when getting allow incoming task request preference, err=", err)
+		receiverAllowIncomingTaskRequestsPreference = true
+	}
+	if !receiverAllowIncomingTaskRequestsPreference {
+		p.postCommandResponse(extra, fmt.Sprintf("@%s has blocked Todo requests", userName))
+		return false, nil
 	}
 
 	message := strings.Join(args[1:], " ")
@@ -291,13 +328,27 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	const (
+		on  = "on"
+		off = "off"
+	)
 	if len(args) < 1 {
-		return true, errors.New("no setting selected")
+		currentSummarySetting := p.getReminderPreference(extra.UserId)
+		currentAllowIncomingTaskRequestsSetting, err := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+		if err != nil {
+			p.API.LogError("Error when getting allow incoming task request preference, err=", err)
+			currentAllowIncomingTaskRequestsSetting = true
+		}
+		p.postCommandResponse(extra, getAllSettings(currentSummarySetting, currentAllowIncomingTaskRequestsSetting))
+		return false, nil
 	}
 
-	if args[0] == "summary" {
+	switch args[0] {
+	case "summary":
 		if len(args) < 2 {
-			return true, errors.New("choose whether you want this setting `on` or `off`")
+			currentSummarySetting := p.getReminderPreference(extra.UserId)
+			p.postCommandResponse(extra, getSummarySetting(currentSummarySetting))
+			return false, nil
 		}
 		if len(args) > 2 {
 			return true, errors.New("too many arguments")
@@ -306,10 +357,10 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		var err error
 
 		switch args[1] {
-		case "on":
+		case on:
 			err = p.saveReminderPreference(extra.UserId, true)
 			responseMessage = "You will start receiving daily summaries."
-		case "off":
+		case off:
 			err = p.saveReminderPreference(extra.UserId, false)
 			responseMessage = "You will stop receiving daily summaries."
 		default:
@@ -324,10 +375,45 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 		}
 
 		p.postCommandResponse(extra, responseMessage)
-	} else {
+
+	case "allow_incoming_task_requests":
+		if len(args) < 2 {
+			currentAllowIncomingTaskRequestsSetting, err := p.getAllowIncomingTaskRequestsPreference(extra.UserId)
+			if err != nil {
+				p.API.LogError("unable to parse the allow incoming task requests preference, err=", err.Error())
+				currentAllowIncomingTaskRequestsSetting = true
+			}
+			p.postCommandResponse(extra, getAllowIncomingTaskRequestsSetting(currentAllowIncomingTaskRequestsSetting))
+			return false, nil
+		}
+		if len(args) > 2 {
+			return true, errors.New("too many arguments")
+		}
+		var responseMessage string
+		var err error
+
+		switch args[1] {
+		case on:
+			err = p.saveAllowIncomingTaskRequestsPreference(extra.UserId, true)
+			responseMessage = "Other users can send task for you to accept/decline"
+		case off:
+			err = p.saveAllowIncomingTaskRequestsPreference(extra.UserId, false)
+			responseMessage = "Other users cannot send you task request. They will see a message saying you have blocked incoming task requests"
+		default:
+			responseMessage = "invalid input, allowed values for \"settings allow_incoming_task_requests\" are `on` or `off`"
+			return true, errors.New(responseMessage)
+		}
+
+		if err != nil {
+			responseMessage = "error saving the block_incoming preference"
+			p.API.LogDebug("runSettingsCommand: error saving the block_incoming preference", "error", err.Error())
+			return false, errors.New(responseMessage)
+		}
+
+		p.postCommandResponse(extra, responseMessage)
+	default:
 		return true, fmt.Errorf("setting `%s` not recognized", args[0])
 	}
-
 	return false, nil
 }
 
@@ -359,13 +445,21 @@ func getAutocompleteData() *model.AutocompleteData {
 	send.AddTextArgument("Todo message", "[message]", "")
 	todo.AddCommand(send)
 
-	settings := model.NewAutocompleteData("settings", "summary [on] [off]", "Sets the user settings")
+	settings := model.NewAutocompleteData("settings", "[setting] [on] [off]", "Sets the user settings")
 	summary := model.NewAutocompleteData("summary", "[on] [off]", "Sets the summary settings")
-	on := model.NewAutocompleteData("on", "", "sets the daily reminder to enable")
-	off := model.NewAutocompleteData("off", "", "sets the daily reminder to disable")
-	summary.AddCommand(on)
-	summary.AddCommand(off)
+	summaryOn := model.NewAutocompleteData("on", "", "sets the daily reminder to enable")
+	summaryOff := model.NewAutocompleteData("off", "", "sets the daily reminder to disable")
+	summary.AddCommand(summaryOn)
+	summary.AddCommand(summaryOff)
+
+	allowIncomingTask := model.NewAutocompleteData("allow_incoming_task_requests", "[on] [off]", "Allow other Mattermost users to send a task for you to accept/decline?")
+	allowIncomingTaskOn := model.NewAutocompleteData("on", "", "Allow others to send you a Task, you can accept/decline")
+	allowIncomingTaskOff := model.NewAutocompleteData("off", "", "Block others from sending you a Task, they will see a message saying you don't accept Todo requests")
+	allowIncomingTask.AddCommand(allowIncomingTaskOn)
+	allowIncomingTask.AddCommand(allowIncomingTaskOff)
+
 	settings.AddCommand(summary)
+	settings.AddCommand(allowIncomingTask)
 	todo.AddCommand(settings)
 
 	help := model.NewAutocompleteData("help", "", "Display usage")
