@@ -14,15 +14,12 @@
         }
     }
     .header-menu {
-        padding: 15px;
         display: flex;
         .btn.btn-primary {
             cursor: pointer;
             flex-grow: 1;
             text-align: center;
             height: 100%;
-            margin-left: 5px;
-            margin-right: 5px;
             color: var(--center-channel-color-56);
             background-color: unset;
             box-shadow: unset;
