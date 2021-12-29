@@ -12,7 +12,7 @@ import PostTypeTodo from './post_type_todo';
 function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
-        siteURL: getSiteURL(),
+        siteURL: getSiteURL(state),
         pendingAnswer: state['plugins-com.mattermost.plugin-todo'].inIssues.some((issue) => issue.id === ownProps.post.props.issueId),
     };
 }

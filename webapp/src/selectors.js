@@ -1,3 +1,5 @@
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+
 import {id as pluginId} from './manifest';
 
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
@@ -20,31 +22,30 @@ export const getIssues = (state) => getPluginState(state).issues;
 export const getInIssues = (state) => getPluginState(state).inIssues;
 export const getOutIssues = (state) => getPluginState(state).outIssues;
 export const getCurrentTeamRoute = (state) => {
-    const basePath = getSiteURL();
+    const basePath = getSiteURL(state);
     const teamName = state.entities.teams.teams[state.entities.teams.currentTeamId].name;
 
     return basePath + '/' + teamName + '/';
 };
 
-export const getSiteURL = () => {
-    let siteURL = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-    if (window.location.origin) {
-        siteURL = window.location.origin;
+export const getSiteURL = (state) => {
+    const config = getConfig(state);
+
+    let basePath = '';
+    if (config && config.SiteURL) {
+        basePath = new URL(config.SiteURL).pathname;
+
+        if (basePath && basePath[basePath.length - 1] === '/') {
+            basePath = basePath.substr(0, basePath.length - 1);
+        }
     }
 
-    if (siteURL[siteURL.length - 1] === '/') {
-        siteURL = siteURL.substring(0, siteURL.length - 1);
-    }
+    return basePath;
+};
 
-    if (window.basename) {
-        siteURL += window.basename;
-    }
-
-    if (siteURL[siteURL.length - 1] === '/') {
-        siteURL = siteURL.substring(0, siteURL.length - 1);
-    }
-
-    return siteURL;
+export const getPluginServerRoute = (state) => {
+    const siteURL = getSiteURL(state);
+    return siteURL + '/plugins/' + pluginId;
 };
 
 export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;

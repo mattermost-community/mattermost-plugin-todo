@@ -14,7 +14,7 @@ function mapStateToProps(state) {
         todos: getIssues(state),
         inTodos: getInIssues(state),
         outTodos: getOutIssues(state),
-        siteURL: getSiteURL(),
+        siteURL: getSiteURL(state),
         rhsState: state['plugins-com.mattermost.plugin-todo'].rhsState,
     };
 }

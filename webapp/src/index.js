@@ -10,6 +10,7 @@ import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
 import ChannelHeaderButton from './components/channel_header_button';
+import {getPluginServerRoute} from './selectors';
 
 let activityFunc;
 let lastActivityTime = Number.MAX_SAFE_INTEGER;
@@ -39,7 +40,7 @@ export default class Plugin {
                 store.dispatch(toggleRHSPlugin);
             },
             'Todo',
-            'Open your list of Todo issues.',
+            'Open your list of Todo issues',
         );
 
         const getFrontendListName = (backendListName) => {
@@ -62,6 +63,13 @@ export default class Plugin {
         };
 
         const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+
+        const iconURL = getPluginServerRoute(store.getState()); + '/public/app-bar-icon.png';
+        registry.registerAppBarComponent(
+            iconURL,
+            () => store.dispatch(toggleRHSPlugin),
+            'Open your list of Todo issues',
+        );
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refresh);
