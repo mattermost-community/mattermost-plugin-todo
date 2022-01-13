@@ -64,7 +64,7 @@ export default class Plugin {
 
         const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
 
-        const iconURL = getPluginServerRoute(store.getState()); + '/public/app-bar-icon.png';
+        const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
         registry.registerAppBarComponent(
             iconURL,
             () => store.dispatch(toggleRHSPlugin),
