@@ -11,6 +11,10 @@ import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
 import BumpButton from '../buttons/bump';
 import {canComplete, canRemove, canAccept, canBump, handleFormattedTextClick} from '../../utils';
+import CompassIcon from '../icons/compassIcons';
+import Menu from '../../widget/menu';
+import MenuItem from '../../widget/menuItem';
+import MenuWrapper from '../../widget/menuWrapper';
 
 const PostUtils = window.PostUtils; // import the post utilities
 
@@ -18,7 +22,6 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
-
     const handleClick = (e) => handleFormattedTextClick(e);
 
     return props.issues.length > 0 ? props.issues.map((issue) => {
@@ -76,6 +79,7 @@ function ToDoIssues(props) {
 
         const completeButton = (
             <CompleteButton
+                theme={props.theme}
                 issueId={issue.id}
                 complete={props.complete}
             />
@@ -89,31 +93,47 @@ function ToDoIssues(props) {
         );
 
         const actionButtons = (<div className='action-buttons'>
-            {canRemove(props.list, issue.list) && removeButton}
             {canAccept(props.list) && acceptButton}
-            {canComplete(props.list) && completeButton}
             {canBump(props.list, issue.list) && bumpButton}
         </div>);
 
         return (
             <div
                 key={issue.id}
-                style={style.container}
+                className='todo-item'
             >
-                <div
-                    className='todo-text'
-                    onClick={handleClick}
-                >
-                    {issueComponent}
+                <div className='todo-item__content'>
+                    {canComplete(props.list) && completeButton}
+                    <div style={style.itemContent}>
+                        <div
+                            className='todo-text'
+                            onClick={handleClick}
+                        >
+                            {issueComponent}
+                        </div>
+                        {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
+                        <div
+                            className='light'
+                            style={style.subtitle}
+                        >
+                            {createdMessage + ' on ' + formattedDate + ' at ' + formattedTime}
+                        </div>
+                        {listPositionMessage && listDiv}
+                    </div>
                 </div>
-                {(canRemove(props.list, issue.list) || canComplete(props.list) || canAccept(props.list) || canBump(props.list, issue.list)) && actionButtons}
-                <div
-                    className='light'
-                    style={style.subtitle}
-                >
-                    {createdMessage + ' on ' + formattedDate + ' at ' + formattedTime}
-                </div>
-                {listPositionMessage && listDiv}
+                <MenuWrapper>
+                    <button className='todo-item__dots'>
+                        <CompassIcon
+                            icon='dots-vertical'
+                        />
+                    </button>
+                    <Menu position='left'>
+                        {canAccept(props.list) && <MenuItem action={() => props.accept(issue.id)} text='Accept todo' icon='check' />}
+                        <MenuItem text='Edit todo' icon='pencil-outline' />
+                        <MenuItem text='Assign to…' icon='account-plus-outline' />
+                        {canRemove(props.list, issue.list) && <MenuItem action={() => props.remove(issue.id)} text='Delete todo' icon='trash-can-outline' />}
+                    </Menu>
+                </MenuWrapper>
             </div>
         );
     }) : <div style={style.container}>{'You have no Todo issues'}</div>;
@@ -133,8 +153,12 @@ ToDoIssues.propTypes = {
 const getStyle = makeStyleFromTheme((theme) => {
     return {
         container: {
-            padding: '15px',
-            borderTop: `1px solid ${changeOpacity(theme.centerChannelColor, 0.2)}`,
+            padding: '8px 20px',
+            display: 'flex',
+            alignItems: 'flex-start',
+        },
+        itemContent: {
+            padding: '0 0 0 16px',
         },
         issueTitle: {
             color: theme.centerChannelColor,
@@ -142,7 +166,6 @@ const getStyle = makeStyleFromTheme((theme) => {
             fontWeight: 'bold',
         },
         subtitle: {
-            margin: '5px 0 0 0',
             fontSize: '13px',
         },
         message: {

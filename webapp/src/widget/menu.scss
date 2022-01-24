@@ -1,0 +1,172 @@
+.status-dropdown-menu {
+    > .Menu {
+        position: inherit;
+    }
+}
+
+.Menu {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    z-index: 15;
+    background-color: rgba(var(--center-channel-bg-rgb), 1);
+    color: rgba(var(--center-channel-color-rgb), 1);
+    border-radius: var(--default-rad);
+    box-shadow: var(--elevation-4);
+
+    .menu-contents {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 0;
+        min-width: 240px;
+    }
+
+    .menu-options {
+        display: flex;
+        flex-direction: column;
+
+        flex-grow: 1;
+        position: relative;
+
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        color: rgba(var(--center-channel-color-rgb), 1);
+
+        .CompassIcon {
+            font-size: 18px;
+            opacity: 0.56;
+            width: 18px;
+
+            &::before {
+                margin: 0;
+            }
+        }
+
+        > .menu-option {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            line-height: 24px;
+            font-weight: 400;
+            height: 32px;
+            padding: 4px 20px;
+            cursor: pointer;
+
+            &:hover {
+                background: rgba(var(--button-bg-rgb), 0.08);
+            }
+
+            > * {
+                margin-left: 16px;
+            }
+
+            > *:first-child {
+                margin-left: 0;
+            }
+
+            > .menu-name {
+                display: flex;
+                flex-grow: 1;
+                white-space: nowrap;
+            }
+
+            > .SubmenuTriangleIcon {
+                fill: rgba(var(--center-channel-color-rgb), 0.7);
+            }
+
+            > .Icon {
+                opacity: 0.56;
+                width: 18px;
+                height: 18px;
+            }
+
+            > .IconButton .Icon {
+                margin-right: 0;
+            }
+        }
+
+        > .menu-option.bold-menu-text {
+            font-weight: bold;
+        }
+    }
+
+    .menu-spacer {
+        height: 20px;
+        width: 20px;
+        flex: 0 0 auto;
+    }
+
+    @media not screen and (max-width: 430px) {
+        &.top {
+            bottom: 100%;
+        }
+
+        &.left {
+            right: 0;
+        }
+    }
+}
+
+.Menu,
+.SubMenuOption .SubMenu {
+    @media screen and (max-width: 430px) {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-width: 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.5);
+        border-radius: 0;
+        padding: 10px;
+
+        display: block;
+        overflow-y: auto;
+
+        .menu-contents {
+            justify-content: flex-end;
+            min-height: 100%;
+        }
+
+        .menu-options {
+            align-items: center;
+            border-radius: 10px;
+            overflow: hidden;
+
+            flex: 0 0 auto;
+
+            > .menu-option {
+                min-height: 44px;
+                width: 100%;
+                padding: 0 20px;
+                background-color: rgba(var(--center-channel-bg-rgb), 1);
+
+                > * {
+                    flex: 0 0 auto;
+                }
+
+                > .noicon {
+                    width: 16px;
+                    height: 16px;
+                }
+
+                > .menu-name {
+                    font-size: 16px;
+                    justify-content: center;
+                }
+            }
+        }
+    }
+
+    @media not screen and (max-width: 430px) {
+        .hideOnWidescreen {
+            /* Hide controls (e.g. close button) on larger screens */
+            display: none !important;
+        }
+    }
+}

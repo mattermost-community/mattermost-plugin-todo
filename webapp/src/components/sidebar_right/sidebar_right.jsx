@@ -8,6 +8,7 @@ import Scrollbars from 'react-custom-scrollbars';
 import ToDoIssues from './todo_issues';
 
 import './sidebar_right.scss';
+import AddIssue from '../add_issue/add_issue';
 
 export function renderView(props) {
     return (
@@ -64,6 +65,7 @@ export default class SidebarRight extends React.PureComponent {
             list: props.rhsState || MyListName,
             showInbox: true,
             showMy: true,
+            addTodo: false,
         };
     }
 
@@ -110,6 +112,12 @@ export default class SidebarRight extends React.PureComponent {
 
     getMyIssues() {
         return this.props.todos.length;
+    }
+
+    addTodoItem() {
+        this.setState({addTodo: true});
+        console.log('adding todo');
+        console.log(this.state.addTodo);
     }
 
     render() {
@@ -195,7 +203,7 @@ export default class SidebarRight extends React.PureComponent {
                         className='section-header'
                         onClick={() => {
                             this.props.actions.telemetry('rhs_add', {list: this.state.list});
-                            this.props.actions.openRootModal('');
+                            this.addTodoItem();
                         }}
                     >
                         {addButton + ' '}
@@ -204,6 +212,7 @@ export default class SidebarRight extends React.PureComponent {
                     <div>
                         {inbox}
                         {separator}
+                        <AddIssue theme={this.props.theme} visible={this.state.addTodo} />
                         {(inboxList.length === 0) || (this.state.showMy && todos.length > 0) ?
                             <ToDoIssues
                                 issues={todos}

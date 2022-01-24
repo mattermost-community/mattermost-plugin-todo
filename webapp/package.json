@@ -65,6 +65,7 @@
   "dependencies": {
     "@types/react-select": "3.0.23",
     "core-js": "3.6.5",
+    "@mattermost/compass-icons": "^0.1.10",
     "mattermost-redux": "5.23.0",
     "prop-types": "15.7.2",
     "react": "16.13.1",
