@@ -28,6 +28,7 @@ export const getCurrentTeamRoute = (state) => {
     return basePath + '/' + teamName + '/';
 };
 
+// TODO: Move this into mattermost-redux or mattermost-webapp.
 export const getSiteURL = (state) => {
     const config = getConfig(state);
 
