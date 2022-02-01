@@ -97,7 +97,7 @@ function TodoItem(props) {
                 {canComplete(list) && completeButton}
                 <div style={style.itemContent}>
                     {editTodo ? (
-                        <textarea value={issueComponent}/>
+                        <textarea value={issue.message}/>
                     ) : (
                         <div
                             className='todo-text'

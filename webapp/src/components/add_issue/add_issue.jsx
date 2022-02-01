@@ -77,12 +77,12 @@ export default class AddIssue extends React.Component {
     }
 
     submit = () => {
-        const { assignee, submit, postID, closeAddBox, removeAssignee } = this.props;
-        const { message, attachToThread } = this.state;
+        const { submit, postID, closeAddBox, removeAssignee } = this.props;
+        const { sendTo, message, attachToThread } = this.state;
         if (attachToThread) {
-            submit(message, assignee.username, postID);
+            submit(message, sendTo, postID);
         } else {
-            submit(message, assignee.username);
+            submit(message, sendTo);
         }
 
         removeAssignee();
