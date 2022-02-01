@@ -12,6 +12,7 @@ import Chip from '../../widget/chip/chip';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
 import './add_issue.scss';
 import CompassIcon from '../icons/compassIcons';
+import { getProfilePicture } from '../../utils';
 
 const PostUtils = window.PostUtils;
 
@@ -20,11 +21,13 @@ export default class AddIssue extends React.Component {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
         postID: PropTypes.string.isRequired,
+        assignee: PropTypes.object.isRequired,
         closeAddBox: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
         autocompleteUsers: PropTypes.func.isRequired,
         openAssigneeModal: PropTypes.func.isRequired,
+        removeAssignee: PropTypes.func.isRequired,
     };
 
     shouldComponentUpdate() {
@@ -67,15 +70,22 @@ export default class AddIssue extends React.Component {
         }
     };
 
+    close = () => {
+        const { closeAddBox, removeAssignee } = this.props;
+        removeAssignee();
+        closeAddBox();
+    }
+
     submit = () => {
-        const { submit, postID, closeAddBox } = this.props;
-        const { message, sendTo, attachToThread } = this.state;
+        const { assignee, submit, postID, closeAddBox, removeAssignee } = this.props;
+        const { message, attachToThread } = this.state;
         if (attachToThread) {
-            submit(message, sendTo, postID);
+            submit(message, assignee.username, postID);
         } else {
-            submit(message, sendTo);
+            submit(message, assignee.username);
         }
 
+        removeAssignee();
         closeAddBox();
     };
 
@@ -84,7 +94,7 @@ export default class AddIssue extends React.Component {
     }
 
     render() {
-        const { visible, theme, closeAddBox } = this.props;
+        const { assignee, visible, theme } = this.props;
 
         if (!visible) {
             return null;
@@ -139,12 +149,29 @@ export default class AddIssue extends React.Component {
                             </div>
                         )}
 
-                        <Chip
-                            icon={<CompassIcon icon='account-outline'/>}
-                            onClick={() => this.props.openAssigneeModal('')}
-                        >
-                            {'Assign to…'}
-                        </Chip>
+                        <div style={style.chipsContainer}>
+                            {!assignee && (
+                                <Chip
+                                    icon={<CompassIcon icon='account-outline'/>}
+                                    onClick={() => this.props.openAssigneeModal('')}
+                                >
+                                    {'Assign to…'}
+                                </Chip>
+                            )}
+                            {assignee && (
+                                <button
+                                    style={style.assigneeContainer}
+                                    onClick={() => this.props.openAssigneeModal('')}
+                                >
+                                    <img
+                                        style={style.assigneeImage}
+                                        src={getProfilePicture(assignee.id)}
+                                        alt={assignee.username}
+                                    />
+                                    <span>{assignee.username}</span>
+                                </button>
+                            )}
+                        </div>
 
                         <FullScreenModal
                             show={this.state.assigneeModal}
@@ -168,11 +195,14 @@ export default class AddIssue extends React.Component {
                         </FullScreenModal>
                     </div>
                 </div>
-                <div className='todoplugin-button-container'>
+                <div
+                    className='todoplugin-button-container'
+                    style={style.buttons}
+                >
                     <Button
                         emphasis='tertiary'
                         size='small'
-                        onClick={() => closeAddBox()}
+                        onClick={this.close}
                     >
                         {'Cancel'}
                     </Button>
@@ -219,6 +249,28 @@ const getStyle = makeStyleFromTheme((theme) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'end',
+        },
+        assigneeImage: {
+            width: 12,
+            height: 12,
+            marginRight: 6,
+        },
+        assigneeContainer: {
+            borderRadius: 50,
+            backgroundColor: changeOpacity(theme.centerChannelColor, 0.08),
+            height: 24,
+            padding: '4px 10px',
+            fontWeight: 600,
+            alignItems: 'center',
+            justifyContent: 'center',
+            display: 'inline-flex',
+            border: 0,
+        },
+        buttons: {
+            marginTop: 16,
+        },
+        chipsContainer: {
+            marginTop: 8,
         },
     };
 });

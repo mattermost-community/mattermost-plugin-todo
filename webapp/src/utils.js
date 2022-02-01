@@ -1,4 +1,6 @@
-import {blendColors, changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
+import { blendColors, changeOpacity, makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
+
+const imageURLForUser = (window).Components?.imageURLForUser;
 
 import Constants from './constants';
 
@@ -19,7 +21,7 @@ export function canBump(myList, foreignList) {
 }
 
 export function generateClassName(conditions) {
-    return Object.entries(conditions).map(([className, condition]) => (condition ? className : '')).filter((className) => className !== '').join(' ')
+    return Object.entries(conditions).map(([className, condition]) => (condition ? className : '')).filter((className) => className !== '').join(' ');
 }
 
 export function setSelectionRange(input, selectionStart, selectionEnd) {
@@ -37,6 +39,10 @@ export function setSelectionRange(input, selectionStart, selectionEnd) {
 
 export function setCaretPosition(input, pos) {
     setSelectionRange(input, pos, pos);
+}
+
+export function getProfilePicture(userId) {
+    return imageURLForUser && userId && imageURLForUser(userId);
 }
 
 export function isKeyPressed(event, key) {

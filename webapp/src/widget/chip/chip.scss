@@ -1,12 +1,19 @@
 .Chip {
     display: inline-flex;
     align-items: center;
-    padding: 4px 8px 4px 4px;
-    border-radius: 12px;
+    padding: 4px 10px;
+    border-radius: 50px;
     background: rgba(var(--center-channel-color-rgb), 0.08);
+    font-size: 12px;
+    height: 24px;
+    border: none;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
 
     .Icon {
-        font-size: 8px;
-        margin-right: 4px;
+        font-size: 14px;
+        margin-right: 6px;
     }
 }

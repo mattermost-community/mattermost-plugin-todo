@@ -13,6 +13,8 @@ import {
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
+    GET_ASSIGNEE,
+    REMOVE_ASSIGNEE,
 } from './action_types';
 
 import { getPluginServerRoute } from './selectors';
@@ -27,6 +29,19 @@ export const openRootModal = (postID) => (dispatch) => {
 export const closeRootModal = () => (dispatch) => {
     dispatch({
         type: CLOSE_ROOT_MODAL,
+    });
+};
+
+export const getAssignee = (assignee) => (dispatch) => {
+    dispatch({
+        type: GET_ASSIGNEE,
+        assignee,
+    });
+};
+
+export const removeAssignee = () => (dispatch) => {
+    dispatch({
+        type: REMOVE_ASSIGNEE,
     });
 };
 

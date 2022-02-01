@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
+import React, { CSSProperties } from 'react';
 
 import AsyncSelect from 'react-select/async';
-import {OptionsType, ValueType, Theme as ComponentTheme} from 'react-select/src/types';
-import {Props as ComponentProps, StylesConfig} from 'react-select/src/styles';
-import {ThemeConfig} from 'react-select/src/theme';
+import { OptionsType, ValueType, Theme as ComponentTheme } from 'react-select/src/types';
+import { Props as ComponentProps, StylesConfig } from 'react-select/src/styles';
+import { ThemeConfig } from 'react-select/src/theme';
 
-import {Theme} from 'mattermost-redux/types/preferences';
-import {UserProfile} from 'mattermost-redux/types/users';
+import { Theme } from 'mattermost-redux/types/preferences';
+import { UserProfile } from 'mattermost-redux/types/users';
 
-import {FormatOptionLabelContext} from 'react-select/src/Select';
+import { FormatOptionLabelContext } from 'react-select/src/Select';
 
 import './autocomplete_selector.scss';
-import {getColorStyles, getDescription} from '../../utils';
+import { getColorStyles, getDescription } from '../../utils';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -49,8 +49,8 @@ const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     return [styles, compTheme];
 };
 
-const renderOption = (option: UserProfile, {context} : {context: FormatOptionLabelContext}) => {
-    const {username} = option;
+const renderOption = (option: UserProfile, { context } : {context: FormatOptionLabelContext}) => {
+    const { username } = option;
     const name = `@${username}`;
     const description = getDescription(option);
 

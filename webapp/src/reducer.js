@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
 
-import { OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, OPEN_ASSIGNEE_MODAL, CLOSE_ASSIGNEE_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE, SET_HIDE_TEAM_SIDEBAR_BUTTONS } from './action_types';
+import { OPEN_ROOT_MODAL, GET_ASSIGNEE, REMOVE_ASSIGNEE, CLOSE_ROOT_MODAL, OPEN_ASSIGNEE_MODAL, CLOSE_ASSIGNEE_MODAL, GET_ISSUES, GET_IN_ISSUES, GET_OUT_ISSUES, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE, SET_HIDE_TEAM_SIDEBAR_BUTTONS } from './action_types';
 
 const rootModalVisible = (state = false, action) => {
     switch (action.type) {
@@ -19,6 +19,17 @@ const assigneeModalVisible = (state = false, action) => {
         return true;
     case CLOSE_ASSIGNEE_MODAL:
         return false;
+    default:
+        return state;
+    }
+};
+
+const currentAssignee = (state = null, action) => {
+    switch (action.type) {
+    case GET_ASSIGNEE:
+        return action.assignee;
+    case REMOVE_ASSIGNEE:
+        return null;
     default:
         return state;
     }
@@ -99,6 +110,7 @@ function isTeamSidebarHidden(state = false, action) {
 }
 
 export default combineReducers({
+    currentAssignee,
     rootModalVisible,
     assigneeModalVisible,
     postID,
