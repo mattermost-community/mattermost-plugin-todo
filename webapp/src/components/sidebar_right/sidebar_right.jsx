@@ -128,7 +128,7 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     addTodoItem() {
-        this.props.actions.openAddCard();
+        this.props.actions.openAddCard('');
     }
 
     closeAddBox() {
