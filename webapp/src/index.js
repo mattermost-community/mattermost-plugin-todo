@@ -66,7 +66,7 @@ export default class Plugin {
             store.dispatch(list(false));
             store.dispatch(list(false, 'in'));
             store.dispatch(list(false, 'out'));
-        }
+        };
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refreshAll);
