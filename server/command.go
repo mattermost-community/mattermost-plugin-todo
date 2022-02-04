@@ -185,7 +185,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	message := strings.Join(args[1:], " ")
 
-	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "")
+	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "", "")
 	if err != nil {
 		return false, err
 	}
@@ -214,7 +214,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "")
+	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "", "")
 	if err != nil {
 		return false, err
 	}

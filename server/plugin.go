@@ -25,9 +25,9 @@ const (
 // ListManager represents the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
-	AddIssue(userID, message, postID string) (*Issue, error)
+	AddIssue(userID, message, description, postID string) (*Issue, error)
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
-	SendIssue(senderID, receiverID, message, postID string) (string, error)
+	SendIssue(senderID, receiverID, message, description, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
 	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
@@ -40,6 +40,10 @@ type ListManager interface {
 	PopIssue(userID string) (issue *Issue, foreignID string, err error)
 	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
 	BumpIssue(userID string, issueID string) (todoMessage string, receiver string, foreignIssueID string, err error)
+	// EditIssue updates the message on an issue
+	EditIssue(userID string, issueID string, newMessage string, newDescription string) (foreignUserID string, list string, oldMessage string, err error)
+	// ChangeAssignment updates an issue to assign a different person
+	ChangeAssignment(issueId string, userID string, sendTo string) (issueMessage, oldOwner string, err error)
 	// GetUserName returns the readable username from userID
 	GetUserName(userID string) string
 }
@@ -119,6 +123,10 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleTelemetry(w, r)
 	case "/config":
 		p.handleConfig(w, r)
+	case "/edit":
+		p.handleEdit(w, r)
+	case "/change_assignment":
+		p.handleChangeAssignment(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -151,9 +159,10 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 }
 
 type addAPIRequest struct {
-	Message string `json:"message"`
-	SendTo  string `json:"send_to"`
-	PostID  string `json:"post_id"`
+	Message     string `json:"message"`
+	Description string `json:"description"`
+	SendTo      string `json:"send_to"`
+	PostID      string `json:"post_id"`
 }
 
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +184,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	senderName := p.listManager.GetUserName(userID)
 
 	if addRequest.SendTo == "" {
-		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
@@ -195,12 +204,12 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	receiver, appErr := p.API.GetUserByUsername(addRequest.SendTo)
 	if appErr != nil {
 		p.API.LogError("username not valid, err=" + appErr.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", err)
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", appErr)
 		return
 	}
 
 	if receiver.Id == userID {
-		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
 			p.API.LogError("Unable to add issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
@@ -227,7 +236,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostID)
+	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.Description, addRequest.PostID)
 	if err != nil {
 		p.API.LogError("Unable to send issue err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
@@ -315,6 +324,108 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write(issuesJSON)
 	if err != nil {
 		p.API.LogError("Unable to write json response err=" + err.Error())
+	}
+}
+
+type editAPIRequest struct {
+	ID          string `json:"id"`
+	Message     string `json:"message"`
+	Description string `json:"description"`
+}
+
+func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var editRequest *editAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&editRequest); err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	foreignUserId, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
+	if err != nil {
+		p.API.LogError("Unable to edit message: err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to edit issue", err)
+		return
+	}
+
+	p.trackEditIssue(userID)
+	p.sendRefreshEvent(userID, []string{list})
+
+	if foreignUserId != "" {
+		var lists []string
+		if list == OutListKey {
+			lists = []string{MyListKey, InListKey}
+		} else {
+			lists = []string{OutListKey}
+		}
+		p.sendRefreshEvent(foreignUserId, lists)
+
+		userName := p.listManager.GetUserName(userID)
+		message := fmt.Sprintf("@%s modified a Todo from:\n%s\nTo:\n%s", userName, oldMessage, editRequest.Message)
+		p.PostBotDM(foreignUserId, message)
+	}
+}
+
+type changeAssignmentAPIRequest struct {
+	ID     string `json:"id"`
+	SendTo string `json:"send_to"`
+}
+
+func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	var changeRequest *changeAssignmentAPIRequest
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&changeRequest); err != nil {
+		p.API.LogError("Unable to decode JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		return
+	}
+
+	if changeRequest.SendTo == "" {
+		http.Error(w, "No user specified", http.StatusBadRequest)
+		return
+	}
+
+	receiver, appErr := p.API.GetUserByUsername(changeRequest.SendTo)
+	if appErr != nil {
+		p.API.LogError("username not valid, err=" + appErr.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", appErr)
+		return
+	}
+
+	issueMessage, oldOwner, err := p.listManager.ChangeAssignment(changeRequest.ID, userID, receiver.Id)
+	if err != nil {
+		p.API.LogError("Unable to change the assignment of an issue: err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to change the assignment", err)
+		return
+	}
+
+	p.trackChangeAssignment(userID)
+
+	p.sendRefreshEvent(userID, []string{MyListKey, OutListKey})
+
+	userName := p.listManager.GetUserName(userID)
+	if receiver.Id != userID {
+		p.sendRefreshEvent(receiver.Id, []string{InListKey})
+		receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", userName)
+		p.PostBotCustomDM(receiver.Id, receiverMessage, issueMessage, changeRequest.ID)
+	}
+	if oldOwner != "" {
+		p.sendRefreshEvent(oldOwner, []string{InListKey, MyListKey})
+		oldOwnerMessage := fmt.Sprintf("@%s removed you from Todo:\n%s", userName, issueMessage)
+		p.PostBotDM(oldOwner, oldOwnerMessage)
 	}
 }
 
