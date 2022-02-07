@@ -32,10 +32,18 @@ function TodoItem(props) {
 
     const handleClick = (e) => handleFormattedTextClick(e);
 
-    const htmlFormattedText = PostUtils.formatText(issue.message, {
+    const htmlFormattedMessage = PostUtils.formatText(issue.message, {
         siteURL,
     });
-    const issueComponent = PostUtils.messageHtmlToComponent(htmlFormattedText);
+
+    const htmlFormattedDescription = PostUtils.formatText(issue.description, {
+        siteURL,
+    });
+
+    console.log(issue);
+
+    const issueMessage = PostUtils.messageHtmlToComponent(htmlFormattedMessage);
+    const issueDescription = PostUtils.messageHtmlToComponent(htmlFormattedDescription);
 
     let createdMessage = 'Created ';
     let listPositionMessage = '';
@@ -103,6 +111,11 @@ function TodoItem(props) {
         remove(issue.id);
     };
 
+    const saveEditedTodo = () => {
+        setEditTodo(false);
+        // submit(message, sendTo);
+    }
+
     return (
         <div
             key={issue.id}
@@ -125,7 +138,8 @@ function TodoItem(props) {
                                 className='todo-text'
                                 onClick={handleClick}
                             >
-                                {issueComponent}
+                                {issueMessage}
+                                {issueDescription}
                             </div>
                         )}
 
@@ -187,7 +201,7 @@ function TodoItem(props) {
                     <Button
                         emphasis='primary'
                         size='small'
-                        onClick={() => setEditTodo(false)}
+                        onClick={saveEditedTodo}
                     >
                         {'Save'}
                     </Button>

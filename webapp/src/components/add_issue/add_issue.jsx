@@ -41,6 +41,7 @@ export default class AddIssue extends React.Component {
 
         this.state = {
             message: null,
+            description: null,
             sendTo: null,
             attachToThread: false,
             previewMarkdown: false,
@@ -80,11 +81,11 @@ export default class AddIssue extends React.Component {
 
     submit = () => {
         const { submit, postID, closeAddBox, removeAssignee } = this.props;
-        const { sendTo, message, attachToThread } = this.state;
+        const { sendTo, message, description, attachToThread } = this.state;
         if (attachToThread) {
-            submit(message, sendTo, postID);
+            submit(message, description, sendTo, postID);
         } else {
-            submit(message, sendTo);
+            submit(message, description, sendTo);
         }
 
         removeAssignee();
@@ -112,7 +113,7 @@ export default class AddIssue extends React.Component {
             return null;
         }
 
-        const { message } = this.state;
+        const { message, description } = this.state;
 
         const style = getStyle(theme);
 
@@ -132,18 +133,31 @@ export default class AddIssue extends React.Component {
                                     )}
                                 </div>
                             ) : (
-                                <TextareaAutosize
-                                    style={style.textareaResize}
-                                    placeholder='Enter a title'
-                                    autoFocus={true}
-                                    onKeyDown={(e) => this.onKeyDown(e)}
-                                    value={message}
-                                    onChange={(e) =>
-                                        this.setState({
-                                            message: e.target.value,
-                                        })
-                                    }
-                                />
+                                <React.Fragment>
+                                    <TextareaAutosize
+                                        style={style.textareaResize}
+                                        placeholder='Enter a title'
+                                        autoFocus={true}
+                                        onKeyDown={(e) => this.onKeyDown(e)}
+                                        value={message}
+                                        onChange={(e) =>
+                                            this.setState({
+                                                message: e.target.value,
+                                            })
+                                        }
+                                    />
+                                    <TextareaAutosize
+                                        style={style.textareaResize}
+                                        placeholder='Enter a description'
+                                        onKeyDown={(e) => this.onKeyDown(e)}
+                                        value={description}
+                                        onChange={(e) =>
+                                            this.setState({
+                                                description: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </React.Fragment>
                             )}
                         </div>
                         {this.props.postID && (
