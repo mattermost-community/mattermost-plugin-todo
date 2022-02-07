@@ -4,17 +4,14 @@
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { openAssigneeModal, openTodoToast } from '../../actions';
+import { openAssigneeModal, openTodoToast, editIssue } from '../../actions';
 
 import TodoItem from './todo_item';
 
-function mapDispatchToProps(dispatch) {
-    return {
-        actions: bindActionCreators({
-            openAssigneeModal,
-            openTodoToast,
-        }, dispatch),
-    };
-}
+const mapDispatchToProps = (dispatch) => bindActionCreators({
+    editIssue,
+    openAssigneeModal,
+    openTodoToast,
+}, dispatch);
 
 export default connect(null, mapDispatchToProps)(TodoItem);

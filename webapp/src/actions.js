@@ -96,6 +96,13 @@ export const add = (message, description, sendTo, postID) => async (dispatch, ge
     }));
 };
 
+export const editIssue = (message, description, sendTo, postID) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({ send_to: sendTo, post_id: postID, message, description }),
+    }));
+};
+
 export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
     let resp;
     let data;

@@ -23,7 +23,7 @@ import Button from '../../widget/buttons/button';
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
-    const { issue, theme, siteURL, accept, complete, list, remove, bump, actions } = props;
+    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, editIssue } = props;
     const [done, setDone] = useState(false);
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
@@ -39,8 +39,6 @@ function TodoItem(props) {
     const htmlFormattedDescription = PostUtils.formatText(issue.description, {
         siteURL,
     });
-
-    console.log(issue);
 
     const issueMessage = PostUtils.messageHtmlToComponent(htmlFormattedMessage);
     const issueDescription = PostUtils.messageHtmlToComponent(htmlFormattedDescription);
@@ -79,7 +77,7 @@ function TodoItem(props) {
     );
 
     const completeToast = () => {
-        actions.openTodoToast({ icon: 'check', message: 'Todo completed' });
+        openTodoToast({ icon: 'check', message: 'Todo completed' });
         complete(issue.id);
     };
 
@@ -107,13 +105,13 @@ function TodoItem(props) {
     );
 
     const removeTodo = () => {
-        actions.openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
+        openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
         remove(issue.id);
     };
 
     const saveEditedTodo = () => {
         setEditTodo(false);
-        // submit(message, sendTo);
+        editIssue(message, 'test description', '', '');
     }
 
     return (
@@ -130,7 +128,7 @@ function TodoItem(props) {
                                 style={style.textareaResize}
                                 placeholder='Enter a title'
                                 autoFocus={true}
-                                value={issue.message}
+                                value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                             />
                         ) : (
@@ -172,7 +170,7 @@ function TodoItem(props) {
                             <MenuItem
                                 text='Assign to…'
                                 icon='account-plus-outline'
-                                action={() => actions.openAssigneeModal('')}
+                                action={() => openAssigneeModal('')}
                             />
                             {canRemove(list, issue.list) && (
                                 <MenuItem
@@ -265,10 +263,9 @@ TodoItem.propTypes = {
     accept: PropTypes.func.isRequired,
     bump: PropTypes.func.isRequired,
     list: PropTypes.string.isRequired,
-    actions: PropTypes.shape({
-        openAssigneeModal: PropTypes.func.isRequired,
-        openTodoToast: PropTypes.func.isRequired,
-    }).isRequired,
+    editIssue: PropTypes.func.isRequired,
+    openAssigneeModal: PropTypes.func.isRequired,
+    openTodoToast: PropTypes.func.isRequired,
 };
 
 export default TodoItem;
