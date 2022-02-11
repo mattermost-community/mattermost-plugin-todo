@@ -63,6 +63,11 @@ export default class Plugin {
         };
 
         const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+        const refreshAll = () => {
+            store.dispatch(list(false));
+            store.dispatch(list(false, 'in'));
+            store.dispatch(list(false, 'out'));
+        };
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
         registry.registerAppBarComponent(
@@ -72,7 +77,7 @@ export default class Plugin {
         );
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
-        registry.registerReconnectHandler(refresh);
+        registry.registerReconnectHandler(refreshAll);
 
         store.dispatch(list(true));
         store.dispatch(list(false, 'in'));
