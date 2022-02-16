@@ -66,16 +66,12 @@ export default class Plugin {
             return frontendListName;
         };
 
-<<<<<<< HEAD
-        const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+        const refresh = ({ data: { lists } }) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
         const refreshAll = () => {
             store.dispatch(list(false));
             store.dispatch(list(false, 'in'));
             store.dispatch(list(false, 'out'));
         };
-=======
-        const refresh = ({ data: { lists } }) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
->>>>>>> 857aedb (Updating modal)
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
         registry.registerAppBarComponent(
