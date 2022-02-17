@@ -108,8 +108,7 @@ function TodoItem(props) {
 
     const removeTodo = () => {
         openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
-
-        // remove(issue.id);
+        remove(issue.id);
     };
 
     const saveEditedTodo = () => {
@@ -191,17 +190,20 @@ function TodoItem(props) {
                                 text='Edit todo'
                                 icon='pencil-outline'
                                 action={() => setEditTodo(true)}
+                                shortcut='e'
                             />
                             <MenuItem
                                 text='Assign to…'
                                 icon='account-plus-outline'
                                 action={editAssignee}
+                                shortcut='a'
                             />
                             {canRemove(list, issue.list) && (
                                 <MenuItem
                                     action={removeTodo}
                                     text='Delete todo'
                                     icon='trash-can-outline'
+                                    shortcut='d'
                                 />
                             )}
                         </Menu>

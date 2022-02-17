@@ -26,14 +26,12 @@ function TodoToast(props: Props): JSX.Element {
     };
     classNames[`${props.className}`] = Boolean(props.className);
 
-    const [visible, setvisible] = useState(true);
-
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         props.close();
-    //     }, 3000);
-    //     return () => clearTimeout(timer);
-    // }, []);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            props.close();
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, []);
 
     const closeToast = () => {
         props.close();
@@ -41,10 +39,12 @@ function TodoToast(props: Props): JSX.Element {
 
     return (
         <CSSTransition
-            in={visible}
-            classNames='test'
-            timeout={300}
+            in={props.content ? true : false}
+            classNames='slide'
+            mountOnEnter={true}
             unmountOnExit={true}
+            timeout={300}
+            appear={true}
         >
             <div
                 className={generateClassName(classNames)}

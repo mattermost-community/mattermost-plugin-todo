@@ -25,23 +25,14 @@
     }
 }
 
-.test-enter {
+// Animations
+.slide-appear {
     opacity: 0;
-    transform: scale(0.9);
+    transform: translateY(150px);
 }
 
-.test-enter-active {
+.slide-appear-active {
     opacity: 1;
-    transform: translateX(0);
-    transition: opacity 300ms, transform 300ms;
-}
-
-.test-exit {
-    opacity: 1;
-}
-
-.test-exit-active {
-    opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 300ms, transform 300ms;
+    transform: translateY(0);
+    transition: all 500ms ease;
 }
