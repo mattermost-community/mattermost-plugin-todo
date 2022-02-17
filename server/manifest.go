@@ -17,8 +17,8 @@ const manifestStr = `
   "description": "This plugin makes it easy to keep track of Todo issues and get daily reminders.",
   "homepage_url": "https://github.com/mattermost/mattermost-plugin-todo",
   "support_url": "https://github.com/mattermost/mattermost-plugin-todo/issues",
-  "release_notes_url": "https://github.com/mattermost/mattermost-plugin-todo/releases/tag/v0.5.0",
-  "version": "0.5.0",
+  "release_notes_url": "https://github.com/mattermost/mattermost-plugin-todo/releases/tag/v0.5.1",
+  "version": "0.5.1",
   "min_server_version": "5.12.0",
   "server": {
     "executables": {
