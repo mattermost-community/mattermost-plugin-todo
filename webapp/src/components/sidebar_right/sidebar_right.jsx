@@ -4,6 +4,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
+import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 
 import AddIssue from '../add_issue';
 import Button from '../../widget/buttons/button';
@@ -156,7 +157,7 @@ export default class SidebarRight extends React.PureComponent {
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
-            addButton = 'Add new Todo';
+            addButton = 'Add Todo';
             inboxList = this.props.inTodos || [];
             break;
         case OutListName:
@@ -238,19 +239,36 @@ export default class SidebarRight extends React.PureComponent {
                             </Menu>
                         </MenuWrapper>
                         {this.state.list === MyListName && (
-                            <Button
-                                emphasis='primary'
-                                icon={<CompassIcon icon='plus'/>}
-                                size='small'
-                                onClick={() => {
-                                    this.props.actions.telemetry('rhs_add', {
-                                        list: this.state.list,
-                                    });
-                                    this.addTodoItem();
-                                }}
+                            <OverlayTrigger
+                                id='addOverlay'
+                                placement={'bottom'}
+                                overlay={(
+                                    <Tooltip
+                                        id='addTooltip'
+                                    >
+                                        <div className='shortcut-line'>
+                                            <mark className='shortcut-key shortcut-key--tooltip'>{'OPT'}</mark>
+                                            <mark className='shortcut-key shortcut-key--tooltip'>{'A'}</mark>
+                                        </div>
+                                    </Tooltip>
+                                )}
                             >
-                                {addButton}
-                            </Button>
+                                <div>
+                                    <Button
+                                        emphasis='primary'
+                                        icon={<CompassIcon icon='plus'/>}
+                                        size='small'
+                                        onClick={() => {
+                                            this.props.actions.telemetry('rhs_add', {
+                                                list: this.state.list,
+                                            });
+                                            this.addTodoItem();
+                                        }}
+                                    >
+                                        {addButton}
+                                    </Button>
+                                </div>
+                            </OverlayTrigger>
                         )}
                     </div>
                     <div>
