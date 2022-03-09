@@ -1,8 +1,6 @@
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
-import {id as pluginId} from './manifest';
 import {
     OPEN_ROOT_MODAL,
     CLOSE_ROOT_MODAL,
@@ -14,6 +12,8 @@ import {
     SET_RHS_VISIBLE,
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
+
+import {getPluginServerRoute} from './selectors';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -52,22 +52,6 @@ export function updateRhsState(rhsState) {
         state: rhsState,
     };
 }
-
-// TODO: Move this into mattermost-redux or mattermost-webapp.
-export const getPluginServerRoute = (state) => {
-    const config = getConfig(state);
-
-    let basePath = '';
-    if (config && config.SiteURL) {
-        basePath = new URL(config.SiteURL).pathname;
-
-        if (basePath && basePath[basePath.length - 1] === '/') {
-            basePath = basePath.substr(0, basePath.length - 1);
-        }
-    }
-
-    return basePath + '/plugins/' + pluginId;
-};
 
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
