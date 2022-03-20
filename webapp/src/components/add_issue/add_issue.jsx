@@ -88,6 +88,8 @@ export default class AddIssue extends React.Component {
         });
         if (attachToThread) {
             submit(message, description, assignee.username, postID);
+        } else if (assignee) {
+            submit(message, description, assignee.username);
         } else {
             submit(message, description);
         }
