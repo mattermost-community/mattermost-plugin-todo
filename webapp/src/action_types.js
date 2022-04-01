@@ -1,5 +1,7 @@
 import { id as pluginId } from './manifest';
 
+export const ADD_LAST_TODO = pluginId + '_add_last_todo';
+export const REMOVE_LAST_TODO = pluginId + '_remove_last_todo';
 export const OPEN_ROOT_MODAL = pluginId + '_open_root_modal';
 export const CLOSE_ROOT_MODAL = pluginId + '_close_root_modal';
 export const OPEN_ADD_CARD = pluginId + '_open_add_card';

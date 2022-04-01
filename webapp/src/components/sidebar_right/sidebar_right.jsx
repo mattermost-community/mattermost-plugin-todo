@@ -14,7 +14,9 @@ import Menu from '../../widget/menu';
 import MenuItem from '../../widget/menuItem';
 import MenuWrapper from '../../widget/menuWrapper';
 
-import ToDoIssues from '../todo_issues/todo_issues';
+import ToDoIssues from '../todo_issues';
+import { isKeyPressed } from '../../utils.js';
+import Constants from '../../constants';
 
 import './sidebar_right.scss';
 
@@ -99,6 +101,7 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     componentDidMount() {
+        document.addEventListener('keydown', this.handleKeypress);
         this.props.actions.list(false, 'my');
         this.props.actions.list(false, 'in');
         this.props.actions.list(false, 'out');
@@ -106,8 +109,16 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeypress);
         this.props.actions.setVisible(false);
     }
+
+    handleKeypress = (e) => {
+        if (e.altKey && isKeyPressed(e, Constants.KeyCodes.A)) {
+            e.preventDefault();
+            this.props.actions.openAddCard('');
+        }
+    };
 
     componentDidUpdate(prevProps) {
         if (prevProps.rhsState !== this.props.rhsState) {
@@ -226,19 +237,21 @@ export default class SidebarRight extends React.PureComponent {
                                 />
                             </Menu>
                         </MenuWrapper>
-                        <Button
-                            emphasis='primary'
-                            icon={<CompassIcon icon='plus'/>}
-                            size='small'
-                            onClick={() => {
-                                this.props.actions.telemetry('rhs_add', {
-                                    list: this.state.list,
-                                });
-                                this.addTodoItem();
-                            }}
-                        >
-                            {addButton}
-                        </Button>
+                        {this.state.list === MyListName && (
+                            <Button
+                                emphasis='primary'
+                                icon={<CompassIcon icon='plus'/>}
+                                size='small'
+                                onClick={() => {
+                                    this.props.actions.telemetry('rhs_add', {
+                                        list: this.state.list,
+                                    });
+                                    this.addTodoItem();
+                                }}
+                            >
+                                {addButton}
+                            </Button>
+                        )}
                     </div>
                     <div>
                         {inbox}
@@ -271,6 +284,7 @@ export default class SidebarRight extends React.PureComponent {
 const getStyle = () => {
     return {
         todoHeader: {
+            fontFamily: 'Metropolis, sans-serif',
             border: 0,
             background: 'transparent',
             display: 'flex',

@@ -22,7 +22,7 @@ import Button from '../../widget/buttons/button';
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
-    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue } = props;
+    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue, addLastTodo } = props;
     const [done, setDone] = useState(false);
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
@@ -88,6 +88,7 @@ function TodoItem(props) {
 
     const completeToast = () => {
         openTodoToast({ icon: 'check', message: 'Todo completed' });
+        addLastTodo(issue);
         complete(issue.id);
     };
 
@@ -108,6 +109,7 @@ function TodoItem(props) {
 
     const removeTodo = () => {
         openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
+        addLastTodo(issue);
         remove(issue.id);
     };
 
@@ -312,6 +314,7 @@ TodoItem.propTypes = {
     openAssigneeModal: PropTypes.func.isRequired,
     setEditingTodo: PropTypes.func.isRequired,
     openTodoToast: PropTypes.func.isRequired,
+    addLastTodo: PropTypes.func.isRequired,
 };
 
 export default TodoItem;

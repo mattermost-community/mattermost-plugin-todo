@@ -13,8 +13,9 @@ import { UserProfile } from 'mattermost-redux/types/users';
 
 import { FormatOptionLabelContext } from 'react-select/src/Select';
 
+import { getColorStyles, getDescription, getProfilePicture } from '../../utils';
+
 import './autocomplete_selector.scss';
-import { getColorStyles, getDescription } from '../../utils';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -57,9 +58,14 @@ const renderOption = (option: UserProfile, { context } : {context: FormatOptionL
     if (context === 'menu') {
         return (
             <div>
-                <span>{name}</span>
+                <img
+                    className={'option-image'}
+                    src={getProfilePicture(option.id)}
+                    alt={option.username}
+                />
+                <span className={'option-username'}>{name}</span>
                 {description !== '' && (
-                    <span className='option-nickname'>{description}</span>
+                    <span className={'option-nickname'}>{description}</span>
                 )}
             </div>
         );

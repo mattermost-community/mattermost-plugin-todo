@@ -25,6 +25,20 @@
     }
 }
 
+.TodoToast__undo {
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-weight: 600;
+    font-size: 11px;
+    background: rgba(var(--button-bg-rgb), 1);
+    color: rgba(var(--button-color-rgb), 1);
+    border-radius: 4px;
+    margin-left: 8px;
+    border: none;
+}
+
 // Animations
 .slide-appear {
     opacity: 0;

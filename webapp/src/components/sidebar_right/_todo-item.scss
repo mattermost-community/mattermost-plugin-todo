@@ -1,6 +1,14 @@
 .todo-item {
+    transition: all 0.15s ease;
     cursor: pointer;
     padding: 8px 16px;
+
+    &.todo-item--hidden {
+        height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+    }
 
     &:hover {
         &:not(.todo-item--done) {

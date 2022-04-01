@@ -17,10 +17,10 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
             }
         }
 
-        document.addEventListener('keydown', handleKeypress);
+        document.addEventListener('keyup', handleKeypress);
 
         return () => {
-            document.removeEventListener('keydown', handleKeypress);
+            document.removeEventListener('keyup', handleKeypress);
         };
     }, []);
 

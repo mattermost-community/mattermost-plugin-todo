@@ -1,8 +1,15 @@
-.todo-select {    
+.todo-select {
     .option-nickname {
         padding-left: 5px;
         color: var(--center-channel-color-48);
         text-overflow: ellipsis;
         overflow: hidden;
+    }
+
+    .option-image {
+        border-radius: 24px;
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
     }
 }

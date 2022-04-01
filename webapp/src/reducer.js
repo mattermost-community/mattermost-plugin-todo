@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux';
 
 import {
-    OPEN_ROOT_MODAL,
+    ADD_LAST_TODO,
+    REMOVE_LAST_TODO,
     GET_ASSIGNEE,
     REMOVE_ASSIGNEE,
-    CLOSE_ROOT_MODAL,
     OPEN_ASSIGNEE_MODAL,
     CLOSE_ASSIGNEE_MODAL,
     OPEN_TODO_TOAST,
@@ -21,17 +21,6 @@ import {
     SET_RHS_VISIBLE,
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
-
-const rootModalVisible = (state = false, action) => {
-    switch (action.type) {
-    case OPEN_ROOT_MODAL:
-        return true;
-    case CLOSE_ROOT_MODAL:
-        return false;
-    default:
-        return state;
-    }
-};
 
 const addCardVisible = (state = false, action) => {
     switch (action.type) {
@@ -60,6 +49,17 @@ const todoToast = (state = null, action) => {
     case OPEN_TODO_TOAST:
         return action.message;
     case CLOSE_TODO_TOAST:
+        return null;
+    default:
+        return state;
+    }
+};
+
+const lastTodo = (state = null, action) => {
+    switch (action.type) {
+    case ADD_LAST_TODO:
+        return action.issue;
+    case REMOVE_LAST_TODO:
         return null;
     default:
         return state;
@@ -176,4 +176,5 @@ export default combineReducers({
     rhsPluginAction,
     isRhsVisible,
     isTeamSidebarHidden,
+    lastTodo,
 });

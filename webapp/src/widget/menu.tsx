@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React from 'react'
-import TextOption from './textOption'
+import React from 'react';
 
-import './menu.scss'
+import TextOption from './textOption';
+
+import './menu.scss';
 
 type Props = {
     children: React.ReactNode
@@ -14,7 +15,7 @@ export default class Menu extends React.PureComponent<Props> {
     static Text = TextOption
 
     public render(): JSX.Element {
-        const {position, children} = this.props
+        const { position, children } = this.props;
 
         return (
             <div className={'Menu noselect ' + (position || 'bottom')}>
@@ -35,7 +36,7 @@ export default class Menu extends React.PureComponent<Props> {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 
     private onCancel = () => {

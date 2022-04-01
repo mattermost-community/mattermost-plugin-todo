@@ -40,8 +40,8 @@ export default class AddIssue extends React.Component {
         super(props);
 
         this.state = {
-            message: null,
-            description: null,
+            message: '',
+            description: '',
             sendTo: null,
             attachToThread: false,
             previewMarkdown: false,

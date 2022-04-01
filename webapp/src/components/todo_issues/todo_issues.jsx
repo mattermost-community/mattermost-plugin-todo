@@ -14,10 +14,24 @@ import Tada from '../../illustrations/tada';
 
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
-    const { theme, siteURL, accept, complete, list, remove, bump } = props;
+    const { theme, siteURL, accept, complete, list, remove, bump, addVisible, issues } = props;
 
-    return props.issues.length > 0 ? (
-        props.issues.map((issue) =>
+    let emptyState = (
+        <div style={style.completed.container}>
+            <Tada/>
+            <h3 style={style.completed.title}>{'All tasks completed'}</h3>
+            <p style={style.completed.subtitle}>
+                {'Nicely done, you’ve finished all of your tasks! Why not reward yourself with a little break.'}
+            </p>
+        </div>
+    );
+
+    if (addVisible) {
+        emptyState = null;
+    }
+
+    return issues.length > 0 ? (
+        issues.map((issue) =>
             (
                 <TodoItem
                     issue={issue}
@@ -33,17 +47,12 @@ function ToDoIssues(props) {
             ),
         )
     ) : (
-        <div style={style.completed.container}>
-            <Tada/>
-            <h3 style={style.completed.title}>{'All tasks completed'}</h3>
-            <p style={style.completed.subtitle}>
-                {'Nicley done, you’ve finished all of your tasks! Why not reward yourself with a little break.'}
-            </p>
-        </div>
+        emptyState
     );
 }
 
 ToDoIssues.propTypes = {
+    addVisible: PropTypes.bool.isRequired,
     remove: PropTypes.func.isRequired,
     issues: PropTypes.arrayOf(PropTypes.object),
     theme: PropTypes.object.isRequired,
