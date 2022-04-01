@@ -7,6 +7,7 @@ import Scrollbars from 'react-custom-scrollbars';
 
 import AddIssue from '../add_issue';
 import Button from '../../widget/buttons/button';
+import TodoToast from '../../widget/todo_toast';
 import CompassIcon from '../icons/compassIcons';
 
 import Menu from '../../widget/menu';
@@ -50,6 +51,7 @@ export default class SidebarRight extends React.PureComponent {
         todos: PropTypes.arrayOf(PropTypes.object),
         inTodos: PropTypes.arrayOf(PropTypes.object),
         outTodos: PropTypes.arrayOf(PropTypes.object),
+        todoToast: PropTypes.string,
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
         rhsState: PropTypes.string,
@@ -59,6 +61,8 @@ export default class SidebarRight extends React.PureComponent {
             accept: PropTypes.func.isRequired,
             bump: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
+            openAddCard: PropTypes.func.isRequired,
+            closeAddCard: PropTypes.func.isRequired,
             openAssigneeModal: PropTypes.func.isRequired,
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
@@ -124,11 +128,11 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     addTodoItem() {
-        this.setState({ addTodo: true });
+        this.props.actions.openAddCard();
     }
 
     closeAddBox() {
-        this.setState({ addTodo: false });
+        this.props.actions.closeAddCard();
     }
 
     render() {
@@ -241,7 +245,6 @@ export default class SidebarRight extends React.PureComponent {
                         {separator}
                         <AddIssue
                             theme={this.props.theme}
-                            visible={this.state.addTodo}
                             closeAddBox={this.closeAddBox}
                         />
                         {(inboxList.length === 0) || (this.state.showMy && todos.length > 0) ?
@@ -256,6 +259,9 @@ export default class SidebarRight extends React.PureComponent {
                                 siteURL={this.props.siteURL}
                             /> : ''}
                     </div>
+                    {this.props.todoToast && (
+                        <TodoToast/>
+                    )}
                 </Scrollbars>
             </React.Fragment>
         );

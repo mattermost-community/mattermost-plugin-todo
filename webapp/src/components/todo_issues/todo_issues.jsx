@@ -4,9 +4,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
+import {
+    makeStyleFromTheme,
+    changeOpacity,
+} from 'mattermost-redux/utils/theme_utils';
 
 import TodoItem from '../todo_item';
+import Tada from '../../illustrations/tada';
 
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
@@ -29,7 +33,13 @@ function ToDoIssues(props) {
             ),
         )
     ) : (
-        <div style={style.container}>{'You have no Todo issues'}</div>
+        <div style={style.completed.container}>
+            <Tada/>
+            <h3 style={style.completed.title}>{'All tasks completed'}</h3>
+            <p style={style.completed.subtitle}>
+                {'Nicley done, you’ve finished all of your tasks! Why not reward yourself with a little break.'}
+            </p>
+        </div>
     );
 }
 
@@ -41,7 +51,7 @@ ToDoIssues.propTypes = {
     complete: PropTypes.func.isRequired,
     accept: PropTypes.func.isRequired,
     bump: PropTypes.func.isRequired,
-    list: PropTypes.func.isRequired,
+    list: PropTypes.string.isRequired,
 };
 
 const getStyle = makeStyleFromTheme((theme) => {
@@ -50,6 +60,20 @@ const getStyle = makeStyleFromTheme((theme) => {
             padding: '8px 20px',
             display: 'flex',
             alignItems: 'flex-start',
+        },
+        completed: {
+            container: {
+                textAlign: 'center',
+                padding: '116px 40px',
+            },
+            title: {
+                fontSize: 20,
+                fontWeight: 600,
+            },
+            subtitle: {
+                fontSize: 14,
+                color: changeOpacity(theme.centerChannelColor, 0.72),
+            },
         },
         itemContent: {
             padding: '0 0 0 16px',

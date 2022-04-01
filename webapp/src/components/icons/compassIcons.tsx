@@ -14,7 +14,6 @@ export default function CompassIcon(props: Props): JSX.Element {
     // so not expecting that prefix in props.
     return (
         <i
-            {...props}
             className={`CompassIcon Icon icon-${props.icon} ${props.className}`}
         />
     );

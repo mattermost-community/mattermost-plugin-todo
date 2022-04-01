@@ -2,15 +2,22 @@
 
 .SidebarRight {
     .todolist-header {
+        margin-bottom: 8px;
         padding: 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
         .todolist-header__heading {
             font-size: 16px;
             font-weight: 600;
             font-family: 'Metropolis', sans-serif;
+        }
+
+        .icon-chevron-down {
+            margin-left: 2px;
+            font-size: 18px;
         }
     }
 
@@ -42,9 +49,13 @@
         }
     }
 
-    .action-buttons {
+    .todo-action-buttons {
         padding: 2px;
         display: flex;
+
+        &:empty {
+            display: none;
+        }
 
         .btn {
             flex-grow: 1;

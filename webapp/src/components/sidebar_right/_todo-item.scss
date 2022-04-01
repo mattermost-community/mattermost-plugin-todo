@@ -1,11 +1,11 @@
 .todo-item {
     cursor: pointer;
-    display: flex;
-    align-items: flex-start;
     padding: 8px 16px;
 
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        &:not(.todo-item--done) {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
 
         .todo-item__dots {
             visibility: visible;
@@ -15,6 +15,14 @@
     &__content {
         display: flex;
         flex: 1;
+    }
+
+    &--done {
+        background: rgba(var(--button-bg-rgb), 0.08);
+
+        .todo-text {
+            text-decoration: line-through;
+        }
     }
 }
 
@@ -60,7 +68,6 @@
 
 
 .todo-text {
-    padding: 0 0 0.2em;
     width: 100%;
     word-wrap: break-word;
 

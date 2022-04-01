@@ -6,7 +6,7 @@ import {
     changeOpacity,
 } from 'mattermost-redux/utils/theme_utils';
 
-import FullScreenModal from '../modals/full_screen_modal.jsx';
+import FullScreenModal from '../modals/modals.jsx';
 
 import './root.scss';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';

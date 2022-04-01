@@ -6,7 +6,9 @@ import {
     changeOpacity,
 } from 'mattermost-redux/utils/theme_utils';
 
-import FullScreenModal from '../modals/full_screen_modal.jsx';
+import TextareaAutosize from 'react-textarea-autosize';
+
+import FullScreenModal from '../modals/modals.jsx';
 import Button from '../../widget/buttons/button';
 import Chip from '../../widget/chip/chip';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
@@ -21,7 +23,7 @@ export default class AddIssue extends React.Component {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
         postID: PropTypes.string.isRequired,
-        assignee: PropTypes.object.isRequired,
+        assignee: PropTypes.object,
         closeAddBox: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
@@ -93,6 +95,16 @@ export default class AddIssue extends React.Component {
         this.setState({ assigneeModal: value });
     }
 
+    onKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            this.submit();
+        }
+
+        if (e.key === 'Escape') {
+            this.close();
+        }
+    }
+
     render() {
         const { assignee, visible, theme } = this.props;
 
@@ -120,10 +132,11 @@ export default class AddIssue extends React.Component {
                                     )}
                                 </div>
                             ) : (
-                                <input
-                                    className='todoplugin-input'
+                                <TextareaAutosize
+                                    style={style.textareaResize}
                                     placeholder='Enter a title'
                                     autoFocus={true}
+                                    onKeyDown={(e) => this.onKeyDown(e)}
                                     value={message}
                                     onChange={(e) =>
                                         this.setState({
@@ -134,13 +147,15 @@ export default class AddIssue extends React.Component {
                             )}
                         </div>
                         {this.props.postID && (
-                            <div className='todoplugin-add-to-thread'>
-                                <input
-                                    type='checkbox'
-                                    checked={this.state.attachToThread}
-                                    onChange={this.handleAttachChange}
-                                />
-                                <b>{' Add to thread'}</b>
+                            <div className='todo-add-issue'>
+                                <label>
+                                    <input
+                                        type='checkbox'
+                                        checked={this.state.attachToThread}
+                                        onChange={this.handleAttachChange}
+                                    />
+                                    <b>{' Add to thread'}</b>
+                                </label>
                                 <div className='help-text'>
                                     {
                                         'Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'
@@ -254,6 +269,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             width: 12,
             height: 12,
             marginRight: 6,
+            borderRadius: 12,
         },
         assigneeContainer: {
             borderRadius: 50,
@@ -271,6 +287,14 @@ const getStyle = makeStyleFromTheme((theme) => {
         },
         chipsContainer: {
             marginTop: 8,
+        },
+        textareaResize: {
+            border: 0,
+            padding: 0,
+            fontSize: 14,
+            width: '100%',
+            backgroundColor: 'transparent',
+            resize: 'none',
         },
     };
 });

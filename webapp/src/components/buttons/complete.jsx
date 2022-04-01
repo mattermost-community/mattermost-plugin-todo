@@ -8,9 +8,10 @@ const CompleteButton = (props) => {
 
     const markAsDone = () => {
         setActive(true);
+        props.markAsDone();
         setTimeout(() => {
-            props.complete(props.issueId);
-        }, 500);
+            props.completeToast();
+        }, 1000);
     };
 
     return (
@@ -28,8 +29,8 @@ const CompleteButton = (props) => {
 
 CompleteButton.propTypes = {
     issueId: PropTypes.string.isRequired,
-    complete: PropTypes.func.isRequired,
-    theme: PropTypes.object.isRequired,
+    completeToast: PropTypes.func.isRequired,
+    markAsDone: PropTypes.func.isRequired,
 };
 
 export default CompleteButton;

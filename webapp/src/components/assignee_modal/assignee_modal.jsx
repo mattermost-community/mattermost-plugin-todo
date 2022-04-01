@@ -29,19 +29,15 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
     }
 
     const submit = () => {
-        console.log(assignee);
         if (assignee) {
-            console.log('add');
             getAssignee(assignee);
         } else {
-            console.log('remove');
             removeAssignee();
         }
         close();
     };
 
     const changeAssignee = (selected) => {
-        console.log(selected);
         setAssignee(selected);
     };
 

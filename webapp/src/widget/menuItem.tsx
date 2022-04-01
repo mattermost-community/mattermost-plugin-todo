@@ -27,7 +27,7 @@ const MenuItem = (props: Props) => {
 };
 
 MenuItem.propTypes = {
-    icon: PropTypes.string.isRequired,
+    icon: PropTypes.node,
     text: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
 };

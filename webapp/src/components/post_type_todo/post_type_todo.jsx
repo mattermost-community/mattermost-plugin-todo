@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
+import { makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
 
 import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
@@ -36,10 +36,10 @@ export default class PostTypeTodo extends React.PureComponent {
 
         const preText = 'Automated message';
 
-        const titleHTMLFormattedText = PostUtils.formatText(this.props.post.props.message, {siteURL: this.props.siteURL});
+        const titleHTMLFormattedText = PostUtils.formatText(this.props.post.props.message, { siteURL: this.props.siteURL });
         const title = PostUtils.messageHtmlToComponent(titleHTMLFormattedText);
 
-        const subtitleHTMLFormattedText = PostUtils.formatText(this.props.post.props.todo, {siteURL: this.props.siteURL});
+        const subtitleHTMLFormattedText = PostUtils.formatText(this.props.post.props.todo, { siteURL: this.props.siteURL });
         const subtitle = PostUtils.messageHtmlToComponent(subtitleHTMLFormattedText);
 
         const content = (
