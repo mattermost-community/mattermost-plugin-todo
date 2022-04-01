@@ -12,6 +12,8 @@ import {
     OPEN_ADD_CARD,
     CLOSE_ADD_CARD,
     GET_ISSUES,
+    SET_EDITING_TODO,
+    REMOVE_EDITING_TODO,
     GET_IN_ISSUES,
     GET_OUT_ISSUES,
     RECEIVED_SHOW_RHS_ACTION,
@@ -58,6 +60,17 @@ const todoToast = (state = null, action) => {
     case OPEN_TODO_TOAST:
         return action.message;
     case CLOSE_TODO_TOAST:
+        return null;
+    default:
+        return state;
+    }
+};
+
+const editingTodo = (state = null, action) => {
+    switch (action.type) {
+    case SET_EDITING_TODO:
+        return action.issueID;
+    case REMOVE_EDITING_TODO:
         return null;
     default:
         return state;
@@ -152,9 +165,9 @@ function isTeamSidebarHidden(state = false, action) {
 export default combineReducers({
     currentAssignee,
     addCardVisible,
-    rootModalVisible,
     assigneeModalVisible,
     todoToast,
+    editingTodo,
     postID,
     issues,
     inIssues,

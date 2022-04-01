@@ -25,6 +25,7 @@ function IconButton(props: Props): JSX.Element {
 
     return (
         <button
+            {...props}
             type='button'
             onClick={props.onClick}
             onMouseDown={props.onMouseDown}

@@ -10,6 +10,7 @@ export const isAssigneeModalVisible = (state) => getPluginState(state).assigneeM
 export const subMenu = (state) => getPluginState(state).subMenu;
 export const getPostID = (state) => getPluginState(state).postID;
 export const getAssignee = (state) => getPluginState(state).currentAssignee;
+export const getEditingTodo = (state) => getPluginState(state).editingTodo;
 export const getTodoToast = (state) => getPluginState(state).todoToast;
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 export const getMessage = (state) => {

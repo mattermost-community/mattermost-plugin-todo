@@ -60,6 +60,7 @@
     background-color: white;
     color: white;
     padding: 0;
+    margin-right: 16px;
 
     &--active {
         background-color: rgba(var(--button-bg-rgb), 1);
@@ -72,16 +73,11 @@
     word-wrap: break-word;
 
     p {
-        font-size: 14px;
         line-height: 20px;
         margin: 0;
         white-space: pre-wrap;
         width: 100%;
         word-break: break-word;
-    }
-
-    p+p {
-        margin: 0.5em 0 0;
     }
 
     ul,

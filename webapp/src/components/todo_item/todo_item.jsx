@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-import { makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
+import { changeOpacity, makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
-import BumpButton from '../buttons/bump';
 import {
     canComplete,
     canRemove,
@@ -23,10 +22,11 @@ import Button from '../../widget/buttons/button';
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
-    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, editIssue } = props;
+    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue } = props;
     const [done, setDone] = useState(false);
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
+    const [description, setDescription] = useState(issue.description);
 
     const style = getStyle(theme);
 
@@ -76,6 +76,16 @@ function TodoItem(props) {
         />
     );
 
+    const onKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            saveEditedTodo();
+        }
+
+        if (e.key === 'Escape') {
+            setEditTodo(false);
+        }
+    };
+
     const completeToast = () => {
         openTodoToast({ icon: 'check', message: 'Todo completed' });
         complete(issue.id);
@@ -90,29 +100,27 @@ function TodoItem(props) {
         />
     );
 
-    const bumpButton = (
-        <BumpButton
-            issueId={issue.id}
-            bump={bump}
-        />
-    );
-
     const actionButtons = (
         <div className='todo-action-buttons'>
             {canAccept(list) && acceptButton}
-            {canBump(list, issue.list) && bumpButton}
         </div>
     );
 
     const removeTodo = () => {
         openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
-        remove(issue.id);
+
+        // remove(issue.id);
     };
 
     const saveEditedTodo = () => {
         setEditTodo(false);
-        editIssue(message, 'test description', '', '');
-    }
+        editIssue(issue.id, message, description);
+    };
+
+    const editAssignee = () => {
+        openAssigneeModal('');
+        setEditingTodo(issue.id);
+    };
 
     return (
         <div
@@ -123,30 +131,40 @@ function TodoItem(props) {
                 <div className='todo-item__content'>
                     {(canComplete(list)) && completeButton}
                     <div style={style.itemContent}>
-                        {editTodo ? (
-                            <TextareaAutosize
-                                style={style.textareaResize}
-                                placeholder='Enter a title'
-                                autoFocus={true}
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                            />
-                        ) : (
+                        {editTodo && (
+                            <div>
+                                <TextareaAutosize
+                                    style={style.textareaResizeMessage}
+                                    placeholder='Enter a title'
+                                    value={message}
+                                    autoFocus={true}
+                                    onKeyDown={(e) => onKeyDown(e)}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                />
+                                <TextareaAutosize
+                                    style={style.textareaResizeDescription}
+                                    placeholder='Enter a description'
+                                    value={description}
+                                    onKeyDown={(e) => onKeyDown(e)}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                />
+                            </div>
+                        )}
+
+                        {!editTodo && (
                             <div
                                 className='todo-text'
                                 onClick={handleClick}
                             >
                                 {issueMessage}
-                                {issueDescription}
+                                <div style={style.description}>{issueDescription}</div>
+                                {(canRemove(list, issue.list) ||
+                                canComplete(list) ||
+                                canAccept(list)) &&
+                                actionButtons}
+                                {listPositionMessage && listDiv}
                             </div>
                         )}
-
-                        {(canRemove(list, issue.list) ||
-                        canComplete(list) ||
-                        canAccept(list) ||
-                        canBump(list, issue.list)) &&
-                        actionButtons}
-                        {listPositionMessage && listDiv}
                     </div>
                 </div>
                 {!editTodo && (
@@ -162,6 +180,13 @@ function TodoItem(props) {
                                     icon='check'
                                 />
                             )}
+                            {canBump(list, issue.list) && (
+                                <MenuItem
+                                    text='Bump'
+                                    icon='bell-outline'
+                                    action={() => bump(issue.id)}
+                                />
+                            )}
                             <MenuItem
                                 text='Edit todo'
                                 icon='pencil-outline'
@@ -170,7 +195,7 @@ function TodoItem(props) {
                             <MenuItem
                                 text='Assign to…'
                                 icon='account-plus-outline'
-                                action={() => openAssigneeModal('')}
+                                action={editAssignee}
                             />
                             {canRemove(list, issue.list) && (
                                 <MenuItem
@@ -217,7 +242,6 @@ const getStyle = makeStyleFromTheme((theme) => {
             alignItems: 'flex-start',
         },
         itemContent: {
-            padding: '0 0 0 16px',
             width: '100%',
             display: 'flex',
             alignItems: 'center',
@@ -233,6 +257,8 @@ const getStyle = makeStyleFromTheme((theme) => {
             fontWeight: 'bold',
         },
         subtitle: {
+            marginTop: 8,
+            fontStyle: 'italic',
             fontSize: '13px',
         },
         message: {
@@ -240,16 +266,33 @@ const getStyle = makeStyleFromTheme((theme) => {
             overflowWrap: 'break-word',
             whiteSpace: 'pre-wrap',
         },
+        description: {
+            marginTop: 4,
+            fontSize: 12,
+            color: changeOpacity(theme.centerChannelColor, 0.72),
+        },
         buttons: {
             padding: '10px 0',
         },
-        textareaResize: {
+        textareaResizeMessage: {
             border: 0,
             padding: 0,
             fontSize: 14,
             width: '100%',
             backgroundColor: 'transparent',
             resize: 'none',
+            boxShadow: 'none',
+        },
+        textareaResizeDescription: {
+            fontSize: 12,
+            color: changeOpacity(theme.centerChannelColor, 0.72),
+            marginTop: 1,
+            border: 0,
+            padding: 0,
+            width: '100%',
+            backgroundColor: 'transparent',
+            resize: 'none',
+            boxShadow: 'none',
         },
     };
 });
@@ -265,6 +308,7 @@ TodoItem.propTypes = {
     list: PropTypes.string.isRequired,
     editIssue: PropTypes.func.isRequired,
     openAssigneeModal: PropTypes.func.isRequired,
+    setEditingTodo: PropTypes.func.isRequired,
     openTodoToast: PropTypes.func.isRequired,
 };
 

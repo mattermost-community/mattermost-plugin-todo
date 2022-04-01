@@ -7,7 +7,7 @@ import IconButton from '../../widget/iconButton/iconButton';
 
 import CompassIcon from '../icons/compassIcons';
 
-const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, removeAssignee }) => {
+const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, removeAssignee, removeEditingTodo, changeAssignee, editingTodo }) => {
     const [assignee, setAssignee] = useState();
 
     useEffect(() => {
@@ -29,7 +29,10 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
     }
 
     const submit = () => {
-        if (assignee) {
+        if (editingTodo && assignee) {
+            changeAssignee(editingTodo, assignee.username);
+            removeEditingTodo();
+        } else if (assignee) {
             getAssignee(assignee);
         } else {
             removeAssignee();
@@ -37,7 +40,12 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
         close();
     };
 
-    const changeAssignee = (selected) => {
+    const closeModal = () => {
+        removeEditingTodo();
+        close();
+    };
+
+    const changeAssigneeDropdown = (selected) => {
         setAssignee(selected);
     };
 
@@ -52,13 +60,13 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
                 <IconButton
                     size='medium'
                     style={style.closeIcon}
-                    onClick={() => close()}
+                    onClick={closeModal}
                     icon={<CompassIcon icon='close'/>}
                 />
                 <AutocompleteSelector
                     id='send_to_user'
                     loadOptions={autocompleteUsers}
-                    onSelected={(selected) => changeAssignee(selected)}
+                    onSelected={(selected) => changeAssigneeDropdown(selected)}
                     placeholder={''}
                     theme={theme}
                 />
@@ -69,7 +77,7 @@ const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, 
                     <Button
                         emphasis='tertiary'
                         size='medium'
-                        onClick={() => close()}
+                        onClick={closeModal}
                     >
                         {'Cancel'}
                     </Button>
@@ -93,7 +101,10 @@ AssigneeModal.propTypes = {
     theme: PropTypes.object.isRequired,
     autocompleteUsers: PropTypes.func.isRequired,
     getAssignee: PropTypes.func.isRequired,
+    editingTodo: PropTypes.string.isRequired,
     removeAssignee: PropTypes.func.isRequired,
+    removeEditingTodo: PropTypes.func.isRequired,
+    changeAssignee: PropTypes.func.isRequired,
 };
 
 const getStyle = (theme) => ({

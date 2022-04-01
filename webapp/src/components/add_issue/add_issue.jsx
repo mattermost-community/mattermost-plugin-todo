@@ -80,12 +80,16 @@ export default class AddIssue extends React.Component {
     }
 
     submit = () => {
-        const { submit, postID, closeAddBox, removeAssignee } = this.props;
-        const { sendTo, message, description, attachToThread } = this.state;
+        const { submit, postID, assignee, closeAddBox, removeAssignee } = this.props;
+        const { message, description, attachToThread } = this.state;
+        this.setState({
+            message: '',
+            description: '',
+        });
         if (attachToThread) {
-            submit(message, description, sendTo, postID);
+            submit(message, description, assignee.username, postID);
         } else {
-            submit(message, description, sendTo);
+            submit(message, description);
         }
 
         removeAssignee();
@@ -135,7 +139,7 @@ export default class AddIssue extends React.Component {
                             ) : (
                                 <React.Fragment>
                                     <TextareaAutosize
-                                        style={style.textareaResize}
+                                        style={style.textareaResizeMessage}
                                         placeholder='Enter a title'
                                         autoFocus={true}
                                         onKeyDown={(e) => this.onKeyDown(e)}
@@ -147,7 +151,7 @@ export default class AddIssue extends React.Component {
                                         }
                                     />
                                     <TextareaAutosize
-                                        style={style.textareaResize}
+                                        style={style.textareaResizeDescription}
                                         placeholder='Enter a description'
                                         onKeyDown={(e) => this.onKeyDown(e)}
                                         value={description}
@@ -302,13 +306,25 @@ const getStyle = makeStyleFromTheme((theme) => {
         chipsContainer: {
             marginTop: 8,
         },
-        textareaResize: {
+        textareaResizeMessage: {
             border: 0,
             padding: 0,
             fontSize: 14,
             width: '100%',
             backgroundColor: 'transparent',
             resize: 'none',
+            boxShadow: 'none',
+        },
+        textareaResizeDescription: {
+            fontSize: 12,
+            color: changeOpacity(theme.centerChannelColor, 0.72),
+            marginTop: 1,
+            border: 0,
+            padding: 0,
+            width: '100%',
+            backgroundColor: 'transparent',
+            resize: 'none',
+            boxShadow: 'none',
         },
     };
 });
