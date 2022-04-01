@@ -1,9 +1,11 @@
-import {Client4} from 'mattermost-redux/client';
+import { Client4 } from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {
     OPEN_ROOT_MODAL,
     CLOSE_ROOT_MODAL,
+    OPEN_ASSIGNEE_MODAL,
+    CLOSE_ASSIGNEE_MODAL,
     RECEIVED_SHOW_RHS_ACTION,
     GET_ISSUES,
     GET_IN_ISSUES,
@@ -13,7 +15,7 @@ import {
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
 
-import {getPluginServerRoute} from './selectors';
+import { getPluginServerRoute } from './selectors';
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -25,6 +27,18 @@ export const openRootModal = (postID) => (dispatch) => {
 export const closeRootModal = () => (dispatch) => {
     dispatch({
         type: CLOSE_ROOT_MODAL,
+    });
+};
+
+export const openAssigneeModal = () => (dispatch) => {
+    dispatch({
+        type: OPEN_ASSIGNEE_MODAL,
+    });
+};
+
+export const closeAssigneeModal = () => (dispatch) => {
+    dispatch({
+        type: CLOSE_ASSIGNEE_MODAL,
     });
 };
 
@@ -56,14 +70,14 @@ export function updateRhsState(rhsState) {
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({event, properties}),
+        body: JSON.stringify({ event, properties }),
     }));
 };
 
 export const add = (message, sendTo, postID) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
+        body: JSON.stringify({ message, send_to: sendTo, post_id: postID }),
     }));
 };
 
@@ -76,7 +90,7 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
         }));
         data = await resp.json();
     } catch (error) {
-        return {error};
+        return { error };
     }
 
     let actionType = GET_ISSUES;
@@ -97,40 +111,40 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
         data,
     });
 
-    return {data};
+    return { data };
 };
 
 export const remove = (id) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/remove', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({id}),
+        body: JSON.stringify({ id }),
     }));
 };
 
 export const complete = (id) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/complete', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({id}),
+        body: JSON.stringify({ id }),
     }));
 };
 
 export const accept = (id) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/accept', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({id}),
+        body: JSON.stringify({ id }),
     }));
 };
 
 export const bump = (id) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/bump', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({id}),
+        body: JSON.stringify({ id }),
     }));
 };
 
 export function autocompleteUsers(username) {
     return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.autocompleteUsers(username));
+        const { data } = await doDispatch(UserActions.autocompleteUsers(username));
         return data.users;
     };
 }
@@ -151,10 +165,10 @@ export const updateConfig = () => async (dispatch, getState) => {
         }));
         data = await resp.json();
     } catch (error) {
-        return {error};
+        return { error };
     }
 
     dispatch(setHideTeamSidebar(data.hide_team_sidebar));
 
-    return {data};
+    return { data };
 };

@@ -5,10 +5,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
 
+import AddIssue from '../add_issue';
+import Button from '../../widget/buttons/button';
+import CompassIcon from '../icons/compassIcons';
+
 import ToDoIssues from './todo_issues';
 
 import './sidebar_right.scss';
-import AddIssue from '../add_issue/add_issue';
 
 export function renderView(props) {
     return (
@@ -67,22 +70,24 @@ export default class SidebarRight extends React.PureComponent {
             showMy: true,
             addTodo: false,
         };
+
+        this.closeAddBox = this.closeAddBox.bind(this);
     }
 
     openList(listName) {
         if (this.state.list !== listName) {
-            this.setState({list: listName});
+            this.setState({ list: listName });
         }
     }
 
     toggleInbox() {
-        this.props.actions.telemetry('toggle_inbox', {action: this.state.showInbox ? 'collapse' : 'expand'});
-        this.setState({showInbox: !this.state.showInbox});
+        this.props.actions.telemetry('toggle_inbox', { action: this.state.showInbox ? 'collapse' : 'expand' });
+        this.setState({ showInbox: !this.state.showInbox });
     }
 
     toggleMy() {
-        this.props.actions.telemetry('toggle_my', {action: this.state.showMy ? 'collapse' : 'expand'});
-        this.setState({showMy: !this.state.showMy});
+        this.props.actions.telemetry('toggle_my', { action: this.state.showMy ? 'collapse' : 'expand' });
+        this.setState({ showMy: !this.state.showMy });
     }
 
     componentDidMount() {
@@ -115,13 +120,16 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     addTodoItem() {
-        this.setState({addTodo: true});
-        console.log('adding todo');
-        console.log(this.state.addTodo);
+        this.setState({ addTodo: true });
+    }
+
+    closeAddBox() {
+        this.setState({ addTodo: false });
     }
 
     render() {
         let todos = [];
+        let listHeading = 'My Todos';
         let addButton = '';
         let inboxList = [];
         switch (this.state.list) {
@@ -132,6 +140,7 @@ export default class SidebarRight extends React.PureComponent {
             break;
         case OutListName:
             todos = this.props.outTodos || [];
+            listHeading = 'Sent Todos';
             addButton = 'Request a Todo from someone';
             break;
         }
@@ -185,34 +194,44 @@ export default class SidebarRight extends React.PureComponent {
                     renderView={renderView}
                     className='SidebarRight'
                 >
-                    <div className='header-menu'>
+                    <div className='todolist-tabs'>
                         <div
-                            className={'btn btn-primary' + (this.state.list === MyListName ? ' selected' : '')}
+                            className={'todolist-tab' + (this.state.list === MyListName ? ' selected' : '')}
                             onClick={() => this.openList(MyListName)}
                         >
                             {'Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ' received)' : ''}
                         </div>
                         <div
-                            className={'btn btn-primary' + (this.state.list === OutListName ? ' selected' : '')}
+                            className={'todolist-tab' + (this.state.list === OutListName ? ' selected' : '')}
                             onClick={() => this.openList(OutListName)}
                         >
                             {'Sent'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}
                         </div>
                     </div>
                     <div
-                        className='section-header'
-                        onClick={() => {
-                            this.props.actions.telemetry('rhs_add', {list: this.state.list});
-                            this.addTodoItem();
-                        }}
+                        className='todolist-header'
                     >
-                        {addButton + ' '}
-                        <i className='icon fa fa-plus-circle'/>
+                        <div className='todolist-header__heading'>{listHeading}</div>
+                        <Button
+                            emphasis='primary'
+                            icon={<CompassIcon icon='plus'/>}
+                            size='small'
+                            onClick={() => {
+                                this.props.actions.telemetry('rhs_add', { list: this.state.list });
+                                this.addTodoItem();
+                            }}
+                        >
+                            {addButton}
+                        </Button>
                     </div>
                     <div>
                         {inbox}
                         {separator}
-                        <AddIssue theme={this.props.theme} visible={this.state.addTodo} />
+                        <AddIssue
+                            theme={this.props.theme}
+                            visible={this.state.addTodo}
+                            closeAddBox={this.closeAddBox}
+                        />
                         {(inboxList.length === 0) || (this.state.showMy && todos.length > 0) ?
                             <ToDoIssues
                                 issues={todos}

@@ -393,7 +393,7 @@
     "object-curly-newline": 0,
     "object-curly-spacing": [
       2,
-      "never"
+      "always"
     ],
     "object-property-newline": [
       2,

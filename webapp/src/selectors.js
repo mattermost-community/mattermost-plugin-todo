@@ -1,10 +1,11 @@
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import { getConfig } from 'mattermost-redux/selectors/entities/general';
 
-import {id as pluginId} from './manifest';
+import { id as pluginId } from './manifest';
 
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
 export const isRootModalVisible = (state) => getPluginState(state).rootModalVisible;
+export const isAssigneeModalVisible = (state) => getPluginState(state).assigneeModalVisible;
 export const getPostID = (state) => getPluginState(state).postID;
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 export const getMessage = (state) => {

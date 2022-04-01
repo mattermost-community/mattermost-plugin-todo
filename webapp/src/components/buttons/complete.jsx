@@ -1,16 +1,17 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import CompassIcon from '../icons/compassIcons'
+
+import CompassIcon from '../icons/compassIcons';
 
 const CompleteButton = (props) => {
     const [active, setActive] = useState(false);
 
     const markAsDone = () => {
         setActive(true);
-        setTimeout(()=> {
-            props.complete(props.issueId)
-        }, 500)
-    }
+        setTimeout(() => {
+            props.complete(props.issueId);
+        }, 500);
+    };
 
     return (
         <button

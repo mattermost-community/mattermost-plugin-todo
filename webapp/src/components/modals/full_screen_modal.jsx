@@ -3,7 +3,7 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import {CSSTransition} from 'react-transition-group';
+import { CSSTransition } from 'react-transition-group';
 
 import CloseIcon from '../close_icon.jsx';
 
@@ -15,6 +15,10 @@ export default class FullScreenModal extends React.Component {
         show: PropTypes.bool.isRequired,
         children: PropTypes.node.isRequired,
         onClose: PropTypes.func.isRequired,
+    };
+
+    shouldComponentUpdate() {
+        return true;
     }
 
     componentDidMount() {
@@ -29,11 +33,11 @@ export default class FullScreenModal extends React.Component {
         if (e.key === 'Escape' && this.props.show) {
             this.close();
         }
-    }
+    };
 
     close = () => {
         this.props.onClose();
-    }
+    };
 
     render() {
         return (

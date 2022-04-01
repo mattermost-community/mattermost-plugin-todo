@@ -1,39 +1,30 @@
 @import './todo-item';
 
 .SidebarRight {
-    .section-header {
-        padding: 15px;
-        text-align: center;
-        cursor: pointer;
+    .todolist-header {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
 
-        &:hover {
-            background-color: var(--center-channel-color-04);
-        }
-
-        &:active {
-            background-color: var(--center-channel-color-08);
-        }
-
-        i {
-            color: var(--center-channel-color);
+        .todolist-header__heading {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Metropolis', sans-serif;
         }
     }
 
-    .header-menu {
-        padding: 15px;
+    .todolist-tabs {
         display: flex;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-bottom: 16px;
 
-        .btn.btn-primary {
+        .todolist-tab {
             cursor: pointer;
-            flex-grow: 1;
+            flex: 1;
+            font-weight: 600;
+            padding: 16px;
             text-align: center;
-            height: 100%;
-            margin-left: 5px;
-            margin-right: 5px;
-            color: var(--center-channel-color-56);
-            background-color: unset;
-            box-shadow: unset;
-            border: 3px solid transparent;
 
             &:hover {
                 background-color: var(--center-channel-color-04);
@@ -45,9 +36,8 @@
             }
 
             &.selected {
-                background-color: var(--center-channel-color-08);
                 border-bottom: 3px solid var(--button-bg);
-                color: var(--center-channel-color);
+                color: rgba(var(--button-bg-rgb), 1);
             }
         }
     }

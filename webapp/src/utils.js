@@ -18,6 +18,10 @@ export function canBump(myList, foreignList) {
     return myList === 'out' && foreignList === 'in';
 }
 
+export function generateClassName(conditions) {
+    return Object.entries(conditions).map(([className, condition]) => (condition ? className : '')).filter((className) => className !== '').join(' ')
+}
+
 export function setSelectionRange(input, selectionStart, selectionEnd) {
     if (input.setSelectionRange) {
         input.focus();

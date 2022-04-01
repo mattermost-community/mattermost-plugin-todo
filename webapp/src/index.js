@@ -1,11 +1,12 @@
 import React from 'react';
 
-import {id as pluginId} from './manifest';
+import { id as pluginId } from './manifest';
 
 import Root from './components/root';
+import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openRootModal, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar} from './actions';
+import { openRootModal, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar } from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -20,6 +21,7 @@ export default class Plugin {
     initialize(registry, store) {
         registry.registerReducer(reducer);
         registry.registerRootComponent(Root);
+        registry.registerRootComponent(AssigneeModal);
 
         registry.registerBottomTeamSidebarComponent(TeamSidebar);
 
@@ -31,7 +33,7 @@ export default class Plugin {
             },
         );
 
-        const {toggleRHSPlugin, showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
+        const { toggleRHSPlugin, showRHSPlugin } = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
         registry.registerChannelHeaderButtonAction(
             <ChannelHeaderButton/>,
@@ -62,12 +64,16 @@ export default class Plugin {
             return frontendListName;
         };
 
+<<<<<<< HEAD
         const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
         const refreshAll = () => {
             store.dispatch(list(false));
             store.dispatch(list(false, 'in'));
             store.dispatch(list(false, 'out'));
         };
+=======
+        const refresh = ({ data: { lists } }) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+>>>>>>> 857aedb (Updating modal)
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
         registry.registerAppBarComponent(
@@ -84,7 +90,7 @@ export default class Plugin {
         store.dispatch(list(false, 'out'));
 
         // register websocket event to track config changes
-        const configUpdate = ({data}) => {
+        const configUpdate = ({ data }) => {
             store.dispatch(setHideTeamSidebar(data.hide_team_sidebar));
         };
 

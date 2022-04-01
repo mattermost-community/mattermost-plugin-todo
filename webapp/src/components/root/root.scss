@@ -6,6 +6,7 @@
     height: 100%;
     align-items: center;
     font-size: 16px;
+
     @media (max-width: 768px) {
         padding-left: 15px;
         padding-right: 15px;
@@ -18,19 +19,23 @@
         text-align: center;
         font-weight: 300;
         line-height: 1;
+
         strong {
             font-weight: 400;
         }
     }
+
     h2 {
         font-weight: 300;
+
         strong {
             font-weight: 400;
         }
     }
-    
+
     .todoplugin-modal-icon {
         text-align: center;
+
         svg {
             height: 32px;
             width: 126px;
@@ -42,38 +47,9 @@
         max-width: 720px;
         width: 100%;
         margin-bottom: 28px;
-        .todoplugin-input {
-            height: 144px;
-            border: 1px solid var(--center-channel-color-16);
-            border-radius: 4px;
-            padding: 12px 14px;
-            width: 100%;
-            font-size: 14px;
-            resize: none;
-            overflow: auto;
-            &.todoplugin-one-line {
-                height: 48px;
-            }
-            &:focus {
-                border-color: var(--center-channel-color-32);
-            }
-        }
+
         .todoplugin-help-text {
             margin-top: 8px;
-        }
-    }
-
-    .todoplugin-button-container {
-        margin-bottom: 28px;
-        button {
-            padding: 13px 26px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 4px;
-            &:focus, &:active, &:focus:active {
-                outline: none;
-                border-color: transparent;
-            }
         }
     }
 
@@ -89,19 +65,34 @@
         max-width: 720px;
         width: 100%;
         margin-bottom: 28px;
+
         .todoplugin-question {
             font-weight: 300;
             font-size: 14px;
             width: 100%
         }
+
         .todoplugin-answer {
             font-size: 12px;
             width: 100%;
             margin-bottom: 15px;
         }
     }
+
     .todoplugin-add-to-thread {
         max-width: 720px;
         margin-bottom: 10px;
+    }
+}
+
+.todoplugin-button-container {
+    display: flex;
+    justify-content: end;
+    width: 100%;
+
+    .Button {
+        &:first-child {
+            margin-right: 8px;
+        }
     }
 }

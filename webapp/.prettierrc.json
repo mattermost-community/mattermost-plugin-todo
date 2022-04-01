@@ -1,0 +1,9 @@
+{
+    "tabWidth": 4,
+    "jsxSingleQuote": true,
+    "singleQuote": true,
+    "jsxBracketSameLine": false,
+    "parser": "typescript",
+    "react/jsx-max-props-per-line": [1, { "when": "always" }],
+    "semi": true
+}
