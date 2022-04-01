@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	fbClient "github.com/mattermost/focalboard/server/client"
 	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -20,10 +21,35 @@ const (
 
 	// WSEventConfigUpdate is the WebSocket event to update the Todo list's configurations on webapp
 	WSEventConfigUpdate = "config_update"
+
+	// BotTokenKey is the KV store key for the bot's access token, used for the Focalboard API
+	BotTokenKey = "bot_token"
 )
 
 // ListManager represents the logic on the lists
 type ListManager interface {
+	// AddIssue adds a todo to userID's myList with the message
+	AddIssue(userID, message, postID string) (*Issue, error)
+	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
+	SendIssue(senderID, receiverID, message, postID string) (string, error)
+	// GetIssueList gets the todos on listID for userID
+	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
+	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
+	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error)
+	// AcceptIssue moves one the todo issueID of userID from inbox to myList, and returns the message and the foreignUserID if any
+	AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, err error)
+	// RemoveIssue removes the todo issueID for userID and returns the issue, the foreign ID if any and whether the user sent the todo to someone else
+	RemoveIssue(userID, issueID string) (issue *Issue, foreignID string, isSender bool, listToUpdate string, err error)
+	// PopIssue the first element of myList for userID and returns the issue and the foreign ID if any
+	PopIssue(userID string) (issue *Issue, foreignID string, err error)
+	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
+	BumpIssue(userID string, issueID string) (todoMessage string, receiver string, foreignIssueID string, err error)
+	// GetUserName returns the readable username from userID
+	GetUserName(userID string) string
+}
+
+// FocalboardListManager represents the logic on the lists
+type FocalboardListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
 	AddIssue(userID, message, postID string) (*Issue, error)
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
@@ -57,7 +83,7 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	listManager ListManager
+	listManager FocalboardListManager
 
 	telemetryClient telemetry.Client
 	tracker         telemetry.Tracker
@@ -79,7 +105,25 @@ func (p *Plugin) OnActivate() error {
 	}
 	p.BotUserID = botID
 
-	p.listManager = NewListManager(p.API)
+	token := ""
+	rawToken, err := p.API.KVGet(BotTokenKey)
+	if err != nil {
+		return errors.Wrap(err, "failed to get stored bot access token")
+	}
+	if rawToken == nil {
+		accessToken, appErr := p.API.CreateUserAccessToken(&model.UserAccessToken{UserId: botID, Description: "For to do plugin access to focalboard REST API"})
+		if appErr != nil {
+			return errors.Wrap(err, "failed to create access token for bot")
+		}
+		token = accessToken.Token
+		err = p.API.KVSet(BotTokenKey, []byte(token))
+		if err != nil {
+			return errors.Wrap(err, "failed to store bot access token")
+		}
+	}
+
+	client := fbClient.NewClient("http://localhost:8065", token)
+	p.listManager = NewFocalboardListManager(p.API, client)
 
 	p.telemetryClient, err = telemetry.NewRudderClient()
 	if err != nil {
