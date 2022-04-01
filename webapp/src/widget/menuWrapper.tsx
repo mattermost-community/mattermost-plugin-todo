@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, {useRef, useState, useEffect, useCallback} from 'react';
 
 import './menuWrapper.scss';
 
@@ -44,7 +44,7 @@ const MenuWrapper = React.memo((props: Props) => {
         }
     };
 
-    const toggle = (e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
+    const toggle = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>): void => {
         if (props.disabled) {
             return;
         }
@@ -60,7 +60,7 @@ const MenuWrapper = React.memo((props: Props) => {
             e.stopPropagation();
         }
         setOpen(!open);
-    };
+    }, [props.disabled]);
 
     useEffect(() => {
         document.addEventListener('menuItemClicked', close, true);
@@ -73,7 +73,7 @@ const MenuWrapper = React.memo((props: Props) => {
         };
     }, []);
 
-    const { children } = props;
+    const {children} = props;
     let className = 'MenuWrapper';
     if (props.disabled) {
         className += ' disabled';
