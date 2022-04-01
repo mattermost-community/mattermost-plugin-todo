@@ -1,20 +1,22 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 import CompassIcon from '../icons/compassIcons';
 
 const CompleteButton = (props) => {
-    const markAsDone = () => {
-        props.markAsDone();
+    const {markAsDone, completeToast} = props;
+
+    const markTodoAsDone = useCallback(() => {
+        markAsDone();
         setTimeout(() => {
-            props.completeToast();
+            completeToast();
         }, 1000);
-    };
+    }, [markAsDone, completeToast]);
 
     return (
         <button
             className={`todo-item__checkbox ${props.active ? 'todo-item__checkbox--active' : ''}`}
-            onClick={() => markAsDone()}
+            onClick={markTodoAsDone}
         >
             <CompassIcon
                 icon='check'

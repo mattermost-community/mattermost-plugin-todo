@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 
-import { changeOpacity, makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
+import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import CompleteButton from '../buttons/complete';
@@ -22,7 +22,7 @@ import Button from '../../widget/buttons/button';
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
-    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue } = props;
+    const {issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue} = props;
     const [done, setDone] = useState(false);
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
@@ -107,14 +107,14 @@ function TodoItem(props) {
         setDone(false);
     };
 
-    const completeToast = () => {
+    const completeToast = useCallback(() => {
         completeTimeout = setTimeout(() => {
             complete(issue.id);
         }, 5000);
 
-        openTodoToast({ icon: 'check', message: 'Todo completed', undo: undoCompleteTodo });
+        openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo});
         setHidden(true);
-    };
+    }, [complete]);
 
     const completeButton = (
         <CompleteButton
@@ -133,7 +133,7 @@ function TodoItem(props) {
 
         setHidden(true);
 
-        openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo });
+        openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo});
     };
 
     const saveEditedTodo = () => {

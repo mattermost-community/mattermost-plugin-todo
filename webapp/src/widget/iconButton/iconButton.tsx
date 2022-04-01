@@ -3,7 +3,7 @@
 import React from 'react';
 
 import './iconButton.scss';
-import { generateClassName } from '../../utils';
+import {generateClassName} from '../../utils';
 
 type Props = {
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
@@ -11,7 +11,7 @@ type Props = {
     icon?: React.ReactNode
     className?: string
     size?: string
-    inverted?: string
+    inverted?: boolean
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 

@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 import CompassIcon from '../components/icons/compassIcons';
+
+export type MenuOptionProps = {
+    id: string,
+    name: string,
+    onClick: (id: string) => void,
+}
 
 type Props = {
     action: () => void,
@@ -11,7 +17,7 @@ type Props = {
 }
 
 const MenuItem = (props: Props) => {
-    const { icon, shortcut, action, text } = props;
+    const {icon, shortcut, action, text} = props;
 
     useEffect(() => {
         function handleKeypress(e: {key: string}) {

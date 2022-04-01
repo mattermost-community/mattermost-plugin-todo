@@ -15,7 +15,7 @@ export default class Menu extends React.PureComponent<Props> {
     static Text = TextOption
 
     public render(): JSX.Element {
-        const { position, children } = this.props;
+        const {position, children} = this.props;
 
         return (
             <div className={'Menu noselect ' + (position || 'bottom')}>

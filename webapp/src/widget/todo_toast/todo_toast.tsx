@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useCallback} from 'react';
 
 import './todo_toast.scss';
-import { CSSTransition } from 'react-transition-group';
+import {CSSTransition} from 'react-transition-group';
 
-import { generateClassName } from '../../utils';
+import {generateClassName} from '../../utils';
 import CompassIcon from '../../components/icons/compassIcons';
 import IconButton from '../iconButton/iconButton';
 
@@ -23,6 +23,14 @@ type Props = {
 }
 
 function TodoToast(props: Props): JSX.Element {
+    const {close, content} = props;
+
+    const closeToast = useCallback(close, [close]);
+    const undoTodo = useCallback(() => {
+        content.undo();
+        close();
+    }, [content.undo(), close]);
+
     const classNames: Record<string, boolean> = {
         TodoToast: true,
     };
@@ -35,15 +43,6 @@ function TodoToast(props: Props): JSX.Element {
 
         return () => clearTimeout(timer);
     }, []);
-
-    const closeToast = () => {
-        props.close();
-    };
-
-    const undoTodo = () => {
-        props.content.undo();
-        props.close();
-    };
 
     return (
         <CSSTransition
