@@ -11,7 +11,7 @@ type Props = {
     icon?: React.ReactNode
     className?: string
     size?: string
-    inverted?: boolean
+    inverted?: string
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 
@@ -20,7 +20,6 @@ function IconButton(props: Props): JSX.Element {
         IconButton: true,
         'style--inverted': Boolean(props.inverted),
     };
-    console.log(props.inverted);
     classNames[`${props.className}`] = Boolean(props.className);
     classNames[`size--${props.size}`] = Boolean(props.size);
 

@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import CompassIcon from '../icons/compassIcons';
 
 const CompleteButton = (props) => {
-    const [active, setActive] = useState(false);
-
     const markAsDone = () => {
-        setActive(true);
         props.markAsDone();
         setTimeout(() => {
             props.completeToast();
@@ -16,7 +13,7 @@ const CompleteButton = (props) => {
 
     return (
         <button
-            className={`todo-item__checkbox ${active ? 'todo-item__checkbox--active' : ''}`}
+            className={`todo-item__checkbox ${props.active ? 'todo-item__checkbox--active' : ''}`}
             onClick={() => markAsDone()}
         >
             <CompassIcon
@@ -28,6 +25,7 @@ const CompleteButton = (props) => {
 };
 
 CompleteButton.propTypes = {
+    active: PropTypes.bool,
     issueId: PropTypes.string.isRequired,
     completeToast: PropTypes.func.isRequired,
     markAsDone: PropTypes.func.isRequired,

@@ -55,17 +55,6 @@ const todoToast = (state = null, action) => {
     }
 };
 
-const lastTodo = (state = null, action) => {
-    switch (action.type) {
-    case ADD_LAST_TODO:
-        return action.issue;
-    case REMOVE_LAST_TODO:
-        return null;
-    default:
-        return state;
-    }
-};
-
 const editingTodo = (state = null, action) => {
     switch (action.type) {
     case SET_EDITING_TODO:
@@ -176,5 +165,4 @@ export default combineReducers({
     rhsPluginAction,
     isRhsVisible,
     isTeamSidebarHidden,
-    lastTodo,
 });

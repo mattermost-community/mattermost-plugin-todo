@@ -22,11 +22,12 @@ import Button from '../../widget/buttons/button';
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
-    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue, addLastTodo } = props;
+    const { issue, theme, siteURL, accept, complete, list, remove, bump, openTodoToast, openAssigneeModal, setEditingTodo, editIssue } = props;
     const [done, setDone] = useState(false);
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
     const [description, setDescription] = useState(issue.description);
+    const [hidden, setHidden] = useState(false);
 
     const style = getStyle(theme);
 
@@ -86,14 +87,38 @@ function TodoItem(props) {
         }
     };
 
+    const actionButtons = (
+        <div className='todo-action-buttons'>
+            {canAccept(list) && acceptButton}
+        </div>
+    );
+
+    let removeTimeout;
+    let completeTimeout;
+
+    const undoRemoveTodo = () => {
+        clearTimeout(removeTimeout);
+        setHidden(false);
+    };
+
+    const undoCompleteTodo = () => {
+        clearTimeout(completeTimeout);
+        setHidden(false);
+        setDone(false);
+    };
+
     const completeToast = () => {
-        openTodoToast({ icon: 'check', message: 'Todo completed' });
-        addLastTodo(issue);
-        complete(issue.id);
+        completeTimeout = setTimeout(() => {
+            complete(issue.id);
+        }, 5000);
+
+        openTodoToast({ icon: 'check', message: 'Todo completed', undo: undoCompleteTodo });
+        setHidden(true);
     };
 
     const completeButton = (
         <CompleteButton
+            active={done}
             theme={theme}
             issueId={issue.id}
             markAsDone={() => setDone(true)}
@@ -101,16 +126,14 @@ function TodoItem(props) {
         />
     );
 
-    const actionButtons = (
-        <div className='todo-action-buttons'>
-            {canAccept(list) && acceptButton}
-        </div>
-    );
-
     const removeTodo = () => {
-        openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted' });
-        addLastTodo(issue);
-        remove(issue.id);
+        removeTimeout = setTimeout(() => {
+            remove(issue.id);
+        }, 5000);
+
+        setHidden(true);
+
+        openTodoToast({ icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo });
     };
 
     const saveEditedTodo = () => {
@@ -126,7 +149,7 @@ function TodoItem(props) {
     return (
         <div
             key={issue.id}
-            className={`todo-item ${done ? 'todo-item--done' : ''}`}
+            className={`todo-item ${done ? 'todo-item--done' : ''} ${hidden ? 'todo-item--hidden' : ''} `}
         >
             <div style={style.todoTopContent}>
                 <div className='todo-item__content'>
@@ -314,7 +337,6 @@ TodoItem.propTypes = {
     openAssigneeModal: PropTypes.func.isRequired,
     setEditingTodo: PropTypes.func.isRequired,
     openTodoToast: PropTypes.func.isRequired,
-    addLastTodo: PropTypes.func.isRequired,
 };
 
 export default TodoItem;

@@ -8,7 +8,6 @@ export const isRootModalVisible = (state) => getPluginState(state).rootModalVisi
 export const isAddCardVisible = (state) => getPluginState(state).addCardVisible;
 export const isAssigneeModalVisible = (state) => getPluginState(state).assigneeModalVisible;
 export const subMenu = (state) => getPluginState(state).subMenu;
-export const getlastTodo = (state) => getPluginState(state).lastTodo;
 export const getPostID = (state) => getPluginState(state).postID;
 export const getAssignee = (state) => getPluginState(state).currentAssignee;
 export const getEditingTodo = (state) => getPluginState(state).editingTodo;
