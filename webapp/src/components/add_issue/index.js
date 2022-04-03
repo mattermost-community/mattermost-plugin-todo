@@ -1,8 +1,8 @@
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
-import { add, autocompleteUsers, openAssigneeModal, removeAssignee } from 'actions';
-import { getMessage, getPostID, getAssignee, getCurrentTeamRoute, isAddCardVisible } from 'selectors';
+import {add, autocompleteUsers, openAssigneeModal, removeAssignee} from 'actions';
+import {getMessage, getPostID, getAssignee, getCurrentTeamRoute, isAddCardVisible} from 'selectors';
 
 import AddIssue from './add_issue';
 

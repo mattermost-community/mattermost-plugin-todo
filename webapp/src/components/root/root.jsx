@@ -36,7 +36,7 @@ export default class Root extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         if (props.visible && state.message == null) {
-            return { message: props.message };
+            return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
             return {
@@ -59,8 +59,8 @@ export default class Root extends React.Component {
     };
 
     submit = () => {
-        const { submit, close, postID } = this.props;
-        const { message, sendTo, attachToThread } = this.state;
+        const {submit, close, postID} = this.props;
+        const {message, sendTo, attachToThread} = this.state;
         if (attachToThread) {
             submit(message, sendTo, postID);
         } else {
@@ -71,13 +71,13 @@ export default class Root extends React.Component {
     };
 
     render() {
-        const { visible, theme, close } = this.props;
+        const {visible, theme, close} = this.props;
 
         if (!visible) {
             return null;
         }
 
-        const { message } = this.state;
+        const {message} = this.state;
 
         const style = getStyle(theme);
         const activeClass = 'btn btn-primary';
@@ -105,7 +105,7 @@ export default class Root extends React.Component {
                             <button
                                 className={writeButtonClass}
                                 onClick={() => {
-                                    this.setState({ previewMarkdown: false });
+                                    this.setState({previewMarkdown: false});
                                 }}
                             >
                                 {'Write'}
@@ -113,7 +113,7 @@ export default class Root extends React.Component {
                             <button
                                 className={previewButtonClass}
                                 onClick={() => {
-                                    this.setState({ previewMarkdown: true });
+                                    this.setState({previewMarkdown: true});
                                 }}
                             >
                                 {'Preview'}
@@ -134,7 +134,7 @@ export default class Root extends React.Component {
                                 style={style.textarea}
                                 value={message}
                                 onChange={(e) =>
-                                    this.setState({ message: e.target.value })
+                                    this.setState({message: e.target.value})
                                 }
                             />
                         )}
@@ -159,7 +159,7 @@ export default class Root extends React.Component {
                             id='send_to_user'
                             loadOptions={this.props.autocompleteUsers}
                             onSelected={(selected) =>
-                                this.setState({ sendTo: selected?.username })
+                                this.setState({sendTo: selected?.username})
                             }
                             label={'Send to user'}
                             helpText={

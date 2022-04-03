@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import PropTypes from 'prop-types';
-import { makeStyleFromTheme, changeOpacity } from 'mattermost-redux/utils/theme_utils';
+import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
-import { RHSStates } from '../../constants';
+import {RHSStates} from '../../constants';
 
 export default class SidebarButtons extends React.PureComponent {
     static propTypes = {

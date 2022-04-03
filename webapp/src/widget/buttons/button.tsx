@@ -3,7 +3,7 @@
 import React from 'react';
 
 import './button.scss';
-import { generateClassName } from '../../utils';
+import {generateClassName} from '../../utils';
 
 type Props = {
     onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void

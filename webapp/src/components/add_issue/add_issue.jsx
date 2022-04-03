@@ -14,7 +14,7 @@ import Chip from '../../widget/chip/chip';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
 import './add_issue.scss';
 import CompassIcon from '../icons/compassIcons';
-import { getProfilePicture } from '../../utils';
+import {getProfilePicture} from '../../utils';
 
 const PostUtils = window.PostUtils;
 
@@ -51,7 +51,7 @@ export default class AddIssue extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         if (props.visible && state.message == null) {
-            return { message: props.message };
+            return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
             return {
@@ -74,14 +74,14 @@ export default class AddIssue extends React.Component {
     };
 
     close = () => {
-        const { closeAddBox, removeAssignee } = this.props;
+        const {closeAddBox, removeAssignee} = this.props;
         removeAssignee();
         closeAddBox();
     }
 
     submit = () => {
-        const { submit, postID, assignee, closeAddBox, removeAssignee } = this.props;
-        const { message, description, attachToThread } = this.state;
+        const {submit, postID, assignee, closeAddBox, removeAssignee} = this.props;
+        const {message, description, attachToThread} = this.state;
         this.setState({
             message: '',
             description: '',
@@ -99,7 +99,7 @@ export default class AddIssue extends React.Component {
     };
 
     toggleAssigneeModal = (value) => {
-        this.setState({ assigneeModal: value });
+        this.setState({assigneeModal: value});
     }
 
     onKeyDown = (e) => {
@@ -113,13 +113,13 @@ export default class AddIssue extends React.Component {
     }
 
     render() {
-        const { assignee, visible, theme } = this.props;
+        const {assignee, visible, theme} = this.props;
 
         if (!visible) {
             return null;
         }
 
-        const { message, description } = this.state;
+        const {message, description} = this.state;
 
         const style = getStyle(theme);
 

@@ -1,8 +1,6 @@
-import { combineReducers } from 'redux';
+import {combineReducers} from 'redux';
 
 import {
-    ADD_LAST_TODO,
-    REMOVE_LAST_TODO,
     GET_ASSIGNEE,
     REMOVE_ASSIGNEE,
     OPEN_ASSIGNEE_MODAL,

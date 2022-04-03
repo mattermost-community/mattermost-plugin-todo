@@ -14,7 +14,7 @@ import Tada from '../../illustrations/tada';
 
 function ToDoIssues(props) {
     const style = getStyle(props.theme);
-    const { theme, siteURL, accept, complete, list, remove, bump, addVisible, issues } = props;
+    const {theme, siteURL, accept, complete, list, remove, bump, addVisible, issues} = props;
 
     let emptyState = (
         <div style={style.completed.container}>

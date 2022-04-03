@@ -1,6 +1,6 @@
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 
-import { isAddCardVisible } from 'selectors';
+import {isAddCardVisible} from 'selectors';
 
 import TodoIssues from './todo_issues';
 

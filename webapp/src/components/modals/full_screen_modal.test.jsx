@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import { shallow } from 'enzyme';
+import {shallow} from 'enzyme';
 
 import CloseIcon from '../close_icon.jsx';
 
@@ -95,7 +95,7 @@ describe('components/widgets/modals/FullScreenModal', () => {
             </FullScreenModal>,
         );
         expect(close).not.toBeCalled();
-        const event = new KeyboardEvent('keydown', { key: 'Escape' });
+        const event = new KeyboardEvent('keydown', {key: 'Escape'});
         document.dispatchEvent(event);
         expect(close).toBeCalled();
     });

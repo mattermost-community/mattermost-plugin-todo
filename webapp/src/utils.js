@@ -1,4 +1,4 @@
-import { blendColors, changeOpacity, makeStyleFromTheme } from 'mattermost-redux/utils/theme_utils';
+import {blendColors, changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
 
 const imageURLForUser = (window).Components?.imageURLForUser;
 
