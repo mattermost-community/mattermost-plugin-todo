@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
@@ -94,7 +94,17 @@ function TodoItem(props) {
     );
 
     let removeTimeout;
-    let completeTimeout;
+    const completeTimeout = useRef(null);
+
+    const completeToast = useCallback(() => {
+        openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo});
+
+        setHidden(true);
+
+        completeTimeout.current = setTimeout(() => {
+            complete(issue.id);
+        }, 5000);
+    }, [complete, openTodoToast, issue, completeTimeout]);
 
     const undoRemoveTodo = () => {
         clearTimeout(removeTimeout);
@@ -102,19 +112,10 @@ function TodoItem(props) {
     };
 
     const undoCompleteTodo = () => {
-        clearTimeout(completeTimeout);
+        clearTimeout(completeTimeout.current);
         setHidden(false);
         setDone(false);
     };
-
-    const completeToast = useCallback(() => {
-        completeTimeout = setTimeout(() => {
-            complete(issue.id);
-        }, 5000);
-
-        openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo});
-        setHidden(true);
-    }, [complete]);
 
     const completeButton = (
         <CompleteButton
@@ -126,15 +127,13 @@ function TodoItem(props) {
         />
     );
 
-    const removeTodo = () => {
+    const removeTodo = useCallback(() => {
+        openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo});
+        setHidden(true);
         removeTimeout = setTimeout(() => {
             remove(issue.id);
         }, 5000);
-
-        setHidden(true);
-
-        openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo});
-    };
+    }, [remove]);
 
     const saveEditedTodo = () => {
         setEditTodo(false);

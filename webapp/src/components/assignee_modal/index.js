@@ -1,8 +1,8 @@
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
-import { autocompleteUsers, closeAssigneeModal, getAssignee, removeAssignee, removeEditingTodo, changeAssignee } from 'actions';
-import { isAssigneeModalVisible, subMenu, getEditingTodo } from 'selectors';
+import {autocompleteUsers, closeAssigneeModal, getAssignee, removeAssignee, removeEditingTodo, changeAssignee} from 'actions';
+import {isAssigneeModalVisible, subMenu, getEditingTodo} from 'selectors';
 
 import AssigneeModal from './assignee_modal';
 

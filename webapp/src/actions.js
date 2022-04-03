@@ -19,8 +19,6 @@ import {
     CLOSE_ADD_CARD,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
-    ADD_LAST_TODO,
-    REMOVE_LAST_TODO,
 } from './action_types';
 
 import {getPluginServerRoute} from './selectors';
@@ -128,10 +126,17 @@ export const add = (message, description, sendTo, postID) => async (dispatch, ge
     }));
 };
 
-export const editIssue = (message, description, sendTo, postID) => async (dispatch, getState) => {
+export const editIssue = (postID, message, description) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({send_to: sendTo, post_id: postID, message, description}),
+        body: JSON.stringify({id: postID, message, description}),
+    }));
+};
+
+export const changeAssignee = (id, assignee) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/change_assignment', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id, send_to: assignee}),
     }));
 };
 

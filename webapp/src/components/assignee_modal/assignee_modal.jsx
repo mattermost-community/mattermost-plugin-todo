@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
@@ -7,7 +7,7 @@ import IconButton from '../../widget/iconButton/iconButton';
 
 import CompassIcon from '../icons/compassIcons';
 
-const AssigneeModal = ({ visible, close, autocompleteUsers, theme, getAssignee, removeAssignee, removeEditingTodo, changeAssignee, editingTodo }) => {
+const AssigneeModal = ({visible, close, autocompleteUsers, theme, getAssignee, removeAssignee, removeEditingTodo, changeAssignee, editingTodo}) => {
     const [assignee, setAssignee] = useState();
 
     useEffect(() => {

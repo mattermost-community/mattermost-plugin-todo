@@ -55,12 +55,14 @@ const MenuWrapper = React.memo((props: Props) => {
          * We need to refactor this so that the modal is explicitly closed on toggle, but for now I am aiming to preserve the existing logic
          * so as to not break other things
          **/
+
         if (props.stopPropagationOnToggle) {
             e.preventDefault();
             e.stopPropagation();
         }
+
         setOpen(!open);
-    }, [props.disabled]);
+    }, [props.disabled, open, props.stopPropagationOnToggle]);
 
     useEffect(() => {
         document.addEventListener('menuItemClicked', close, true);

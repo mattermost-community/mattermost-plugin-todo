@@ -4,7 +4,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
-import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import AddIssue from '../add_issue';
 import Button from '../../widget/buttons/button';
@@ -16,7 +16,7 @@ import MenuItem from '../../widget/menuItem';
 import MenuWrapper from '../../widget/menuWrapper';
 
 import ToDoIssues from '../todo_issues';
-import { isKeyPressed } from '../../utils.js';
+import {isKeyPressed} from '../../utils.js';
 import Constants from '../../constants';
 
 import './sidebar_right.scss';
@@ -54,7 +54,7 @@ export default class SidebarRight extends React.PureComponent {
         todos: PropTypes.arrayOf(PropTypes.object),
         inTodos: PropTypes.arrayOf(PropTypes.object),
         outTodos: PropTypes.arrayOf(PropTypes.object),
-        todoToast: PropTypes.string,
+        todoToast: PropTypes.object,
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
         rhsState: PropTypes.string,
@@ -87,18 +87,18 @@ export default class SidebarRight extends React.PureComponent {
 
     openList(listName) {
         if (this.state.list !== listName) {
-            this.setState({ list: listName });
+            this.setState({list: listName});
         }
     }
 
     toggleInbox() {
-        this.props.actions.telemetry('toggle_inbox', { action: this.state.showInbox ? 'collapse' : 'expand' });
-        this.setState({ showInbox: !this.state.showInbox });
+        this.props.actions.telemetry('toggle_inbox', {action: this.state.showInbox ? 'collapse' : 'expand'});
+        this.setState({showInbox: !this.state.showInbox});
     }
 
     toggleMy() {
-        this.props.actions.telemetry('toggle_my', { action: this.state.showMy ? 'collapse' : 'expand' });
-        this.setState({ showMy: !this.state.showMy });
+        this.props.actions.telemetry('toggle_my', {action: this.state.showMy ? 'collapse' : 'expand'});
+        this.setState({showMy: !this.state.showMy});
     }
 
     componentDidMount() {

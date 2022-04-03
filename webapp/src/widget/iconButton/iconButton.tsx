@@ -11,7 +11,7 @@ type Props = {
     icon?: React.ReactNode
     className?: string
     size?: string
-    inverted?: boolean
+    inverted?: string
     onMouseDown?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }
 

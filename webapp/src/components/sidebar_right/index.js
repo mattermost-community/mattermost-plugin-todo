@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
-import { getIssues, getInIssues, getOutIssues, getSiteURL, getTodoToast } from '../../selectors';
-import { remove, list, openAssigneeModal, openAddCard, closeAddCard, complete, bump, accept, telemetry, setRhsVisible } from '../../actions';
+import {getIssues, getInIssues, getOutIssues, getSiteURL, getTodoToast} from '../../selectors';
+import {remove, list, openAssigneeModal, openAddCard, closeAddCard, complete, bump, accept, telemetry, setRhsVisible} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
 

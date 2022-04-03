@@ -69,7 +69,7 @@ function TodoToast(props: Props): JSX.Element {
                     onClick={closeToast}
                     icon={<CompassIcon icon='close'/>}
                     size='small'
-                    inverted={true}
+                    inverted={'true'}
                 />
             </div>
         </CSSTransition>
