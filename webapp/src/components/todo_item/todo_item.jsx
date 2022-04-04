@@ -89,8 +89,8 @@ function TodoItem(props) {
         </div>
     );
 
-    let removeTimeout;
     const completeTimeout = useRef(null);
+    const removeTimeout = useRef(null);
 
     const completeToast = useCallback(() => {
         openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo});
@@ -100,10 +100,10 @@ function TodoItem(props) {
         completeTimeout.current = setTimeout(() => {
             complete(issue.id);
         }, 5000);
-    }, [complete, openTodoToast, issue, completeTimeout]);
+    }, [complete, openTodoToast, issue]);
 
     const undoRemoveTodo = () => {
-        clearTimeout(removeTimeout);
+        clearTimeout(removeTimeout.current);
         setHidden(false);
     };
 
@@ -126,10 +126,10 @@ function TodoItem(props) {
     const removeTodo = useCallback(() => {
         openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo});
         setHidden(true);
-        removeTimeout = setTimeout(() => {
+        removeTimeout.current = setTimeout(() => {
             remove(issue.id);
         }, 5000);
-    }, [remove]);
+    }, [remove, issue.id, openTodoToast]);
 
     const saveEditedTodo = () => {
         setEditTodo(false);

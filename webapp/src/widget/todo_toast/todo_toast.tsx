@@ -29,7 +29,7 @@ function TodoToast(props: Props): JSX.Element {
     const undoTodo = useCallback(() => {
         content.undo();
         close();
-    }, [content.undo(), close]);
+    }, [content.undo, close]);
 
     const classNames: Record<string, boolean> = {
         TodoToast: true,
