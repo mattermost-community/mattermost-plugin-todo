@@ -78,7 +78,7 @@ const AssigneeModal = (
                 <AutocompleteSelector
                     id='send_to_user'
                     loadOptions={autocompleteUsers}
-                    onSelected={(selected) => changeAssigneeDropdown(selected)}
+                    onSelected={changeAssigneeDropdown}
                     placeholder={''}
                     theme={theme}
                 />
