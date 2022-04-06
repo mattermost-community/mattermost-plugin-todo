@@ -8,8 +8,8 @@ import (
 
 	fbClient "github.com/mattermost/focalboard/server/client"
 	fbModel "github.com/mattermost/focalboard/server/model"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 const (
@@ -37,13 +37,13 @@ func NewFocalboardListStore(api plugin.API, client *fbClient.Client) FocalboardL
 func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.Board, error) {
 	rawBoardID, appErr := l.api.KVGet(userToBoardKey(userID))
 	if appErr != nil {
-		return nil, errors.New(appErr.Error())
+		return nil, errors.Wrap(appErr, "unable to get board id from user id")
 	}
 
 	if rawBoardID == nil {
 		teams, appErr := l.api.GetTeamMembersForUser(userID, 0, 1)
 		if appErr != nil {
-			return nil, errors.New(appErr.Error())
+			return nil, errors.Wrap(appErr, "unable to get team members for user")
 		}
 
 		if teams == nil || len(teams) == 0 {
@@ -52,25 +52,31 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 
 		selfDM, appErr := l.api.GetDirectChannel(userID, userID)
 		if appErr != nil {
-			return nil, errors.New(appErr.Error())
+			return nil, errors.Wrap(appErr, "unable to get self DM for user")
 		}
 
+		now := model.GetMillis()
+
 		board := &fbModel.Board{
-			TeamID:    teams[0].TeamId,
-			ChannelID: selfDM.Id,
-			Type:      fbModel.BoardTypePrivate,
-			Title:     "To Do",
-			CreatedBy: userID,
+			ID:         model.NewId(),
+			TeamID:     teams[0].TeamId,
+			ChannelID:  selfDM.Id,
+			Type:       fbModel.BoardTypePrivate,
+			Title:      "To Do",
+			CreatedBy:  userID,
+			Properties: map[string]interface{}{},
 			CardProperties: []map[string]interface{}{
 				{
-					"id":   model.NewId(),
-					"name": "Created By",
-					"type": "createdBy",
+					"id":      model.NewId(),
+					"name":    "Created By",
+					"type":    "createdBy",
+					"options": []interface{}{},
 				},
 				{
-					"id":   model.NewId(),
-					"name": "Created At",
-					"type": "createdTime",
+					"id":      model.NewId(),
+					"name":    "Created At",
+					"type":    "createdTime",
+					"options": []interface{}{},
 				},
 				{
 					"id":   model.NewId(),
@@ -100,12 +106,53 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 					},
 				},
 			},
+			ColumnCalculations: map[string]interface{}{},
+			CreateAt:           now,
+			UpdateAt:           now,
+			DeleteAt:           0,
 		}
 
-		board, resp := l.client.CreateBoard(board)
-		if resp.Error != nil {
-			return nil, resp.Error
+		block := fbModel.Block{
+			ID:       model.NewId(),
+			Type:     fbModel.TypeView,
+			BoardID:  board.ID,
+			ParentID: board.ID,
+			Schema:   1,
+			Fields: map[string]interface{}{
+				"viewType":           fbModel.TypeBoard,
+				"sortOptions":        []interface{}{},
+				"visiblePropertyIds": []interface{}{},
+				"visibleOptionIds":   []interface{}{},
+				"hiddenOptionIds":    []interface{}{},
+				"collapsedOptionIds": []interface{}{},
+				"filter": map[string]interface{}{
+					"operation": "and",
+					"filters":   []interface{}{},
+				},
+				"cardOrder":          []interface{}{},
+				"columnWidths":       map[string]interface{}{},
+				"columnCalculations": map[string]interface{}{},
+				"kanbanCalculations": map[string]interface{}{},
+				"defaultTemplateId":  "",
+			},
+			Title:    "All",
+			CreateAt: now,
+			UpdateAt: now,
+			DeleteAt: 0,
 		}
+
+		boardsAndBlocks := &fbModel.BoardsAndBlocks{Boards: []*fbModel.Board{board}, Blocks: []fbModel.Block{block}}
+
+		boardsAndBlocks, resp := l.client.CreateBoardsAndBlocks(boardsAndBlocks)
+		if resp.Error != nil {
+			fmt.Println(resp.StatusCode)
+			return nil, errors.Wrap(resp.Error, "unable to create board")
+		}
+		if len(boardsAndBlocks.Boards) == 0 {
+			return nil, errors.New("no board returned")
+		}
+
+		board = boardsAndBlocks.Boards[0]
 
 		member := &fbModel.BoardMember{
 			BoardID:      board.ID,
@@ -115,10 +162,13 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 
 		_, resp = l.client.AddMemberToBoard(member)
 		if resp.Error != nil {
-			return nil, resp.Error
+			return nil, errors.Wrap(resp.Error, "unable to add user to board")
 		}
 
 		appErr = l.api.KVSet(userToBoardKey(userID), []byte(board.ID))
+		if appErr != nil {
+			return nil, errors.Wrap(appErr, "unable to store board id for user")
+		}
 
 		return board, nil
 	}
@@ -126,7 +176,7 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 	boardID := string(rawBoardID)
 	board, resp := l.client.GetBoard(boardID, "")
 	if resp.Error != nil {
-		return nil, resp.Error
+		return nil, errors.Wrap(resp.Error, "unable to get board by id")
 	}
 
 	return board, nil
@@ -143,17 +193,17 @@ func getCardPropertyByName(board *fbModel.Board, name string) map[string]interfa
 }
 
 func getPropertyOptionByValue(property map[string]interface{}, value string) map[string]interface{} {
-	optionsInterface, ok := property["options"]
+	optionInterfaces, ok := property["options"].([]interface{})
 	if !ok {
 		return nil
 	}
 
-	options, ok := optionsInterface.([]map[string]interface{})
-	if !ok {
-		return nil
-	}
+	for _, optionInterface := range optionInterfaces {
+		option, ok := optionInterface.(map[string]interface{})
+		if !ok {
+			continue
+		}
 
-	for _, option := range options {
 		if option["value"] == value {
 			return option
 		}
@@ -178,6 +228,8 @@ func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
 		return errors.New("to do option not found on status card property")
 	}
 
+	now := model.GetMillis()
+
 	card := fbModel.Block{
 		BoardID:   board.ID,
 		Type:      fbModel.TypeCard,
@@ -189,6 +241,9 @@ func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
 				statusProp["id"].(string): todoOption["id"],
 			},
 		},
+		CreateAt: now,
+		UpdateAt: now,
+		DeleteAt: 0,
 	}
 
 	_, resp := l.client.InsertBlocks(board.ID, []fbModel.Block{card})

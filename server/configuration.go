@@ -3,7 +3,6 @@ package main
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/pkg/errors"
 )
 
@@ -95,14 +94,6 @@ func (p *Plugin) OnConfigurationChange() error {
 	if shouldUpdateClient {
 		p.sendConfigUpdateEvent()
 	}
-
-	enableDiagnostics := false
-	if config := p.API.GetConfig(); config != nil {
-		if configValue := config.LogSettings.EnableDiagnostics; configValue != nil {
-			enableDiagnostics = *configValue
-		}
-	}
-	p.tracker = telemetry.NewTracker(p.telemetryClient, p.API.GetDiagnosticId(), p.API.GetServerVersion(), manifest.Id, manifest.Version, "todo", enableDiagnostics)
 
 	return nil
 }

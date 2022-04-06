@@ -2,7 +2,7 @@ package main
 
 import (
 	fbClient "github.com/mattermost/focalboard/server/client"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 // ListStore represents the KVStore operations for lists

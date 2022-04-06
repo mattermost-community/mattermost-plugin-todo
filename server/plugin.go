@@ -9,9 +9,10 @@ import (
 	"time"
 
 	fbClient "github.com/mattermost/focalboard/server/client"
+	pluginapi "github.com/mattermost/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/pkg/errors"
 )
 
@@ -95,7 +96,9 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	botID, err := p.Helpers.EnsureBot(&model.Bot{
+	pluginAPIClient := pluginapi.NewClient(p.API, p.Driver)
+
+	botID, err := pluginAPIClient.Bot.EnsureBot(&model.Bot{
 		Username:    "todo",
 		DisplayName: "Todo Bot",
 		Description: "Created by the Todo plugin.",
@@ -106,23 +109,28 @@ func (p *Plugin) OnActivate() error {
 	p.BotUserID = botID
 
 	token := ""
-	rawToken, err := p.API.KVGet(BotTokenKey)
-	if err != nil {
-		return errors.Wrap(err, "failed to get stored bot access token")
+	rawToken, appErr := p.API.KVGet(BotTokenKey)
+	if appErr != nil {
+		return errors.Wrap(appErr, "failed to get stored bot access token")
 	}
 	if rawToken == nil {
 		accessToken, appErr := p.API.CreateUserAccessToken(&model.UserAccessToken{UserId: botID, Description: "For to do plugin access to focalboard REST API"})
 		if appErr != nil {
-			return errors.Wrap(err, "failed to create access token for bot")
+			return errors.Wrap(appErr, "failed to create access token for bot")
 		}
 		token = accessToken.Token
-		err = p.API.KVSet(BotTokenKey, []byte(token))
-		if err != nil {
-			return errors.Wrap(err, "failed to store bot access token")
+		appErr = p.API.KVSet(BotTokenKey, []byte(token))
+		if appErr != nil {
+			return errors.Wrap(appErr, "failed to store bot access token")
 		}
+		p.API.LogDebug("created access token for bot")
+	} else {
+		token = string(rawToken)
 	}
 
-	client := fbClient.NewClient("http://localhost:8065", token)
+	fmt.Println("token: " + token)
+
+	client := fbClient.NewClient("http://localhost:8065/plugins/focalboard", token)
 	p.listManager = NewFocalboardListManager(p.API, client)
 
 	p.telemetryClient, err = telemetry.NewRudderClient()
