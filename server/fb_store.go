@@ -15,6 +15,9 @@ import (
 const (
 	// StoreBoardToUserKey is the key used to map a user ID to a board ID
 	StoreUserToBoardKey = "user_to_board"
+
+	// StoreReferenceListKey is the key used to store a list of reference issues
+	StoreReferenceListKey = "reference_list"
 )
 
 type focalboardListStore struct {
@@ -34,13 +37,26 @@ func NewFocalboardListStore(api plugin.API, client *fbClient.Client) FocalboardL
 	}
 }
 
-func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.Board, error) {
+func (l *focalboardListStore) getBoardIDForUser(userID string) (string, error) {
 	rawBoardID, appErr := l.api.KVGet(userToBoardKey(userID))
 	if appErr != nil {
-		return nil, errors.Wrap(appErr, "unable to get board id from user id")
+		return "", errors.Wrap(appErr, "unable to get board id from user id")
 	}
 
 	if rawBoardID == nil {
+		return "", nil
+	}
+
+	return string(rawBoardID), nil
+}
+
+func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.Board, error) {
+	boardID, err := l.getBoardIDForUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if boardID == "" {
 		teams, appErr := l.api.GetTeamMembersForUser(userID, 0, 1)
 		if appErr != nil {
 			return nil, errors.Wrap(appErr, "unable to get team members for user")
@@ -69,7 +85,7 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 				{
 					"id":      model.NewId(),
 					"name":    "Created By",
-					"type":    "createdBy",
+					"type":    "person",
 					"options": []interface{}{},
 				},
 				{
@@ -104,6 +120,12 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 							"color": "propColorRed",
 						},
 					},
+				},
+				{
+					"id":      model.NewId(),
+					"name":    "Post ID",
+					"type":    "text",
+					"options": []interface{}{},
 				},
 			},
 			ColumnCalculations: map[string]interface{}{},
@@ -155,9 +177,9 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 		board = boardsAndBlocks.Boards[0]
 
 		member := &fbModel.BoardMember{
-			BoardID:      board.ID,
-			UserID:       userID,
-			SchemeEditor: true,
+			BoardID:     board.ID,
+			UserID:      userID,
+			SchemeAdmin: true,
 		}
 
 		_, resp = l.client.AddMemberToBoard(member)
@@ -173,7 +195,24 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 		return board, nil
 	}
 
-	boardID := string(rawBoardID)
+	board, resp := l.client.GetBoard(boardID, "")
+	if resp.Error != nil {
+		return nil, errors.Wrap(resp.Error, "unable to get board by id")
+	}
+
+	return board, nil
+}
+
+func (l *focalboardListStore) getBoardForUser(userID string) (*fbModel.Board, error) {
+	boardID, err := l.getBoardIDForUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if boardID == "" {
+		return nil, nil
+	}
+
 	board, resp := l.client.GetBoard(boardID, "")
 	if resp.Error != nil {
 		return nil, errors.Wrap(resp.Error, "unable to get board by id")
@@ -212,7 +251,25 @@ func getPropertyOptionByValue(property map[string]interface{}, value string) map
 	return nil
 }
 
-func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
+func getPropertyValueForCard(block *fbModel.Block, propertyID string) *string {
+	if block.Type != fbModel.TypeCard {
+		return nil
+	}
+
+	properties, ok := block.Fields["properties"].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	value, ok := properties[propertyID].(string)
+	if !ok {
+		return nil
+	}
+
+	return &value
+}
+
+func (l *focalboardListStore) AddIssue(userID string, issue *ExtendedIssue) error {
 	board, err := l.getOrCreateBoardForUser(userID)
 	if err != nil {
 		return err
@@ -223,9 +280,25 @@ func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
 		return errors.New("status card property not found on board")
 	}
 
-	todoOption := getPropertyOptionByValue(statusProp, "To Do")
-	if todoOption == nil {
-		return errors.New("to do option not found on status card property")
+	creator := userID
+	optionTitle := "To Do"
+	if issue.ForeignUser != "" {
+		creator = issue.ForeignUser
+		optionTitle = "Inbox"
+	}
+	statusOption := getPropertyOptionByValue(statusProp, optionTitle)
+	if statusOption == nil {
+		return errors.New("option not found on status card property")
+	}
+
+	postIDProp := getCardPropertyByName(board, "Post ID")
+	if postIDProp == nil {
+		return errors.New("post id card property not found on board")
+	}
+
+	createdByProp := getCardPropertyByName(board, "Created By")
+	if createdByProp == nil {
+		return errors.New("created by card property not found on board")
 	}
 
 	now := model.GetMillis()
@@ -234,11 +307,13 @@ func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
 		BoardID:   board.ID,
 		Type:      fbModel.TypeCard,
 		Title:     issue.Message,
-		CreatedBy: userID,
+		CreatedBy: creator,
 		Fields: map[string]interface{}{
 			"icon": "📋",
 			"properties": map[string]interface{}{
-				statusProp["id"].(string): todoOption["id"],
+				statusProp["id"].(string):    statusOption["id"],
+				postIDProp["id"].(string):    issue.PostID,
+				createdByProp["id"].(string): creator,
 			},
 		},
 		CreateAt: now,
@@ -246,156 +321,314 @@ func (l *focalboardListStore) AddIssue(userID string, issue *Issue) error {
 		DeleteAt: 0,
 	}
 
-	_, resp := l.client.InsertBlocks(board.ID, []fbModel.Block{card})
+	blocks, resp := l.client.InsertBlocks(board.ID, []fbModel.Block{card})
 	if resp.Error != nil {
 		return resp.Error
 	}
 
-	return nil
-}
-
-func (l *focalboardListStore) GetIssue(issueID string) (*Issue, error) {
-	originalJSONIssue, appErr := l.api.KVGet(issueKey(issueID))
-	if appErr != nil {
-		return nil, errors.New(appErr.Error())
+	if len(blocks) != 1 {
+		return errors.New("blocks not inserted correctly")
 	}
 
-	if originalJSONIssue == nil {
-		return nil, errors.New("cannot find issue")
-	}
-
-	var issue *Issue
-	err := json.Unmarshal(originalJSONIssue, &issue)
-	if err != nil {
-		return nil, err
-	}
-
-	return issue, nil
-}
-
-func (l *focalboardListStore) RemoveIssue(issueID string) error {
-	appErr := l.api.KVDelete(issueKey(issueID))
-	if appErr != nil {
-		return errors.New(appErr.Error())
-	}
+	issue.ID = blocks[0].ID
 
 	return nil
 }
 
-func (l *focalboardListStore) GetAndRemoveIssue(issueID string) (*Issue, error) {
-	issue, err := l.GetIssue(issueID)
+func (l *focalboardListStore) GetIssuesByListType(userID string) (map[string][]*ExtendedIssue, error) {
+	board, err := l.getBoardForUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = l.RemoveIssue(issueID)
-	if err != nil {
-		return nil, err
+	lists := map[string][]*ExtendedIssue{
+		MyListKey: {},
+		InListKey: {},
 	}
 
-	return issue, nil
+	if board == nil {
+		return lists, nil
+	}
+
+	if board == nil {
+		return lists, nil
+	}
+
+	blocks, resp := l.client.GetAllBlocksForBoard(board.ID)
+	if resp.Error != nil {
+		return nil, errors.Wrap(resp.Error, "unable to get blocks for board")
+	}
+
+	statusProp := getCardPropertyByName(board, "Status")
+	if statusProp == nil {
+		return nil, errors.New("status card property not found on board")
+	}
+
+	todoOption := getPropertyOptionByValue(statusProp, "To Do")
+	if todoOption == nil {
+		return nil, errors.New("to do option not found on status card property")
+	}
+
+	inboxOption := getPropertyOptionByValue(statusProp, "Inbox")
+	if inboxOption == nil {
+		return nil, errors.New("inbox option not found on status card property")
+	}
+
+	for _, b := range blocks {
+		status := getPropertyValueForCard(&b, statusProp["id"].(string))
+		if status == nil {
+			continue
+		}
+
+		switch *status {
+		case todoOption["id"].(string):
+			lists[MyListKey] = append(lists[MyListKey], convertBlockToExtendedIssue(&b))
+		case inboxOption["id"].(string):
+			lists[InListKey] = append(lists[InListKey], convertBlockToExtendedIssue(&b))
+		}
+	}
+
+	return lists, nil
 }
 
-func (l *focalboardListStore) GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error) {
-	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
+func (l *focalboardListStore) GetIssue(userID, issueID string) (*ExtendedIssue, error) {
+	board, err := l.getBoardForUser(userID)
 	if err != nil {
-		return nil, 0, err
+		return nil, errors.Wrap(err, "unable to get board")
+	}
+	if board == nil {
+		return nil, errors.New("unable to find board")
+	}
+
+	return l.getIssueFromBoard(board, issueID)
+}
+
+func (l *focalboardListStore) getIssueFromBoard(board *fbModel.Board, issueID string) (*ExtendedIssue, error) {
+	block, err := l.getBlock(board.ID, issueID)
+	if err != nil {
+		return nil, err
+	}
+	if block == nil {
+		return nil, nil
+	}
+	return convertBlockToExtendedIssue(block), nil
+}
+
+func (l *focalboardListStore) getBlock(boardID, blockID string) (*fbModel.Block, error) {
+	blocks, resp := l.client.GetAllBlocksForBoard(boardID)
+	if resp.Error != nil {
+		return nil, errors.Wrap(resp.Error, "unable to get blocks")
+	}
+
+	for _, b := range blocks {
+		if b.ID == blockID {
+			return &b, nil
+		}
+	}
+	return nil, nil
+}
+
+func (l *focalboardListStore) RemoveIssue(userID, issueID string) error {
+	board, err := l.getBoardForUser(userID)
+	if err != nil {
+		return errors.Wrap(err, "unable to get board")
+	}
+	if board == nil {
+		return errors.New("unable to find board")
+	}
+
+	issue, err := l.getIssueFromBoard(board, issueID)
+	if err != nil {
+		return errors.Wrap(err, "unable to get issue")
+	}
+	if issue == nil {
+		return nil
+	}
+
+	err = l.RemoveReference(issue.ForeignUser, issue.ID)
+	if err != nil {
+		l.api.LogDebug("unable to remove reference")
+	}
+
+	_, resp := l.client.DeleteBlock(board.ID, issueID)
+	if resp.Error != nil {
+		return errors.Wrap(resp.Error, "unable to delete block")
+	}
+
+	return nil
+}
+
+func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIssue, string, error) {
+	board, err := l.getBoardForUser(userID)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unable to get board")
+	}
+	if board == nil {
+		return nil, "", errors.New("unable to find board")
+	}
+
+	block, err := l.getBlock(board.ID, issueID)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unable to get block to complete issue")
+	}
+	if block == nil {
+		return nil, "", errors.New("unable to find block to complete")
+	}
+
+	statusProp := getCardPropertyByName(board, "Status")
+	if statusProp == nil {
+		return nil, "", errors.New("status card property not found on board")
+	}
+	statusID := statusProp["id"].(string)
+
+	todoOption := getPropertyOptionByValue(statusProp, "To Do")
+	if todoOption == nil {
+		return nil, "", errors.New("to do option not found on status card property")
+	}
+	todoID := todoOption["id"].(string)
+
+	inboxOption := getPropertyOptionByValue(statusProp, "Inbox")
+	if inboxOption == nil {
+		return nil, "", errors.New("inbox option not found on status card property")
+	}
+	inboxID := inboxOption["id"].(string)
+
+	doneOption := getPropertyOptionByValue(statusProp, "Done")
+	if doneOption == nil {
+		return nil, "", errors.New("done option not found on status card property")
+	}
+	doneID := doneOption["id"].(string)
+
+	statusOptionIDPtr := getPropertyValueForCard(block, statusID)
+	if statusOptionIDPtr == nil {
+		return nil, "", errors.New("unable to find value for status property")
+	}
+
+	statusOptionID := *statusOptionIDPtr
+	listType := ""
+
+	switch statusOptionID {
+	case todoID:
+		listType = MyListKey
+	case inboxID:
+		listType = InListKey
+	}
+
+	properties, ok := block.Fields["properties"].(map[string]interface{})
+	if !ok {
+		return nil, "", errors.New("unable to get block properties")
+	}
+	properties[statusID] = doneID
+
+	patch := &fbModel.BlockPatch{
+		UpdatedFields: map[string]interface{}{
+			"properties": properties,
+		},
+	}
+
+	_, resp := l.client.PatchBlock(board.ID, block.ID, patch)
+	if resp.Error != nil {
+		return nil, "", errors.Wrap(err, "unable to patch block")
+	}
+
+	return convertBlockToExtendedIssue(block), listType, nil
+}
+
+func convertBlockToExtendedIssue(block *fbModel.Block) *ExtendedIssue {
+	return &ExtendedIssue{
+		Issue: Issue{
+			ID:       block.ID,
+			Message:  block.Title,
+			CreateAt: block.CreateAt,
+		},
+	}
+}
+
+func referenceListKey(userID string) string {
+	return fmt.Sprintf("%s_%s", StoreReferenceListKey, userID)
+}
+
+func (l *focalboardListStore) GetReferenceList(userID string) ([]*ExtendedIssue, []byte, error) {
+	originalJSONList, err := l.api.KVGet(referenceListKey(userID))
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if originalJSONList == nil {
-		return nil, 0, errors.New("cannot load list")
+		return []*ExtendedIssue{}, nil, nil
 	}
 
-	var list []*IssueRef
+	var list []*ExtendedIssue
 	jsonErr := json.Unmarshal(originalJSONList, &list)
 	if jsonErr != nil {
-		list, _, jsonErr = l.legacyIssueRef(userID, listID)
-		if list == nil {
-			return nil, 0, jsonErr
-		}
+		return nil, nil, errors.Wrap(jsonErr, "unable to decode reference list")
 	}
 
-	for i, ir := range list {
-		if ir.IssueID == issueID {
-			return ir, i, nil
-		}
-	}
-	return nil, 0, errors.New("cannot find issue")
+	return list, originalJSONList, nil
 }
 
-func (l *focalboardListStore) GetIssueListAndReference(userID, issueID string) (string, *IssueRef, int) {
-	ir, n, _ := l.GetIssueReference(userID, issueID, MyListKey)
-	if ir != nil {
-		return MyListKey, ir, n
-	}
-
-	ir, n, _ = l.GetIssueReference(userID, issueID, OutListKey)
-	if ir != nil {
-		return OutListKey, ir, n
-	}
-
-	ir, n, _ = l.GetIssueReference(userID, issueID, InListKey)
-	if ir != nil {
-		return InListKey, ir, n
-	}
-
-	return "", nil, 0
-}
-
-func (l *focalboardListStore) AddReference(userID, issueID, listID, foreignUserID, foreignIssueID string) error {
+func (l *focalboardListStore) AddReference(issue *ExtendedIssue) error {
 	for i := 0; i < StoreRetries; i++ {
-		list, originalJSONList, err := l.getList(userID, listID)
+		list, originalJSONList, err := l.GetReferenceList(issue.ForeignUser)
 		if err != nil {
 			return err
 		}
 
-		for _, ir := range list {
-			if ir.IssueID == issueID {
+		for _, i := range list {
+			if i.ID == issue.ID {
 				return errors.New("issue id already exists in list")
 			}
 		}
 
-		list = append(list, &IssueRef{
-			IssueID:        issueID,
-			ForeignIssueID: foreignIssueID,
-			ForeignUserID:  foreignUserID,
-		})
+		list = append(list, issue)
 
-		ok, err := l.saveList(userID, listID, list, originalJSONList)
+		ok, err := l.saveReferenceList(issue.ForeignUser, list, originalJSONList)
 		if err != nil {
 			return err
 		}
 
-		// If err is nil but ok is false, then something else updated the installs between the get and set above
-		// so we need to try again, otherwise we can return
 		if ok {
 			return nil
 		}
 	}
 
-	return errors.New("unable to store installation")
+	return errors.New("unable to add reference")
 }
 
-func (l *focalboardListStore) RemoveReference(userID, issueID, listID string) error {
+func (l *focalboardListStore) saveReferenceList(userID string, list []*ExtendedIssue, originalJSONList []byte) (bool, error) {
+	newJSONList, jsonErr := json.Marshal(list)
+	if jsonErr != nil {
+		return false, errors.Wrap(jsonErr, "unable to encode reference list")
+	}
+
+	ok, appErr := l.api.KVCompareAndSet(referenceListKey(userID), originalJSONList, newJSONList)
+	if appErr != nil {
+		return false, errors.Wrap(appErr, "unable to compare and set referenec list")
+	}
+
+	return ok, nil
+}
+
+func (l *focalboardListStore) RemoveReference(userID, issueID string) error {
 	for i := 0; i < StoreRetries; i++ {
-		list, originalJSONList, err := l.getList(userID, listID)
+		list, originalJSONList, err := l.GetReferenceList(userID)
 		if err != nil {
 			return err
 		}
 
 		found := false
 		for i, ir := range list {
-			if ir.IssueID == issueID {
+			if ir.ID == issueID {
 				list = append(list[:i], list[i+1:]...)
 				found = true
 			}
 		}
 
 		if !found {
-			return errors.New("cannot find issue")
+			return nil
 		}
 
-		ok, err := l.saveList(userID, listID, list, originalJSONList)
+		ok, err := l.saveReferenceList(userID, list, originalJSONList)
 		if err != nil {
 			return err
 		}
@@ -408,133 +641,4 @@ func (l *focalboardListStore) RemoveReference(userID, issueID, listID string) er
 	}
 
 	return errors.New("unable to store list")
-}
-
-func (l *focalboardListStore) PopReference(userID, listID string) (*IssueRef, error) {
-	for i := 0; i < StoreRetries; i++ {
-		list, originalJSONList, err := l.getList(userID, listID)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(list) == 0 {
-			return nil, errors.New("cannot find issue")
-		}
-
-		ir := list[0]
-		list = list[1:]
-
-		ok, err := l.saveList(userID, listID, list, originalJSONList)
-		if err != nil {
-			return nil, err
-		}
-
-		// If err is nil but ok is false, then something else updated the installs between the get and set above
-		// so we need to try again, otherwise we can return
-		if ok {
-			return ir, nil
-		}
-	}
-
-	return nil, errors.New("unable to store list")
-}
-
-func (l *focalboardListStore) BumpReference(userID, issueID, listID string) error {
-	for i := 0; i < StoreRetries; i++ {
-		list, originalJSONList, err := l.getList(userID, listID)
-		if err != nil {
-			return err
-		}
-
-		var i int
-		var ir *IssueRef
-
-		for i, ir = range list {
-			if issueID == ir.IssueID {
-				break
-			}
-		}
-
-		if i == len(list) {
-			return errors.New("cannot find issue")
-		}
-
-		newList := append([]*IssueRef{ir}, list[:i]...)
-		newList = append(newList, list[i+1:]...)
-
-		ok, err := l.saveList(userID, listID, newList, originalJSONList)
-		if err != nil {
-			return err
-		}
-
-		// If err is nil but ok is false, then something else updated the installs between the get and set above
-		// so we need to try again, otherwise we can return
-		if ok {
-			return nil
-		}
-	}
-
-	return errors.New("unable to store list")
-}
-
-func (l *focalboardListStore) GetList(userID, listID string) ([]*IssueRef, error) {
-	irs, _, err := l.getList(userID, listID)
-	return irs, err
-}
-
-func (l *focalboardListStore) getList(userID, listID string) ([]*IssueRef, []byte, error) {
-	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if originalJSONList == nil {
-		return []*IssueRef{}, originalJSONList, nil
-	}
-
-	var list []*IssueRef
-	jsonErr := json.Unmarshal(originalJSONList, &list)
-	if jsonErr != nil {
-		return l.legacyIssueRef(userID, listID)
-	}
-
-	return list, originalJSONList, nil
-}
-
-func (l *focalboardListStore) saveList(userID, listID string, list []*IssueRef, originalJSONList []byte) (bool, error) {
-	newJSONList, jsonErr := json.Marshal(list)
-	if jsonErr != nil {
-		return false, jsonErr
-	}
-
-	ok, appErr := l.api.KVCompareAndSet(listKey(userID, listID), originalJSONList, newJSONList)
-	if appErr != nil {
-		return false, errors.New(appErr.Error())
-	}
-
-	return ok, nil
-}
-
-func (l *focalboardListStore) legacyIssueRef(userID, listID string) ([]*IssueRef, []byte, error) {
-	originalJSONList, err := l.api.KVGet(listKey(userID, listID))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if originalJSONList == nil {
-		return []*IssueRef{}, originalJSONList, nil
-	}
-
-	var list []string
-	jsonErr := json.Unmarshal(originalJSONList, &list)
-	if jsonErr != nil {
-		return nil, nil, jsonErr
-	}
-
-	newList := []*IssueRef{}
-	for _, v := range list {
-		newList = append(newList, &IssueRef{IssueID: v})
-	}
-
-	return newList, originalJSONList, nil
 }

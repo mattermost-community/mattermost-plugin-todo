@@ -3,35 +3,28 @@ package main
 import (
 	fbClient "github.com/mattermost/focalboard/server/client"
 	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/pkg/errors"
 )
 
 // ListStore represents the KVStore operations for lists
 type FocalboardListStore interface {
 	// Issue related function
-	AddIssue(userID string, issue *Issue) error
-	GetIssue(issueID string) (*Issue, error)
-	RemoveIssue(issueID string) error
-	GetAndRemoveIssue(issueID string) (*Issue, error)
+	AddIssue(userID string, issue *ExtendedIssue) error
+	RemoveIssue(userID, issueID string) error
+	GetIssue(userID, issueID string) (*ExtendedIssue, error)
+	GetIssuesByListType(userID string) (map[string][]*ExtendedIssue, error)
+	CompleteIssue(userID, issueID string) (*ExtendedIssue, string, error)
 
 	// Issue References related functions
 
 	// AddReference creates a new IssueRef with the issueID, foreignUSerID and foreignIssueID, and stores it
 	// on the listID for userID.
-	AddReference(userID, issueID, listID, foreignUserID, foreignIssueID string) error
-	// RemoveReference removes the IssueRef for issueID in listID for userID
-	RemoveReference(userID, issueID, listID string) error
-	// PopReference removes the first IssueRef in listID for userID and returns it
-	PopReference(userID, listID string) (*IssueRef, error)
-	// BumpReference moves the Issue reference for issueID in listID for userID to the beginning of the list
-	BumpReference(userID, issueID, listID string) error
+	AddReference(issue *ExtendedIssue) error
+	// RemoveReference removes the reference for issueID for userID
+	RemoveReference(userID, issueID string) error
 
-	// GetIssueReference gets the IssueRef and position of the issue issueID on user userID's list listID
-	GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error)
-	// GetIssueListAndReference gets the issue list, IssueRef and position for user userID
-	GetIssueListAndReference(userID, issueID string) (string, *IssueRef, int)
-
-	// GetList returns the list of IssueRef in listID for userID
-	GetList(userID, listID string) ([]*IssueRef, error)
+	// GetReferenceList returns the list of references for userID
+	GetReferenceList(userID string) ([]*ExtendedIssue, []byte, error)
 }
 
 type focalboardListManager struct {
@@ -50,23 +43,66 @@ func NewFocalboardListManager(api plugin.API, client *fbClient.Client) Focalboar
 func (l *focalboardListManager) AddIssue(userID, message, postID string) (*Issue, error) {
 	issue := newIssue(message, postID)
 
-	if err := l.store.AddIssue(userID, issue); err != nil {
-		return nil, err
+	err := l.store.AddIssue(userID, &ExtendedIssue{Issue: *issue})
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to add issue")
 	}
 
 	return issue, nil
 }
 
 func (l *focalboardListManager) SendIssue(senderID, receiverID, message, postID string) (string, error) {
+	issue := newIssue(message, postID)
+	extendedIssue := &ExtendedIssue{Issue: *issue, ForeignUser: senderID}
+
+	err := l.store.AddIssue(receiverID, extendedIssue)
+	if err != nil {
+		return "", errors.Wrap(err, "unable to create issue")
+	}
+
+	err = l.store.AddReference(extendedIssue)
+	if err != nil {
+		err = errors.Wrap(err, "unable to create issue")
+		rollbackErr := l.store.RemoveIssue(receiverID, extendedIssue.ID)
+		if rollbackErr != nil {
+			err = errors.Wrap(err, "unable to rollback")
+		}
+		return "", err
+	}
+
 	return "", nil
 }
 
+// TODO fix inefficiency of getting two lists at once when we only need one
 func (l *focalboardListManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, error) {
-	return []*ExtendedIssue{}, nil
+	if listID == OutListKey {
+		list, _, err := l.store.GetReferenceList(userID)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get reference list")
+		}
+		return list, nil
+	}
+
+	lists, err := l.store.GetIssuesByListType(userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get issue list")
+	}
+
+	return lists[listID], nil
 }
 
-func (l *focalboardListManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error) {
-	return issue, "", "", nil
+func (l *focalboardListManager) CompleteIssue(userID, issueID string) (*Issue, string, string, error) {
+	issue, listType, err := l.store.CompleteIssue(userID, issueID)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "unable to complete issue")
+	}
+
+	err = l.store.RemoveReference(issue.ForeignUser, issueID)
+	if err != nil {
+		return nil, "", "", errors.Wrap(err, "unable to remove reference to complete issue")
+	}
+
+	return &issue.Issue, issue.ForeignUser, listType, nil
 }
 
 func (l *focalboardListManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
