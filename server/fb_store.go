@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"sort"
 
 	"github.com/pkg/errors"
 
@@ -18,6 +20,11 @@ const (
 
 	// StoreReferenceListKey is the key used to store a list of reference issues
 	StoreReferenceListKey = "reference_list"
+
+	StatusInbox  = "Inbox"
+	StatusToDo   = "To Do"
+	StatusDone   = "Done"
+	StatusWontDo = "Won't Do"
 )
 
 type focalboardListStore struct {
@@ -101,22 +108,22 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 					"options": []map[string]interface{}{
 						{
 							"id":    model.NewId(),
-							"value": "Inbox",
+							"value": StatusInbox,
 							"color": "propColorGray",
 						},
 						{
 							"id":    model.NewId(),
-							"value": "To Do",
+							"value": StatusToDo,
 							"color": "propColorYellow",
 						},
 						{
 							"id":    model.NewId(),
-							"value": "Done",
+							"value": StatusDone,
 							"color": "propColorGreen",
 						},
 						{
 							"id":    model.NewId(),
-							"value": "Won't Do",
+							"value": StatusWontDo,
 							"color": "propColorRed",
 						},
 					},
@@ -284,7 +291,7 @@ func (l *focalboardListStore) AddIssue(userID string, issue *ExtendedIssue) erro
 	optionTitle := "To Do"
 	if issue.ForeignUser != "" {
 		creator = issue.ForeignUser
-		optionTitle = "Inbox"
+		optionTitle = StatusInbox
 	}
 	statusOption := getPropertyOptionByValue(statusProp, optionTitle)
 	if statusOption == nil {
@@ -364,17 +371,27 @@ func (l *focalboardListStore) GetIssuesByListType(userID string) (map[string][]*
 		return nil, errors.New("status card property not found on board")
 	}
 
-	todoOption := getPropertyOptionByValue(statusProp, "To Do")
+	todoOption := getPropertyOptionByValue(statusProp, StatusToDo)
 	if todoOption == nil {
 		return nil, errors.New("to do option not found on status card property")
 	}
 
-	inboxOption := getPropertyOptionByValue(statusProp, "Inbox")
+	inboxOption := getPropertyOptionByValue(statusProp, StatusInbox)
 	if inboxOption == nil {
 		return nil, errors.New("inbox option not found on status card property")
 	}
 
+	var cardOrder []string
 	for _, b := range blocks {
+		if b.Type == fbModel.TypeView {
+			cardOrderInt := b.Fields["cardOrder"].([]interface{})
+			cardOrder = make([]string, len(cardOrderInt))
+			for index, strInt := range cardOrderInt {
+				cardOrder[index] = strInt.(string)
+			}
+			continue
+		}
+
 		status := getPropertyValueForCard(&b, statusProp["id"].(string))
 		if status == nil {
 			continue
@@ -382,13 +399,28 @@ func (l *focalboardListStore) GetIssuesByListType(userID string) (map[string][]*
 
 		switch *status {
 		case todoOption["id"].(string):
-			lists[MyListKey] = append(lists[MyListKey], convertBlockToExtendedIssue(&b))
+			lists[MyListKey] = append(lists[MyListKey], convertBlockToExtendedIssue(board, &b, userID))
 		case inboxOption["id"].(string):
-			lists[InListKey] = append(lists[InListKey], convertBlockToExtendedIssue(&b))
+			lists[InListKey] = append(lists[InListKey], convertBlockToExtendedIssue(board, &b, userID))
 		}
 	}
 
+	if cardOrder != nil {
+		sort.Slice(lists[MyListKey], func(i, j int) bool {
+			return indexForSorting(cardOrder, lists[MyListKey][i].ID) < indexForSorting(cardOrder, lists[MyListKey][j].ID)
+		})
+	}
+
 	return lists, nil
+}
+
+func indexForSorting(strSlice []string, str string) int {
+	for i := range strSlice {
+		if strSlice[i] == str {
+			return i
+		}
+	}
+	return math.MaxInt
 }
 
 func (l *focalboardListStore) GetIssue(userID, issueID string) (*ExtendedIssue, error) {
@@ -400,10 +432,10 @@ func (l *focalboardListStore) GetIssue(userID, issueID string) (*ExtendedIssue, 
 		return nil, errors.New("unable to find board")
 	}
 
-	return l.getIssueFromBoard(board, issueID)
+	return l.getIssueFromBoard(board, issueID, userID)
 }
 
-func (l *focalboardListStore) getIssueFromBoard(board *fbModel.Board, issueID string) (*ExtendedIssue, error) {
+func (l *focalboardListStore) getIssueFromBoard(board *fbModel.Board, issueID, userID string) (*ExtendedIssue, error) {
 	block, err := l.getBlock(board.ID, issueID)
 	if err != nil {
 		return nil, err
@@ -411,7 +443,7 @@ func (l *focalboardListStore) getIssueFromBoard(board *fbModel.Board, issueID st
 	if block == nil {
 		return nil, nil
 	}
-	return convertBlockToExtendedIssue(block), nil
+	return convertBlockToExtendedIssue(board, block, userID), nil
 }
 
 func (l *focalboardListStore) getBlock(boardID, blockID string) (*fbModel.Block, error) {
@@ -428,7 +460,7 @@ func (l *focalboardListStore) getBlock(boardID, blockID string) (*fbModel.Block,
 	return nil, nil
 }
 
-func (l *focalboardListStore) RemoveIssue(userID, issueID string) error {
+func (l *focalboardListStore) DeleteIssue(userID, issueID string) error {
 	board, err := l.getBoardForUser(userID)
 	if err != nil {
 		return errors.Wrap(err, "unable to get board")
@@ -437,7 +469,7 @@ func (l *focalboardListStore) RemoveIssue(userID, issueID string) error {
 		return errors.New("unable to find board")
 	}
 
-	issue, err := l.getIssueFromBoard(board, issueID)
+	issue, err := l.getIssueFromBoard(board, issueID, userID)
 	if err != nil {
 		return errors.Wrap(err, "unable to get issue")
 	}
@@ -458,7 +490,7 @@ func (l *focalboardListStore) RemoveIssue(userID, issueID string) error {
 	return nil
 }
 
-func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIssue, string, error) {
+func (l *focalboardListStore) UpdateIssueStatus(userID, issueID, status string) (*ExtendedIssue, string, error) {
 	board, err := l.getBoardForUser(userID)
 	if err != nil {
 		return nil, "", errors.Wrap(err, "unable to get board")
@@ -469,10 +501,10 @@ func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIs
 
 	block, err := l.getBlock(board.ID, issueID)
 	if err != nil {
-		return nil, "", errors.Wrap(err, "unable to get block to complete issue")
+		return nil, "", errors.Wrap(err, "unable to get block to update issue status")
 	}
 	if block == nil {
-		return nil, "", errors.New("unable to find block to complete")
+		return nil, "", errors.New("unable to find block to update")
 	}
 
 	statusProp := getCardPropertyByName(board, "Status")
@@ -481,23 +513,23 @@ func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIs
 	}
 	statusID := statusProp["id"].(string)
 
-	todoOption := getPropertyOptionByValue(statusProp, "To Do")
+	todoOption := getPropertyOptionByValue(statusProp, StatusToDo)
 	if todoOption == nil {
 		return nil, "", errors.New("to do option not found on status card property")
 	}
 	todoID := todoOption["id"].(string)
 
-	inboxOption := getPropertyOptionByValue(statusProp, "Inbox")
+	inboxOption := getPropertyOptionByValue(statusProp, StatusInbox)
 	if inboxOption == nil {
 		return nil, "", errors.New("inbox option not found on status card property")
 	}
 	inboxID := inboxOption["id"].(string)
 
-	doneOption := getPropertyOptionByValue(statusProp, "Done")
-	if doneOption == nil {
-		return nil, "", errors.New("done option not found on status card property")
+	newOption := getPropertyOptionByValue(statusProp, status)
+	if newOption == nil {
+		return nil, "", errors.New("new option not found on status card property")
 	}
-	doneID := doneOption["id"].(string)
+	newID := newOption["id"].(string)
 
 	statusOptionIDPtr := getPropertyValueForCard(block, statusID)
 	if statusOptionIDPtr == nil {
@@ -518,7 +550,7 @@ func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIs
 	if !ok {
 		return nil, "", errors.New("unable to get block properties")
 	}
-	properties[statusID] = doneID
+	properties[statusID] = newID
 
 	patch := &fbModel.BlockPatch{
 		UpdatedFields: map[string]interface{}{
@@ -531,16 +563,33 @@ func (l *focalboardListStore) CompleteIssue(userID, issueID string) (*ExtendedIs
 		return nil, "", errors.Wrap(err, "unable to patch block")
 	}
 
-	return convertBlockToExtendedIssue(block), listType, nil
+	return convertBlockToExtendedIssue(board, block, userID), listType, nil
 }
 
-func convertBlockToExtendedIssue(block *fbModel.Block) *ExtendedIssue {
+func convertBlockToExtendedIssue(board *fbModel.Board, block *fbModel.Block, userID string) *ExtendedIssue {
+	createdByProperty := getCardPropertyByName(board, "Created By")
+	if createdByProperty == nil {
+		return nil
+	}
+
+	createdByValue := getPropertyValueForCard(block, createdByProperty["id"].(string))
+	if createdByValue == nil {
+		return nil
+	}
+
+	foreignUserID := ""
+	if *createdByValue != userID {
+		foreignUserID = *createdByValue
+	}
+
 	return &ExtendedIssue{
 		Issue: Issue{
 			ID:       block.ID,
 			Message:  block.Title,
 			CreateAt: block.CreateAt,
 		},
+		ForeignUser: foreignUserID,
+		ForeignList: "myfb",
 	}
 }
 

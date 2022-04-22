@@ -128,8 +128,6 @@ func (p *Plugin) OnActivate() error {
 		token = string(rawToken)
 	}
 
-	fmt.Println("token: " + token)
-
 	client := fbClient.NewClient("http://localhost:8065/plugins/focalboard", token)
 	p.listManager = NewFocalboardListManager(p.API, client)
 

@@ -10,10 +10,10 @@ import (
 type FocalboardListStore interface {
 	// Issue related function
 	AddIssue(userID string, issue *ExtendedIssue) error
-	RemoveIssue(userID, issueID string) error
+	DeleteIssue(userID, issueID string) error
 	GetIssue(userID, issueID string) (*ExtendedIssue, error)
 	GetIssuesByListType(userID string) (map[string][]*ExtendedIssue, error)
-	CompleteIssue(userID, issueID string) (*ExtendedIssue, string, error)
+	UpdateIssueStatus(userID, issueID, status string) (*ExtendedIssue, string, error)
 
 	// Issue References related functions
 
@@ -53,7 +53,7 @@ func (l *focalboardListManager) AddIssue(userID, message, postID string) (*Issue
 
 func (l *focalboardListManager) SendIssue(senderID, receiverID, message, postID string) (string, error) {
 	issue := newIssue(message, postID)
-	extendedIssue := &ExtendedIssue{Issue: *issue, ForeignUser: senderID}
+	extendedIssue := &ExtendedIssue{Issue: *issue, ForeignUser: senderID, ForeignList: "fb"}
 
 	err := l.store.AddIssue(receiverID, extendedIssue)
 	if err != nil {
@@ -63,7 +63,7 @@ func (l *focalboardListManager) SendIssue(senderID, receiverID, message, postID 
 	err = l.store.AddReference(extendedIssue)
 	if err != nil {
 		err = errors.Wrap(err, "unable to create issue")
-		rollbackErr := l.store.RemoveIssue(receiverID, extendedIssue.ID)
+		rollbackErr := l.store.DeleteIssue(receiverID, extendedIssue.ID)
 		if rollbackErr != nil {
 			err = errors.Wrap(err, "unable to rollback")
 		}
@@ -73,48 +73,91 @@ func (l *focalboardListManager) SendIssue(senderID, receiverID, message, postID 
 	return "", nil
 }
 
-// TODO fix inefficiency of getting two lists at once when we only need one
 func (l *focalboardListManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, error) {
+	var list []*ExtendedIssue
+	var err error
 	if listID == OutListKey {
-		list, _, err := l.store.GetReferenceList(userID)
+		list, _, err = l.store.GetReferenceList(userID)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to get reference list")
 		}
-		return list, nil
+	} else {
+		// TODO fix inefficiency of getting two lists at once when we only need one
+		lists, err := l.store.GetIssuesByListType(userID)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to get issue list")
+		}
+		list = lists[listID]
 	}
 
-	lists, err := l.store.GetIssuesByListType(userID)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to get issue list")
+	for _, issue := range list {
+		issue.ForeignUser = l.GetUserName(issue.ForeignUser)
 	}
 
-	return lists[listID], nil
+	return list, nil
 }
 
 func (l *focalboardListManager) CompleteIssue(userID, issueID string) (*Issue, string, string, error) {
-	issue, listType, err := l.store.CompleteIssue(userID, issueID)
+	issue, listType, err := l.store.UpdateIssueStatus(userID, issueID, StatusDone)
 	if err != nil {
 		return nil, "", "", errors.Wrap(err, "unable to complete issue")
 	}
 
 	err = l.store.RemoveReference(issue.ForeignUser, issueID)
 	if err != nil {
-		return nil, "", "", errors.Wrap(err, "unable to remove reference to complete issue")
+		return nil, "", "", errors.Wrap(err, "unable to remove reference when completing issue")
 	}
 
 	return &issue.Issue, issue.ForeignUser, listType, nil
 }
 
 func (l *focalboardListManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
-	return "", "", nil
+	issue, _, err := l.store.UpdateIssueStatus(userID, issueID, StatusToDo)
+	if err != nil {
+		return "", "", errors.Wrap(err, "unable to accept issue")
+	}
+
+	return issue.Message, issue.ForeignUser, nil
 }
 
-func (l *focalboardListManager) RemoveIssue(userID, issueID string) (outIssue *Issue, foreignID string, isSender bool, listToUpdate string, outErr error) {
-	return &Issue{}, "", false, "", nil
+func (l *focalboardListManager) RemoveIssue(userID, issueID string) (*Issue, string, bool, string, error) {
+	issue, listType, err := l.store.UpdateIssueStatus(userID, issueID, StatusWontDo)
+	if err != nil {
+		return nil, "", false, "", errors.Wrap(err, "unable to remove issue")
+	}
+
+	err = l.store.RemoveReference(issue.ForeignUser, issueID)
+	if err != nil {
+		return nil, "", false, "", errors.Wrap(err, "unable to remove reference when completing issue")
+	}
+
+	return &issue.Issue, issue.ForeignUser, false, listType, nil
 }
 
-func (l *focalboardListManager) PopIssue(userID string) (issue *Issue, foreignID string, err error) {
-	return &Issue{}, "", nil
+func (l *focalboardListManager) PopIssue(userID string) (*Issue, string, error) {
+	lists, err := l.store.GetIssuesByListType(userID)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unable to get issue list for popping")
+	}
+	list := lists[MyListKey]
+
+	if len(list) == 0 {
+		return nil, "", nil
+	}
+
+	issue := list[0]
+
+	_, _, err = l.store.UpdateIssueStatus(userID, issue.ID, StatusDone)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unable to complete issue when popped")
+	}
+
+	err = l.store.RemoveReference(issue.ForeignUser, issue.ID)
+	if err != nil {
+		return nil, "", errors.Wrap(err, "unable to remove reference when popping issue")
+	}
+
+	return &issue.Issue, issue.ForeignUser, nil
 }
 
 func (l *focalboardListManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {

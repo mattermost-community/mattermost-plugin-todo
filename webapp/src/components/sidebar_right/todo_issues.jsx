@@ -47,6 +47,8 @@ function ToDoIssues(props) {
             } else if (issue.list === 'out') {
                 createdMessage = 'Received from ' + issue.user;
                 listPositionMessage = '';
+            } else if (issue.list === 'fb') {
+                createdMessage = 'Sent to ' + issue.user;
             }
         }
 
