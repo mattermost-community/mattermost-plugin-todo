@@ -53,7 +53,7 @@ export default class AddIssue extends React.Component {
         if (props.visible && state.message == null) {
             return {message: props.message};
         }
-        if (!props.visible && (state.message != null || state.sendTo != null)) {
+        if (!props.visible && (state.message || state.sendTo)) {
             return {
                 message: null,
                 sendTo: null,
