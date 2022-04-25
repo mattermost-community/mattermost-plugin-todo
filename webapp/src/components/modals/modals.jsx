@@ -10,16 +10,12 @@ import CloseIcon from '../close_icon.jsx';
 // This must be on sync with the animation time in mattermost-webapp's full_screen_modal.scss
 const ANIMATION_DURATION = 100;
 
-export default class FullScreenModal extends React.Component {
+export default class FullScreenModal extends React.PureComponent {
     static propTypes = {
         show: PropTypes.bool.isRequired,
         children: PropTypes.node.isRequired,
         onClose: PropTypes.func.isRequired,
     };
-
-    shouldComponentUpdate() {
-        return true;
-    }
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeypress);

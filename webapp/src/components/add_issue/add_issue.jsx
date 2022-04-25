@@ -18,7 +18,7 @@ import {getProfilePicture} from '../../utils';
 
 const PostUtils = window.PostUtils;
 
-export default class AddIssue extends React.Component {
+export default class AddIssue extends React.PureComponent {
     static propTypes = {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
@@ -31,10 +31,6 @@ export default class AddIssue extends React.Component {
         openAssigneeModal: PropTypes.func.isRequired,
         removeAssignee: PropTypes.func.isRequired,
     };
-
-    shouldComponentUpdate() {
-        return true;
-    }
 
     constructor(props) {
         super(props);
