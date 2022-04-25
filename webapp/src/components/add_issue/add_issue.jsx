@@ -55,7 +55,7 @@ export default class AddIssue extends React.Component {
         }
         if (!props.visible && (state.message || state.sendTo)) {
             return {
-                message: null,
+                message: '',
                 sendTo: null,
                 attachToThread: false,
                 previewMarkdown: false,
