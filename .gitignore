@@ -1,4 +1,2 @@
 dist
-/node_modules
-/.DS_Store
-/webapp/.DS_Store
+.DS_Store
