@@ -50,7 +50,7 @@ export default class AddIssue extends React.Component {
     }
 
     static getDerivedStateFromProps(props, state) {
-        if (props.visible && state.message == null) {
+        if (props.visible && !state.message && props.message !== state.message) {
             return {message: props.message};
         }
         if (!props.visible && (state.message || state.sendTo)) {
