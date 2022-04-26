@@ -6,7 +6,7 @@ import {getMessage, getPostID, getAssignee, getCurrentTeamRoute, isAddCardVisibl
 
 import AddIssue from './add_issue';
 
-const generateMessage = (state) => {
+function mapStateToProps(state) {
     const postID = getPostID(state);
 
     let permalink = '';
@@ -14,16 +14,15 @@ const generateMessage = (state) => {
         permalink = `[Permalink](${getCurrentTeamRoute(state)}pl/${postID})`;
     }
 
-    const message = `${getMessage(state)}\n${permalink}`;
-    return message;
-};
+    const message = getMessage(state) + permalink;
 
-const mapStateToProps = (state) => ({
-    visible: isAddCardVisible(state),
-    message: generateMessage(),
-    postID: getPostID(state),
-    assignee: getAssignee(state),
-});
+    return {
+        visible: isAddCardVisible(state),
+        message,
+        postID: getPostID(state),
+        assignee: getAssignee(state),
+    };
+}
 
 const mapDispatchToProps = (dispatch) => bindActionCreators({
     removeAssignee,
