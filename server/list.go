@@ -223,7 +223,7 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 
 		_, err := l.store.GetAndRemoveIssue(ir.ForeignIssueID)
 		if err != nil {
-			l.api.LogError("cannot remove issue, Err=", err.Error())
+			l.api.LogError("cannot remove issue", "err", err.Error())
 		}
 	}
 
