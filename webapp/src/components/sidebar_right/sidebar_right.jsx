@@ -81,8 +81,6 @@ export default class SidebarRight extends React.PureComponent {
             showMy: true,
             addTodo: false,
         };
-
-        this.closeAddBox = this.closeAddBox.bind(this);
     }
 
     openList(listName) {
@@ -143,7 +141,7 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.openAddCard('');
     }
 
-    closeAddBox() {
+    closeAddBox = () => {
         this.props.actions.closeAddCard();
     }
 
