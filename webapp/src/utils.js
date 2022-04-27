@@ -21,7 +21,9 @@ export function canBump(myList, foreignList) {
 }
 
 export function generateClassName(conditions) {
-    return Object.entries(conditions).map(([className, condition]) => (condition ? className : '')).filter((className) => className !== '').join(' ');
+    return Object.entries(conditions).map(
+        ([className, condition]) => (condition ? className : ''),
+    ).filter(Boolean).join(' ');
 }
 
 export function setSelectionRange(input, selectionStart, selectionEnd) {

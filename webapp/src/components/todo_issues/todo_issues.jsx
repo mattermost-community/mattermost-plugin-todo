@@ -33,24 +33,20 @@ function ToDoIssues(props) {
     if (!issues.length) {
         return emptyState;
     }
-        issues.map((issue) =>
-            (
-                <TodoItem
-                    issue={issue}
-                    theme={theme}
-                    siteURL={siteURL}
-                    accept={accept}
-                    complete={complete}
-                    list={list}
-                    remove={remove}
-                    bump={bump}
-                    key={issue.id}
-                />
-            ),
-        )
-    ) : (
-        emptyState
-    );
+
+    return issues.map((issue) => (
+        <TodoItem
+            issue={issue}
+            theme={theme}
+            siteURL={siteURL}
+            accept={accept}
+            complete={complete}
+            list={list}
+            remove={remove}
+            bump={bump}
+            key={issue.id}
+        />
+    ));
 }
 
 ToDoIssues.propTypes = {

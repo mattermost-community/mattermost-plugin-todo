@@ -92,8 +92,8 @@ const MenuWrapper = React.memo((props: Props) => {
             onClick={toggle}
             ref={node}
         >
-            {children ? Object.values(children)[0] : null}
-            {children && !props.disabled && open ? Object.values(children)[1] : null}
+            {children ? children[0] : null}
+            {children && !props.disabled && open ? children[1] : null}
         </div>
     );
 });

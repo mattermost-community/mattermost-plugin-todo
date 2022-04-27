@@ -30,9 +30,9 @@ function TextOption(props:TextOptionProps): JSX.Element {
             className={className}
             onClick={buttonClick}
         >
-            {icon ?? <div className='noicon'/>}
+            {icon ?? <div className='menu-option-icon'/>}
             <div className='menu-name'>{name}</div>
-            {rightIcon ?? <div className='noicon'/>}
+            {rightIcon ?? <div className='menu-option-icon'/>}
         </div>
     );
 }
