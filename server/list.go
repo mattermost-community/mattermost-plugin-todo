@@ -19,7 +19,7 @@ const (
 // ListStore represents the KVStore operations for lists
 type ListStore interface {
 	// Issue related function
-	AddIssue(issue *Issue) error
+	SaveIssue(issue *Issue) error
 	GetIssue(issueID string) (*Issue, error)
 	RemoveIssue(issueID string) error
 	GetAndRemoveIssue(issueID string) (*Issue, error)
@@ -61,7 +61,7 @@ func NewListManager(api plugin.API) ListManager {
 func (l *listManager) AddIssue(userID, message, description, postID string) (*Issue, error) {
 	issue := newIssue(message, description, postID)
 
-	if err := l.store.AddIssue(issue); err != nil {
+	if err := l.store.SaveIssue(issue); err != nil {
 		return nil, err
 	}
 
@@ -77,12 +77,12 @@ func (l *listManager) AddIssue(userID, message, description, postID string) (*Is
 
 func (l *listManager) SendIssue(senderID, receiverID, message, description, postID string) (string, error) {
 	senderIssue := newIssue(message, description, postID)
-	if err := l.store.AddIssue(senderIssue); err != nil {
+	if err := l.store.SaveIssue(senderIssue); err != nil {
 		return "", err
 	}
 
 	receiverIssue := newIssue(message, description, postID)
-	if err := l.store.AddIssue(receiverIssue); err != nil {
+	if err := l.store.SaveIssue(receiverIssue); err != nil {
 		if rollbackError := l.store.RemoveIssue(senderIssue.ID); rollbackError != nil {
 			l.api.LogError("cannot rollback sender issue after send error, Err=", err.Error())
 		}
@@ -184,13 +184,13 @@ func (l *listManager) EditIssue(userID, issueID, newMessage, newDescription stri
 			oldMessage = foreignIssue.Message
 			foreignIssue.Message = newMessage
 			foreignIssue.Description = newDescription
-			l.store.AddIssue(foreignIssue)
+			l.store.SaveIssue(foreignIssue)
 		}
 	}
 
 	issue.Message = newMessage
 	issue.Description = newDescription
-	l.store.AddIssue(issue)
+	l.store.SaveIssue(issue)
 
 	return ir.ForeignUserID, list, oldMessage, nil
 }
@@ -244,7 +244,7 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 	}
 
 	receiverIssue := newIssue(issue.Message, issue.Description, issue.PostID)
-	if err := l.store.AddIssue(receiverIssue); err != nil {
+	if err := l.store.SaveIssue(receiverIssue); err != nil {
 		return "", "", err
 	}
 

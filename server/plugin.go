@@ -347,6 +347,7 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	foreignUserId, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
 	if err != nil {
@@ -392,6 +393,7 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if changeRequest.SendTo == "" {
 		http.Error(w, "No user specified", http.StatusBadRequest)
