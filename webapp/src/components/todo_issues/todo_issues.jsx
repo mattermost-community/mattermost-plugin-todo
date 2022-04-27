@@ -30,7 +30,9 @@ function ToDoIssues(props) {
         emptyState = null;
     }
 
-    return issues.length > 0 ? (
+    if (!issues.length) {
+        return emptyState;
+    }
         issues.map((issue) =>
             (
                 <TodoItem
