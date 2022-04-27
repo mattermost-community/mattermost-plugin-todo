@@ -66,7 +66,7 @@ func NewListStore(api plugin.API) ListStore {
 	}
 }
 
-func (l *listStore) AddIssue(issue *Issue) error {
+func (l *listStore) SaveIssue(issue *Issue) error {
 	jsonIssue, jsonErr := json.Marshal(issue)
 	if jsonErr != nil {
 		return jsonErr

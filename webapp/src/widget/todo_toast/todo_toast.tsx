@@ -12,7 +12,7 @@ import IconButton from '../iconButton/iconButton';
 type Props = {
     close: () => void,
     children?: React.ReactNode,
-    submit: PropTypes.func.isRequired,
+    submit: () => void,
     title?: string,
     content: {
         icon: string,
