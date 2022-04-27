@@ -401,7 +401,7 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 	receiver, appErr := p.API.GetUserByUsername(changeRequest.SendTo)
 	if appErr != nil {
 		p.API.LogError("username not valid, err=" + appErr.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", appErr)
+		p.handleErrorWithCode(w, http.StatusNotFound, "Unable to find user", appErr)
 		return
 	}
 
