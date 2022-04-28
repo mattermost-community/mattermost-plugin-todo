@@ -175,22 +175,28 @@ func (l *listManager) EditIssue(userID, issueID, newMessage, newDescription stri
 
 	list, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
-		return "", "", "", err
+		return "", "", "", errors.New("reference not found")
 	}
 
 	if ir.ForeignIssueID != "" {
-		foreignIssue, err := l.store.GetIssue(ir.ForeignIssueID)
-		if err == nil {
+		foreignIssue, foreignErr := l.store.GetIssue(ir.ForeignIssueID)
+		if foreignErr == nil {
 			oldMessage = foreignIssue.Message
 			foreignIssue.Message = newMessage
 			foreignIssue.Description = newDescription
-			l.store.SaveIssue(foreignIssue)
+			foreignErr = l.store.SaveIssue(foreignIssue)
+			if foreignErr != nil {
+				l.api.LogError("cannot edit foreign issue after edit", "error", foreignErr.Error())
+			}
 		}
 	}
 
 	issue.Message = newMessage
 	issue.Description = newDescription
-	l.store.SaveIssue(issue)
+	err = l.store.SaveIssue(issue)
+	if err != nil {
+		return "", "", "", err
+	}
 
 	return ir.ForeignUserID, list, oldMessage, nil
 }
@@ -212,8 +218,8 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 
 	if ir.ForeignUserID != "" {
 		// Remove reference from foreign user
-		foreignList, _, _ := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
-		if ir == nil {
+		foreignList, foreignIR, _ := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
+		if foreignIR == nil {
 			return "", "", errors.New("reference not found")
 		}
 

@@ -43,7 +43,7 @@ type ListManager interface {
 	// EditIssue updates the message on an issue
 	EditIssue(userID string, issueID string, newMessage string, newDescription string) (foreignUserID string, list string, oldMessage string, err error)
 	// ChangeAssignment updates an issue to assign a different person
-	ChangeAssignment(issueId string, userID string, sendTo string) (issueMessage, oldOwner string, err error)
+	ChangeAssignment(issueID string, userID string, sendTo string) (issueMessage, oldOwner string, err error)
 	// GetUserName returns the readable username from userID
 	GetUserName(userID string) string
 }
@@ -349,7 +349,7 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	}
 	r.Body.Close()
 
-	foreignUserId, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
+	foreignUserID, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
 	if err != nil {
 		p.API.LogError("Unable to edit message: err=" + err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to edit issue", err)
@@ -359,18 +359,18 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	p.trackEditIssue(userID)
 	p.sendRefreshEvent(userID, []string{list})
 
-	if foreignUserId != "" {
+	if foreignUserID != "" {
 		var lists []string
 		if list == OutListKey {
 			lists = []string{MyListKey, InListKey}
 		} else {
 			lists = []string{OutListKey}
 		}
-		p.sendRefreshEvent(foreignUserId, lists)
+		p.sendRefreshEvent(foreignUserID, lists)
 
 		userName := p.listManager.GetUserName(userID)
 		message := fmt.Sprintf("@%s modified a Todo from:\n%s\nTo:\n%s", userName, oldMessage, editRequest.Message)
-		p.PostBotDM(foreignUserId, message)
+		p.PostBotDM(foreignUserID, message)
 	}
 }
 
