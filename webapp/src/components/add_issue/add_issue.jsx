@@ -36,7 +36,7 @@ export default class AddIssue extends React.PureComponent {
         super(props);
 
         this.state = {
-            message: '',
+            message: props.message || '',
             description: '',
             sendTo: null,
             attachToThread: false,
