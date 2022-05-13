@@ -135,10 +135,9 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 					"options": []interface{}{},
 				},
 			},
-			ColumnCalculations: map[string]interface{}{},
-			CreateAt:           now,
-			UpdateAt:           now,
-			DeleteAt:           0,
+			CreateAt: now,
+			UpdateAt: now,
+			DeleteAt: 0,
 		}
 
 		block := fbModel.Block{
@@ -176,6 +175,10 @@ func (l *focalboardListStore) getOrCreateBoardForUser(userID string) (*fbModel.B
 		if resp.Error != nil {
 			fmt.Println(resp.StatusCode)
 			return nil, errors.Wrap(resp.Error, "unable to create board")
+		}
+		fmt.Println(resp.StatusCode)
+		if boardsAndBlocks == nil {
+			return nil, errors.New("no boards or blocks returned")
 		}
 		if len(boardsAndBlocks.Boards) == 0 {
 			return nil, errors.New("no board returned")
@@ -405,6 +408,8 @@ func (l *focalboardListStore) GetIssuesByListType(userID string) (map[string][]*
 		}
 	}
 
+	fmt.Printf("%v\n", lists[MyListKey])
+
 	if cardOrder != nil {
 		sort.Slice(lists[MyListKey], func(i, j int) bool {
 			return indexForSorting(cardOrder, lists[MyListKey][i].ID) < indexForSorting(cardOrder, lists[MyListKey][j].ID)
@@ -569,16 +574,13 @@ func (l *focalboardListStore) UpdateIssueStatus(userID, issueID, status string) 
 func convertBlockToExtendedIssue(board *fbModel.Board, block *fbModel.Block, userID string) *ExtendedIssue {
 	createdByProperty := getCardPropertyByName(board, "Created By")
 	if createdByProperty == nil {
+		fmt.Println("createdByProperty is nil")
 		return nil
 	}
 
 	createdByValue := getPropertyValueForCard(block, createdByProperty["id"].(string))
-	if createdByValue == nil {
-		return nil
-	}
-
 	foreignUserID := ""
-	if *createdByValue != userID {
+	if createdByValue != nil && *createdByValue != userID {
 		foreignUserID = *createdByValue
 	}
 

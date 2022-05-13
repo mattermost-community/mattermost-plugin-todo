@@ -957,8 +957,8 @@ github.com/markbates/oncer v0.0.0-20181203154359-bf2de49a0be2/go.mod h1:Ld9puTsI
 github.com/markbates/pkger v0.15.1/go.mod h1:0JoVlrol20BSywW79rN3kdFFsE5xYM+rSCQDXbLhiuI=
 github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kNSCBdG0=
 github.com/marstr/guid v1.1.0/go.mod h1:74gB1z2wpxxInTG6yaqA7KrtM0NZ+RbrcqDvYHefzho=
-github.com/mattermost/focalboard/server v0.0.0-20220330144123-b5e509da1264 h1:eQCzJdxaQYJ3t+JWgt+ARM2IIyvanxRwOZGl6OSuop4=
-github.com/mattermost/focalboard/server v0.0.0-20220330144123-b5e509da1264/go.mod h1:1MUt87VxR+kI4e+ksHhTXTlA2PUz2eXzKUHxxQwp88Q=
+github.com/mattermost/focalboard/server v0.0.0-20220512192951-9dbb0c88e162 h1:jfjYY0G5IcQLirGUsO4/eLxEmMy3izanqQvLSuN+75U=
+github.com/mattermost/focalboard/server v0.0.0-20220512192951-9dbb0c88e162/go.mod h1:1MUt87VxR+kI4e+ksHhTXTlA2PUz2eXzKUHxxQwp88Q=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 h1:Khvh6waxG1cHc4Cz5ef9n3XVCxRWpAKUtqg9PJl5+y8=
 github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404/go.mod h1:RyS7FDNQlzF1PsjbJWHRI35exqaKGSO9qD4iv8QjE34=
 github.com/mattermost/gorp v1.6.2-0.20210714143452-8b50f5209a7f/go.mod h1:QCQ3U0M9T/BlAdjKFJo0I1oe/YAgbyjNdhU8bpOLafk=
