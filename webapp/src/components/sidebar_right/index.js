@@ -4,14 +4,15 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {getIssues, getInIssues, getOutIssues, getSiteURL} from '../../selectors';
-import {remove, list, openRootModal, complete, bump, accept, telemetry, setRhsVisible} from '../../actions';
+import {getIssues, getInIssues, getOutIssues, getSiteURL, getTodoToast} from '../../selectors';
+import {remove, list, openAssigneeModal, openAddCard, closeAddCard, complete, bump, accept, telemetry, setRhsVisible} from '../../actions';
 
 import SidebarRight from './sidebar_right.jsx';
 
 function mapStateToProps(state) {
     return {
         todos: getIssues(state),
+        todoToast: getTodoToast(state),
         inTodos: getInIssues(state),
         outTodos: getOutIssues(state),
         siteURL: getSiteURL(state),
@@ -27,7 +28,9 @@ function mapDispatchToProps(dispatch) {
             accept,
             bump,
             list,
-            openRootModal,
+            openAddCard,
+            closeAddCard,
+            openAssigneeModal,
             telemetry,
             setVisible: setRhsVisible,
         }, dispatch),

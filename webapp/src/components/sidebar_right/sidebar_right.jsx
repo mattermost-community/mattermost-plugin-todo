@@ -4,8 +4,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import ToDoIssues from './todo_issues';
+import AddIssue from '../add_issue';
+import Button from '../../widget/buttons/button';
+import TodoToast from '../../widget/todo_toast';
+import CompassIcon from '../icons/compassIcons';
+
+import Menu from '../../widget/menu';
+import MenuItem from '../../widget/menuItem';
+import MenuWrapper from '../../widget/menuWrapper';
+
+import ToDoIssues from '../todo_issues';
+import {isKeyPressed} from '../../utils.js';
+import Constants from '../../constants';
 
 import './sidebar_right.scss';
 
@@ -42,6 +54,7 @@ export default class SidebarRight extends React.PureComponent {
         todos: PropTypes.arrayOf(PropTypes.object),
         inTodos: PropTypes.arrayOf(PropTypes.object),
         outTodos: PropTypes.arrayOf(PropTypes.object),
+        todoToast: PropTypes.object,
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
         rhsState: PropTypes.string,
@@ -51,7 +64,9 @@ export default class SidebarRight extends React.PureComponent {
             accept: PropTypes.func.isRequired,
             bump: PropTypes.func.isRequired,
             list: PropTypes.func.isRequired,
-            openRootModal: PropTypes.func.isRequired,
+            openAddCard: PropTypes.func.isRequired,
+            closeAddCard: PropTypes.func.isRequired,
+            openAssigneeModal: PropTypes.func.isRequired,
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
         }).isRequired,
@@ -64,6 +79,7 @@ export default class SidebarRight extends React.PureComponent {
             list: props.rhsState || MyListName,
             showInbox: true,
             showMy: true,
+            addTodo: false,
         };
     }
 
@@ -84,6 +100,7 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     componentDidMount() {
+        document.addEventListener('keydown', this.handleKeypress);
         this.props.actions.list(false, 'my');
         this.props.actions.list(false, 'in');
         this.props.actions.list(false, 'out');
@@ -91,8 +108,16 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     componentWillUnmount() {
+        document.removeEventListener('keydown', this.handleKeypress);
         this.props.actions.setVisible(false);
     }
+
+    handleKeypress = (e) => {
+        if (e.altKey && isKeyPressed(e, Constants.KeyCodes.A)) {
+            e.preventDefault();
+            this.props.actions.openAddCard('');
+        }
+    };
 
     componentDidUpdate(prevProps) {
         if (prevProps.rhsState !== this.props.rhsState) {
@@ -112,23 +137,36 @@ export default class SidebarRight extends React.PureComponent {
         return this.props.todos.length;
     }
 
+    addTodoItem() {
+        this.props.actions.openAddCard('');
+    }
+
+    closeAddBox = () => {
+        this.props.actions.closeAddCard();
+    }
+
     render() {
+        const style = getStyle();
         let todos = [];
+        let listHeading = 'My Todos';
         let addButton = '';
         let inboxList = [];
+
         switch (this.state.list) {
         case MyListName:
             todos = this.props.todos || [];
-            addButton = 'Add new Todo';
+            addButton = 'Add Todo';
             inboxList = this.props.inTodos || [];
             break;
         case OutListName:
             todos = this.props.outTodos || [];
+            listHeading = 'Sent Todos';
             addButton = 'Request a Todo from someone';
             break;
         }
 
         let inbox;
+
         if (inboxList.length > 0) {
             const actionName = this.state.showInbox ? 'collapse' : 'expand';
             inbox = (
@@ -177,33 +215,67 @@ export default class SidebarRight extends React.PureComponent {
                     renderView={renderView}
                     className='SidebarRight'
                 >
-                    <div className='header-menu'>
-                        <div
-                            className={'btn btn-primary' + (this.state.list === MyListName ? ' selected' : '')}
-                            onClick={() => this.openList(MyListName)}
-                        >
-                            {'Todos'} {this.getMyIssues() > 0 ? ' (' + this.getMyIssues() + ')' : ''} {this.getInIssues() > 0 ? ' (' + this.getInIssues() + ' received)' : ''}
-                        </div>
-                        <div
-                            className={'btn btn-primary' + (this.state.list === OutListName ? ' selected' : '')}
-                            onClick={() => this.openList(OutListName)}
-                        >
-                            {'Sent'} {this.getOutIssues() > 0 ? ' (' + this.getOutIssues() + ')' : ''}
-                        </div>
-                    </div>
-                    <div
-                        className='section-header'
-                        onClick={() => {
-                            this.props.actions.telemetry('rhs_add', {list: this.state.list});
-                            this.props.actions.openRootModal('');
-                        }}
-                    >
-                        {addButton + ' '}
-                        <i className='icon fa fa-plus-circle'/>
+                    <div className='todolist-header'>
+                        <MenuWrapper>
+                            <button style={style.todoHeader}>
+                                {listHeading}
+                                <CompassIcon
+                                    style={style.todoHeaderIcon}
+                                    icon='chevron-down'
+                                />
+                            </button>
+                            <Menu position='right'>
+                                <MenuItem
+                                    onClick={() => this.openList(MyListName)}
+                                    action={() => this.openList(MyListName)}
+                                    text={'My Todos'}
+                                />
+                                <MenuItem
+                                    action={() => this.openList(OutListName)}
+                                    text={'Sent Todos'}
+                                />
+                            </Menu>
+                        </MenuWrapper>
+                        {this.state.list === MyListName && (
+                            <OverlayTrigger
+                                id='addOverlay'
+                                placement={'bottom'}
+                                overlay={(
+                                    <Tooltip
+                                        id='addTooltip'
+                                    >
+                                        <div className='shortcut-line'>
+                                            <mark className='shortcut-key shortcut-key--tooltip'>{'OPT'}</mark>
+                                            <mark className='shortcut-key shortcut-key--tooltip'>{'A'}</mark>
+                                        </div>
+                                    </Tooltip>
+                                )}
+                            >
+                                <div>
+                                    <Button
+                                        emphasis='primary'
+                                        icon={<CompassIcon icon='plus'/>}
+                                        size='small'
+                                        onClick={() => {
+                                            this.props.actions.telemetry('rhs_add', {
+                                                list: this.state.list,
+                                            });
+                                            this.addTodoItem();
+                                        }}
+                                    >
+                                        {addButton}
+                                    </Button>
+                                </div>
+                            </OverlayTrigger>
+                        )}
                     </div>
                     <div>
                         {inbox}
                         {separator}
+                        <AddIssue
+                            theme={this.props.theme}
+                            closeAddBox={this.closeAddBox}
+                        />
                         {(inboxList.length === 0) || (this.state.showMy && todos.length > 0) ?
                             <ToDoIssues
                                 issues={todos}
@@ -216,8 +288,29 @@ export default class SidebarRight extends React.PureComponent {
                                 siteURL={this.props.siteURL}
                             /> : ''}
                     </div>
+                    {this.props.todoToast && (
+                        <TodoToast/>
+                    )}
                 </Scrollbars>
             </React.Fragment>
         );
     }
 }
+
+const getStyle = () => {
+    return {
+        todoHeader: {
+            fontFamily: 'Metropolis, sans-serif',
+            border: 0,
+            background: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 600,
+            fontSize: 16,
+        },
+        todoHeaderIcon: {
+            fontSize: 18,
+            marginLeft: 2,
+        },
+    };
+};

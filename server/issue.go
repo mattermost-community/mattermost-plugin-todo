@@ -9,10 +9,11 @@ import (
 
 // Issue represents a Todo issue
 type Issue struct {
-	ID       string `json:"id"`
-	Message  string `json:"message"`
-	CreateAt int64  `json:"create_at"`
-	PostID   string `json:"post_id"`
+	ID          string `json:"id"`
+	Message     string `json:"message"`
+	Description string `json:"description,omitempty"`
+	CreateAt    int64  `json:"create_at"`
+	PostID      string `json:"post_id"`
 }
 
 // ExtendedIssue extends the information on Issue to be used on the front-end
@@ -23,12 +24,13 @@ type ExtendedIssue struct {
 	ForeignPosition int    `json:"position"`
 }
 
-func newIssue(message string, postID string) *Issue {
+func newIssue(message string, description, postID string) *Issue {
 	return &Issue{
-		ID:       model.NewId(),
-		CreateAt: model.GetMillis(),
-		Message:  message,
-		PostID:   postID,
+		ID:          model.NewId(),
+		CreateAt:    model.GetMillis(),
+		Message:     message,
+		Description: description,
+		PostID:      postID,
 	}
 }
 

@@ -5,8 +5,8 @@ root = true
 [*]
 end_of_line = lf
 insert_final_newline = true
-charset = utf-8
 trim_trailing_whitespace = true
+charset = utf-8
 
 [*.go]
 indent_style = tab
@@ -15,14 +15,15 @@ indent_style = tab
 indent_style = space
 indent_size = 4
 
-[webapp/package.json]
+[{webapp/package.json, package.json,.eslintrc.json}]
 indent_size = 2
 
-[Makefile,*.mk]
+[i18n/**.json]
+indent_size = 2
+
+[Makefile]
 indent_style = tab
 
-[*.md]
+[*.scss]
 indent_style = space
 indent_size = 4
-trim_trailing_whitespace = false
-

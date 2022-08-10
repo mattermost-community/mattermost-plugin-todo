@@ -39,6 +39,14 @@ func (p *Plugin) trackAcceptIssue(userID string) {
 	p.tracker.TrackUserEvent("accept_issue", userID, map[string]interface{}{})
 }
 
+func (p *Plugin) trackEditIssue(userID string) {
+	p.tracker.TrackUserEvent("edit_issue", userID, map[string]interface{}{})
+}
+
+func (p *Plugin) trackChangeAssignment(userID string) {
+	p.tracker.TrackUserEvent("change_issue_assignment", userID, map[string]interface{}{})
+}
+
 func (p *Plugin) trackBumpIssue(userID string) {
 	p.tracker.TrackUserEvent("bump_issue", userID, map[string]interface{}{})
 }

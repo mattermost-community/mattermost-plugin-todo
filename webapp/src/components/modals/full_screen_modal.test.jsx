@@ -6,7 +6,7 @@ import {shallow} from 'enzyme';
 
 import CloseIcon from '../close_icon.jsx';
 
-import FullScreenModal from './full_screen_modal.jsx';
+import FullScreenModal from './modals.jsx';
 
 describe('components/widgets/modals/FullScreenModal', () => {
     test('showing content', () => {

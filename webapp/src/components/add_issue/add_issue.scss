@@ -1,0 +1,37 @@
+.AddIssueBox {
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    padding: 16px;
+
+    &__body {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    &__check {
+        width: 16px;
+        height: 16px;
+        background: rgba(var(--center-channel-bg-rgb), 1);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 4px;
+        top: 3px;
+        position: relative;
+    }
+
+    &__content {
+        padding-left: 16px;
+        width: 100%;
+    }
+}
+
+.todo-add-issue {
+    margin: 12px 0 16px;
+
+    label {
+        display: flex;
+        align-items: center;
+
+        input {
+            margin: 0 8px 0 0;
+        }
+    }
+}

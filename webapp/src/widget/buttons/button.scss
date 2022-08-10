@@ -1,0 +1,124 @@
+.Button {
+    --danger-button-bg-rgb: 247, 67, 67;
+    font-family: 'Open Sans', sans-serif;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    border-radius: var(--default-rad);
+    min-width: 20px;
+    cursor: pointer;
+    overflow: hidden;
+    background: transparent;
+    border: 0;
+    transition: all 100ms ease-out 0s;
+    color: inherit;
+    height: 32px;
+    padding: 0 10px;
+    font-weight: 600;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .Icon {
+        align-items: center;
+        display: flex;
+        height: 14px;
+        justify-content: center;
+        margin-right: 5px;
+        width: 14px;
+    }
+
+    .Icon--right {
+        height: 14px;
+        margin: 0 0 0 5px;
+        width: 14px;
+    }
+
+    &.emphasis--primary {
+        color: #fff;
+        background-color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.8);
+        }
+    }
+
+    &.emphasis--secondary {
+        border: 1px solid rgba(var(--button-bg-rgb), 1);
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+        }
+    }
+
+    &.emphasis--tertiary {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover {
+            background-color: rgba(var(--button-bg-rgb), 0.12);
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+        }
+    }
+
+    &.emphasis--danger {
+        color: rgba(var(--button-danger-color-rgb), 1);
+        background-color: rgba(var(--button-danger-bg-rgb), 1);
+
+        &:hover {
+            background-color: rgba(var(--button-danger-bg-rgb), 0.8);
+        }
+    }
+
+    &.active {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgba(var(--button-bg-rgb), 1);
+    }
+
+    &.size--small {
+        font-size: 12px;
+        padding: 0 16px;
+        height: 32px;
+
+        .Icon {
+            font-size: 14.4px;
+        }
+    }
+
+    &.size--medium {
+        font-size: 14px;
+        font-weight: 600;
+        padding: 0 20px;
+        height: 40px;
+
+        .Icon {
+            font-size: 18px;
+        }
+    }
+
+    &.size--large {
+        font-size: 16px;
+        height: 48px;
+        padding: 0 24px;
+
+        .Icon {
+            font-size: 24px;
+            margin: 0 10px 0 0;
+        }
+
+        .Icon--right {
+            margin: 0 0 0 10px;
+        }
+    }
+}

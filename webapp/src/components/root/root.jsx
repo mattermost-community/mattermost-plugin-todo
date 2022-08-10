@@ -1,9 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
+import {
+    makeStyleFromTheme,
+    changeOpacity,
+} from 'mattermost-redux/utils/theme_utils';
 
-import FullScreenModal from '../modals/full_screen_modal.jsx';
+import FullScreenModal from '../modals/modals.jsx';
 
 import './root.scss';
 import AutocompleteSelector from '../user_selector/autocomplete_selector.tsx';
@@ -19,7 +22,7 @@ export default class Root extends React.Component {
         submit: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
         autocompleteUsers: PropTypes.func.isRequired,
-    }
+    };
     constructor(props) {
         super(props);
 
@@ -36,7 +39,12 @@ export default class Root extends React.Component {
             return {message: props.message};
         }
         if (!props.visible && (state.message != null || state.sendTo != null)) {
-            return {message: null, sendTo: null, attachToThread: false, previewMarkdown: false};
+            return {
+                message: null,
+                sendTo: null,
+                attachToThread: false,
+                previewMarkdown: false,
+            };
         }
         return null;
     }
@@ -48,7 +56,7 @@ export default class Root extends React.Component {
                 attachToThread: value,
             });
         }
-    }
+    };
 
     submit = () => {
         const {submit, close, postID} = this.props;
@@ -60,7 +68,7 @@ export default class Root extends React.Component {
         }
 
         close();
-    }
+    };
 
     render() {
         const {visible, theme, close} = this.props;
@@ -74,8 +82,12 @@ export default class Root extends React.Component {
         const style = getStyle(theme);
         const activeClass = 'btn btn-primary';
         const inactiveClass = 'btn';
-        const writeButtonClass = this.state.previewMarkdown ? inactiveClass : activeClass;
-        const previewButtonClass = this.state.previewMarkdown ? activeClass : inactiveClass;
+        const writeButtonClass = this.state.previewMarkdown ?
+            inactiveClass :
+            activeClass;
+        const previewButtonClass = this.state.previewMarkdown ?
+            activeClass :
+            inactiveClass;
 
         return (
             <FullScreenModal
@@ -88,9 +100,7 @@ export default class Root extends React.Component {
                 >
                     <h1>{'Add a Todo'}</h1>
                     <div className='todoplugin-issue'>
-                        <h2>
-                            {'Todo Message'}
-                        </h2>
+                        <h2>{'Todo Message'}</h2>
                         <div className='btn-group'>
                             <button
                                 className={writeButtonClass}
@@ -123,27 +133,38 @@ export default class Root extends React.Component {
                                 className='todoplugin-input'
                                 style={style.textarea}
                                 value={message}
-                                onChange={(e) => this.setState({message: e.target.value})}
-                            />)
-                        }
-
+                                onChange={(e) =>
+                                    this.setState({message: e.target.value})
+                                }
+                            />
+                        )}
                     </div>
-                    {this.props.postID && (<div className='todoplugin-add-to-thread'>
-                        <input
-                            type='checkbox'
-                            checked={this.state.attachToThread}
-                            onChange={this.handleAttachChange}
-                        />
-                        <b>{' Add to thread'}</b>
-                        <div className='help-text'>{' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'}</div>
-                    </div>)}
+                    {this.props.postID && (
+                        <div className='todoplugin-add-to-thread'>
+                            <input
+                                type='checkbox'
+                                checked={this.state.attachToThread}
+                                onChange={this.handleAttachChange}
+                            />
+                            <b>{' Add to thread'}</b>
+                            <div className='help-text'>
+                                {
+                                    ' Select to have the Todo Bot respond to the thread when the attached todo is added, modified or completed.'
+                                }
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <AutocompleteSelector
                             id='send_to_user'
                             loadOptions={this.props.autocompleteUsers}
-                            onSelected={(selected) => this.setState({sendTo: selected?.username})}
+                            onSelected={(selected) =>
+                                this.setState({sendTo: selected?.username})
+                            }
                             label={'Send to user'}
-                            helpText={'Select a user if you want to send this todo.'}
+                            helpText={
+                                'Select a user if you want to send this todo.'
+                            }
                             placeholder={''}
                             theme={theme}
                         />
@@ -151,7 +172,9 @@ export default class Root extends React.Component {
                     <div className='todoplugin-button-container'>
                         <button
                             className={'btn btn-primary'}
-                            style={message ? style.button : style.inactiveButton}
+                            style={
+                                message ? style.button : style.inactiveButton
+                            }
                             onClick={this.submit}
                             disabled={!message}
                         >
@@ -164,13 +187,17 @@ export default class Root extends React.Component {
                             {'What does this do?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'Adding a Todo will add an issue to your Todo list. You will get daily reminders about your Todo issues until you mark them as complete.'}
+                            {
+                                'Adding a Todo will add an issue to your Todo list. You will get daily reminders about your Todo issues until you mark them as complete.'
+                            }
                         </div>
                         <div className='todoplugin-question'>
                             {'How is this different from flagging a post?'}
                         </div>
                         <div className='todoplugin-answer'>
-                            {'Todo issues are disconnected from posts. You can generate Todo issues from posts but they have no other assoication to the posts. This allows for a cleaner Todo list that does not rely on post history or someone else not deleting or editing the post.'}
+                            {
+                                'Todo issues are disconnected from posts. You can generate Todo issues from posts but they have no other assoication to the posts. This allows for a cleaner Todo list that does not rely on post history or someone else not deleting or editing the post.'
+                            }
                         </div>
                     </div>
                 </div>

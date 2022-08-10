@@ -2,8 +2,10 @@ import {Client4} from 'mattermost-redux/client';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {
-    OPEN_ROOT_MODAL,
-    CLOSE_ROOT_MODAL,
+    OPEN_ASSIGNEE_MODAL,
+    CLOSE_ASSIGNEE_MODAL,
+    OPEN_TODO_TOAST,
+    CLOSE_TODO_TOAST,
     RECEIVED_SHOW_RHS_ACTION,
     GET_ISSUES,
     GET_IN_ISSUES,
@@ -11,20 +13,77 @@ import {
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
+    GET_ASSIGNEE,
+    REMOVE_ASSIGNEE,
+    OPEN_ADD_CARD,
+    CLOSE_ADD_CARD,
+    SET_EDITING_TODO,
+    REMOVE_EDITING_TODO,
 } from './action_types';
 
 import {getPluginServerRoute} from './selectors';
 
-export const openRootModal = (postID) => (dispatch) => {
+export const openAddCard = (postID) => (dispatch) => {
     dispatch({
-        type: OPEN_ROOT_MODAL,
+        type: OPEN_ADD_CARD,
         postID,
     });
 };
 
-export const closeRootModal = () => (dispatch) => {
+export const closeAddCard = () => (dispatch) => {
     dispatch({
-        type: CLOSE_ROOT_MODAL,
+        type: CLOSE_ADD_CARD,
+    });
+};
+
+export const openTodoToast = (message) => (dispatch) => {
+    dispatch({
+        type: OPEN_TODO_TOAST,
+        message,
+    });
+};
+
+export const closeTodoToast = () => (dispatch) => {
+    dispatch({
+        type: CLOSE_TODO_TOAST,
+    });
+};
+
+export const getAssignee = (assignee) => (dispatch) => {
+    dispatch({
+        type: GET_ASSIGNEE,
+        assignee,
+    });
+};
+
+export const removeAssignee = () => (dispatch) => {
+    dispatch({
+        type: REMOVE_ASSIGNEE,
+    });
+};
+
+export const setEditingTodo = (issueID) => (dispatch) => {
+    dispatch({
+        type: SET_EDITING_TODO,
+        issueID,
+    });
+};
+
+export const removeEditingTodo = () => (dispatch) => {
+    dispatch({
+        type: REMOVE_EDITING_TODO,
+    });
+};
+
+export const openAssigneeModal = () => (dispatch) => {
+    dispatch({
+        type: OPEN_ASSIGNEE_MODAL,
+    });
+};
+
+export const closeAssigneeModal = () => (dispatch) => {
+    dispatch({
+        type: CLOSE_ASSIGNEE_MODAL,
     });
 };
 
@@ -60,10 +119,24 @@ export const telemetry = (event, properties) => async (dispatch, getState) => {
     }));
 };
 
-export const add = (message, sendTo, postID) => async (dispatch, getState) => {
+export const add = (message, description, sendTo, postID) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
         method: 'post',
-        body: JSON.stringify({message, send_to: sendTo, post_id: postID}),
+        body: JSON.stringify({send_to: sendTo, message, description, post_id: postID}),
+    }));
+};
+
+export const editIssue = (postID, message, description) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id: postID, message, description}),
+    }));
+};
+
+export const changeAssignee = (id, assignee) => async (dispatch, getState) => {
+    await fetch(getPluginServerRoute(getState()) + '/change_assignment', Client4.getOptions({
+        method: 'post',
+        body: JSON.stringify({id, send_to: assignee}),
     }));
 };
 

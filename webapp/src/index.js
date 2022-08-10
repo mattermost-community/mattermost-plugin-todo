@@ -3,9 +3,10 @@ import React from 'react';
 import {id as pluginId} from './manifest';
 
 import Root from './components/root';
+import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openRootModal, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar} from './actions';
+import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -18,8 +19,11 @@ const activityTimeout = 60 * 60 * 1000; // 1 hour
 
 export default class Plugin {
     initialize(registry, store) {
+        const {toggleRHSPlugin, showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
+
         registry.registerReducer(reducer);
         registry.registerRootComponent(Root);
+        registry.registerRootComponent(AssigneeModal);
 
         registry.registerBottomTeamSidebarComponent(TeamSidebar);
 
@@ -27,11 +31,11 @@ export default class Plugin {
             'Add Todo',
             (postID) => {
                 telemetry('post_action_click');
-                store.dispatch(openRootModal(postID));
+                store.dispatch(openAddCard(postID));
+                store.dispatch(showRHSPlugin);
             },
         );
 
-        const {toggleRHSPlugin, showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Todo List');
         store.dispatch(setShowRHSAction(() => store.dispatch(showRHSPlugin)));
         registry.registerChannelHeaderButtonAction(
             <ChannelHeaderButton/>,

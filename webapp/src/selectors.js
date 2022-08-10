@@ -5,7 +5,13 @@ import {id as pluginId} from './manifest';
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
 export const isRootModalVisible = (state) => getPluginState(state).rootModalVisible;
+export const isAddCardVisible = (state) => getPluginState(state).addCardVisible;
+export const isAssigneeModalVisible = (state) => getPluginState(state).assigneeModalVisible;
+export const subMenu = (state) => getPluginState(state).subMenu;
 export const getPostID = (state) => getPluginState(state).postID;
+export const getAssignee = (state) => getPluginState(state).currentAssignee;
+export const getEditingTodo = (state) => getPluginState(state).editingTodo;
+export const getTodoToast = (state) => getPluginState(state).todoToast;
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 export const getMessage = (state) => {
     const postID = getPluginState(state).postID;

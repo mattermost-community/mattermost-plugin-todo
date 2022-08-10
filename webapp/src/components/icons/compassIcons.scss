@@ -1,0 +1,9 @@
+.CompassIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:before {
+        margin: 0;
+    }
+}
