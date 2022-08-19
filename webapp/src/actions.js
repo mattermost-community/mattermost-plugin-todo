@@ -134,13 +134,7 @@ export function autocompleteUsers(username) {
         const users = [];
         const team = TeamSelector.getCurrentTeam(getState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, team.id));
-        data.users.forEach((user) => {
-            //Returning only non deleted users
-            if (user.delete_at === 0) {
-                users.push(user);
-            }
-        });
-        return users;
+        return data.users.filter((user) => user.delete_at === 0);
     };
 }
 
