@@ -131,16 +131,15 @@ export const bump = (id) => async (dispatch, getState) => {
 
 export function autocompleteUsers(username) {
     return async (doDispatch, getState) => {
-        let users = [];
-        let team = TeamSelector.getCurrentTeam(getState())
+        const users = [];
+        const team = TeamSelector.getCurrentTeam(getState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, team.id));
-        data.users.forEach( user => {
+        data.users.forEach((user) => {
             //Returning only non deleted users
-            if( user.delete_at === 0) {
-                users.push(user)
+            if (user.delete_at === 0) {
+                users.push(user);
             }
-        })
-        
+        });
         return users;
     };
 }
