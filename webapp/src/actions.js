@@ -1,21 +1,21 @@
-import * as TeamActions from 'mattermost-redux/actions/teams';
+import {Client4} from 'mattermost-redux/client';
 import * as TeamSelector from 'mattermost-redux/selectors/entities/teams';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {
-    CLOSE_ROOT_MODAL,
-    GET_IN_ISSUES,
-    GET_ISSUES,
-    GET_OUT_ISSUES,
     OPEN_ROOT_MODAL,
+    CLOSE_ROOT_MODAL,
     RECEIVED_SHOW_RHS_ACTION,
-    SET_HIDE_TEAM_SIDEBAR_BUTTONS,
-    SET_RHS_VISIBLE,
+    GET_ISSUES,
+    GET_IN_ISSUES,
+    GET_OUT_ISSUES,
     UPDATE_RHS_STATE,
+    SET_RHS_VISIBLE,
+    SET_HIDE_TEAM_SIDEBAR_BUTTONS,
 } from './action_types';
 
-import {Client4} from 'mattermost-redux/client';
 import {getPluginServerRoute} from './selectors';
+
 
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
@@ -132,17 +132,16 @@ export const bump = (id) => async (dispatch, getState) => {
 
 export function autocompleteUsers(username) {
     return async (doDispatch, getState) => {
-        let userIds = [];
         let users = [];
         let team = TeamSelector.getCurrentTeam(getState())
-        const teamMembers = await doDispatch(TeamActions.getTeamMembers(team.id));
-        for( let j =0; j< teamMembers.data.length; j++) {
-            const user = await doDispatch(UserActions.getUser(teamMembers.data[j].user_id));
-            if(!userIds.includes(user.data.id) && user.data.delete_at == 0) {
-                userIds.push(user.data.id)
-                users.push(user.data)
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, team.id));
+        data.users.forEach( user => {
+            //Returning only non deleted users
+            if( user.delete_at === 0) {
+                users.push(user)
             }
-        }
+        })
+        
         return users;
     };
 }
