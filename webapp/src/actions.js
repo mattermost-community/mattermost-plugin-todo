@@ -16,7 +16,6 @@ import {
 
 import {getPluginServerRoute} from './selectors';
 
-
 export const openRootModal = (postID) => (dispatch) => {
     dispatch({
         type: OPEN_ROOT_MODAL,
