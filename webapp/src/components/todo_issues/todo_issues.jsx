@@ -21,7 +21,7 @@ function ToDoIssues(props) {
             <Tada/>
             <h3 style={style.completed.title}>{'All tasks completed'}</h3>
             <p style={style.completed.subtitle}>
-                {'Nicely done, you’ve finished all of your tasks! Why not reward yourself with a little break?'}
+                {'Nicely done, you\'ve finished all of your tasks! Why not reward yourself with a little break?'}
             </p>
         </div>
     );

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 import CompassIcon from '../components/icons/compassIcons';
@@ -20,8 +20,9 @@ const MenuItem = (props: Props) => {
     const {icon, shortcut, action, text} = props;
 
     useEffect(() => {
-        function handleKeypress(e: {key: string}) {
+        function handleKeypress(e: any) {
             if (e.key === shortcut) {
+                e.target.dispatchEvent(new Event('menuItemClicked'));
                 action();
             }
         }

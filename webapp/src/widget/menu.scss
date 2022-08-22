@@ -11,7 +11,7 @@
     z-index: 15;
     background-color: rgba(var(--center-channel-bg-rgb), 1);
     color: rgba(var(--center-channel-color-rgb), 1);
-    border-radius: var(--default-rad);
+    border-radius: 4px;
     box-shadow: var(--elevation-4);
 
     .menu-contents {

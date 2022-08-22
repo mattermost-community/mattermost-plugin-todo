@@ -19,6 +19,7 @@ import './autocomplete_selector.scss';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
+    autoFocus?: boolean,
     label?: string,
     labelClassName?: string,
     helpText?: string,
@@ -123,6 +124,7 @@ export default function AutocompleteSelector(props: Props) {
             {labelContent}
             <div className={inputClassName}>
                 <AsyncSelect
+                    autoFocus={props.autoFocus || false}
                     cacheOptions={true}
                     loadOptions={loadOptions}
                     defaultOptions={true}
