@@ -124,7 +124,7 @@ export default function AutocompleteSelector(props: Props) {
             {labelContent}
             <div className={inputClassName}>
                 <AsyncSelect
-                    autoFocus={props.autoFocus || false}
+                    autoFocus={Boolean(props.autoFocus)}
                     cacheOptions={true}
                     loadOptions={loadOptions}
                     defaultOptions={true}
