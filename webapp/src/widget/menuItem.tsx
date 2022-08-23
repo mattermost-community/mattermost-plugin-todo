@@ -23,7 +23,7 @@ const MenuItem = (props: Props) => {
 
     useEffect(() => {
         function handleKeypress(e: KeyboardEvent) {
-            if (e.key === shortcut) {
+            if (e.key === shortcut && e.target) {
                 e.preventDefault();
                 e.target.dispatchEvent(new Event('menuItemClicked'));
                 action();
