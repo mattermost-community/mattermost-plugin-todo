@@ -83,14 +83,10 @@ export default class AddIssue extends React.PureComponent {
             description: '',
         });
 
-        console.log(attachToThread);
-
         if (attachToThread) {
             if (assignee) {
-                console.log('assignee');
                 submit(message, description, assignee.username, postID);
             } else {
-                console.log('not assignee');
                 submit(message, description, sendTo, postID);
             }
         } else if (assignee) {
