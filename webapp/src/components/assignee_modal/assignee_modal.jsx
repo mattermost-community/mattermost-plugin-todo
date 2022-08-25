@@ -76,6 +76,7 @@ const AssigneeModal = (
                     icon={<CompassIcon icon='close'/>}
                 />
                 <AutocompleteSelector
+                    autoFocus={true}
                     id='send_to_user'
                     loadOptions={autocompleteUsers}
                     onSelected={changeAssigneeDropdown}

@@ -1,7 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 
 import CompassIcon from '../components/icons/compassIcons';
+import Constants from 'src/constants';
+import {isKeyPressed} from 'src/utils';
 
 export type MenuOptionProps = {
     id: string,
@@ -20,16 +22,22 @@ const MenuItem = (props: Props) => {
     const {icon, shortcut, action, text} = props;
 
     useEffect(() => {
-        function handleKeypress(e: {key: string}) {
-            if (e.key === shortcut) {
+        function handleKeypress(e: KeyboardEvent) {
+            if (e.key === shortcut && e.target) {
+                e.preventDefault();
+                e.target.dispatchEvent(new Event('menuItemClicked'));
                 action();
+            }
+
+            if (!isKeyPressed(e, Constants.KeyCodes.TAB)) {
+                e.preventDefault();
             }
         }
 
-        document.addEventListener('keyup', handleKeypress);
+        document.addEventListener('keydown', handleKeypress);
 
         return () => {
-            document.removeEventListener('keyup', handleKeypress);
+            document.removeEventListener('keydown', handleKeypress);
         };
     }, []);
 
