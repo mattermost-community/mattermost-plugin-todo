@@ -77,13 +77,18 @@ export default class AddIssue extends React.PureComponent {
 
     submit = () => {
         const {submit, postID, assignee, closeAddBox, removeAssignee} = this.props;
-        const {message, description, attachToThread} = this.state;
+        const {message, description, attachToThread, sendTo} = this.state;
         this.setState({
             message: '',
             description: '',
         });
+
         if (attachToThread) {
-            submit(message, description, assignee.username, postID);
+            if (assignee) {
+                submit(message, description, assignee.username, postID);
+            } else {
+                submit(message, description, sendTo, postID);
+            }
         } else if (assignee) {
             submit(message, description, assignee.username);
         } else {
