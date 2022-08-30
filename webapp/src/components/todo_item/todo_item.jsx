@@ -74,7 +74,7 @@ function TodoItem(props) {
     );
 
     const onKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
             saveEditedTodo();
         }
 
