@@ -217,7 +217,9 @@ export default class SidebarRight extends React.PureComponent {
                 >
                     <div className='todolist-header'>
                         <MenuWrapper>
-                            <button style={style.todoHeader}>
+                            <button
+                                className='todolist-header__dropdown'
+                            >
                                 {listHeading}
                                 <CompassIcon
                                     style={style.todoHeaderIcon}
@@ -299,15 +301,6 @@ export default class SidebarRight extends React.PureComponent {
 
 const getStyle = () => {
     return {
-        todoHeader: {
-            fontFamily: 'Metropolis, sans-serif',
-            border: 0,
-            background: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 600,
-            fontSize: 16,
-        },
         todoHeaderIcon: {
             fontSize: 18,
             marginLeft: 2,

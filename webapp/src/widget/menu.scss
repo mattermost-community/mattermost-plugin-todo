@@ -13,6 +13,8 @@
     color: rgba(var(--center-channel-color-rgb), 1);
     border-radius: 4px;
     box-shadow: var(--elevation-4);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    margin-top: 8px;
 
     .menu-contents {
         display: flex;
