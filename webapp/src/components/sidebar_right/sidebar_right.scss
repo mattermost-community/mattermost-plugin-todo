@@ -8,6 +8,24 @@
         align-items: center;
         justify-content: space-between;
         border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        height: 65px;
+
+        .todolist-header__dropdown {
+            padding-top: 4px;
+            height: 28px;
+            border-radius: 4px;
+            font-family: Metropolis, sans-serif;
+            border: 0px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 16px;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
 
         .todolist-header__heading {
             font-size: 16px;

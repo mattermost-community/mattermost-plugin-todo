@@ -104,7 +104,7 @@ export default class AddIssue extends React.PureComponent {
     }
 
     onKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
             this.submit();
         }
 
