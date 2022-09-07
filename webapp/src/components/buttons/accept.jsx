@@ -1,12 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import Button from 'src/widget/buttons/button';
+
 const AcceptButton = (props) => {
     return (
-        <button
-            className='btn btn-primary'
+        <Button
+            emphasis={'secondary'}
             onClick={() => props.accept(props.issueId)}
-        >{'Add to my list'}</button>
+        >
+            {'Add to my list'}
+        </Button>
     );
 };
 

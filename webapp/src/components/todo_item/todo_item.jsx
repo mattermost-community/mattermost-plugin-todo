@@ -27,7 +27,17 @@ function TodoItem(props) {
     const [editTodo, setEditTodo] = useState(false);
     const [message, setMessage] = useState(issue.message);
     const [description, setDescription] = useState(issue.description);
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const [hidden, setHidden] = useState(false);
+    const date = new Date(issue.create_at);
+    const year = date.getFullYear();
+    const month = MONTHS[date.getMonth()];
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = '0' + date.getMinutes();
+    const seconds = '0' + date.getSeconds();
+    const formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    const formattedDate = month + ' ' + day + ', ' + year;
 
     const style = getStyle(theme);
 
@@ -45,14 +55,18 @@ function TodoItem(props) {
     const issueDescription = PostUtils.messageHtmlToComponent(htmlFormattedDescription);
 
     let listPositionMessage = '';
+    let createdMessage = 'Created ';
     if (issue.user) {
         if (issue.list === '') {
+            createdMessage = 'Sent to ' + issue.user;
             listPositionMessage =
                 'Accepted. On position ' + (issue.position + 1) + '.';
         } else if (issue.list === 'in') {
+            createdMessage = 'Sent to ' + issue.user;
             listPositionMessage =
                 'In Inbox on position ' + (issue.position + 1) + '.';
         } else if (issue.list === 'out') {
+            createdMessage = 'Received from ' + issue.user;
             listPositionMessage = '';
         }
     }
@@ -181,6 +195,14 @@ function TodoItem(props) {
                                 canComplete(list) ||
                                 canAccept(list)) &&
                                 actionButtons}
+                                {(issue.user) && (
+                                    <div
+                                        className='light'
+                                        style={style.subtitle}
+                                    >
+                                        {createdMessage + ' on ' + formattedDate + ' at ' + formattedTime}
+                                    </div>
+                                )}
                                 {listPositionMessage && listDiv}
                             </div>
                         )}
@@ -279,7 +301,7 @@ const getStyle = makeStyleFromTheme((theme) => {
             fontWeight: 'bold',
         },
         subtitle: {
-            marginTop: 8,
+            marginTop: '4px',
             fontStyle: 'italic',
             fontSize: '13px',
         },
