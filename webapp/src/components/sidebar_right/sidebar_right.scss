@@ -112,9 +112,16 @@
 
 .post__content {
     .todo-post {
-        .btn {
-            margin-left: 5px;
-            margin-right: 5px;
+        &--done {
+            display: none;
+        }
+
+        .Button {
+            margin-right: 8px;
+        }
+
+        .todo-item__checkbox  {
+            margin-right: 8px;
         }
     }
 }
