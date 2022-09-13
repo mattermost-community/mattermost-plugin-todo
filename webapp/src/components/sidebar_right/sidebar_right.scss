@@ -68,6 +68,7 @@
     }
 
     .todo-action-buttons {
+        margin: 8px 0;
         padding: 2px;
         display: flex;
 
@@ -85,17 +86,42 @@
     }
 
     .todo-separator {
-        font-size: 130%;
-        color: var(--link-color);
-        padding-left: 5px;
+        font-size: 14px;
+        text-transform: uppercase;
+        font-weight: 600;
+        opacity: 0.65;
+        margin: 8px 0 4px;
+        align-items: center;
+        cursor: pointer;
+        padding: 4px 10px 4px 4px;
+        display: inline-flex;
+        margin-left: 12px;
+        border-radius: 4px;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            opacity: 1;
+        }
+
+        .CompassIcon {
+            font-size: 18px;
+            margin-right: 4px;
+        }
     }
 }
 
 .post__content {
     .todo-post {
-        .btn {
-            margin-left: 5px;
-            margin-right: 5px;
+        &--done {
+            display: none;
+        }
+
+        .Button {
+            margin-right: 8px;
+        }
+
+        .todo-item__checkbox  {
+            margin-right: 8px;
         }
     }
 }

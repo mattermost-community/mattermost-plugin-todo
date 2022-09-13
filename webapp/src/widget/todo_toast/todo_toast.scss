@@ -14,6 +14,10 @@
     padding: 4px 4px 4px 12px;
     height: 40px;
 
+    .IconButton {
+        color: inherit;
+    }
+
     >div {
         display: flex;
         align-items: center;

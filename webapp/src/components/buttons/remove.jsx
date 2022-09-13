@@ -1,12 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import Button from 'src/widget/buttons/button';
+
 const RemoveButton = (props) => {
     return (
-        <button
-            className='btn btn-primary'
+        <Button
+            emphasis='tertiary'
             onClick={() => props.remove(props.issueId)}
-        >{props.list === 'out' ? 'Cancel' : 'Won\'t do'}</button>
+        >
+            {props.list === 'out' ? 'Cancel' : 'Won\'t do'}
+        </Button>
     );
 };
 

@@ -168,14 +168,25 @@ export default class SidebarRight extends React.PureComponent {
         let inbox;
 
         if (inboxList.length > 0) {
-            const actionName = this.state.showInbox ? 'collapse' : 'expand';
+            const actionName = this.state.showInbox ? (
+                <CompassIcon
+                    style={style.todoHeaderIcon}
+                    icon='chevron-down'
+                />
+            ) : (
+                <CompassIcon
+                    style={style.todoHeaderIcon}
+                    icon='chevron-right'
+                />
+            );
             inbox = (
                 <div>
                     <div
                         className='todo-separator'
                         onClick={() => this.toggleInbox()}
                     >
-                        {`Incoming Todos (${inboxList.length}) (${actionName})`}
+                        {actionName}
+                        <div>{`Incoming Todos (${inboxList.length})`}</div>
                     </div>
                     {this.state.showInbox ?
                         <ToDoIssues
@@ -193,13 +204,24 @@ export default class SidebarRight extends React.PureComponent {
 
         let separator;
         if ((inboxList.length > 0) && (todos.length > 0)) {
-            const actionName = this.state.showMy ? 'collapse' : 'expand';
+            const actionName = this.state.showMy ? (
+                <CompassIcon
+                    style={style.todoHeaderIcon}
+                    icon='chevron-down'
+                />
+            ) : (
+                <CompassIcon
+                    style={style.todoHeaderIcon}
+                    icon='chevron-right'
+                />
+            );
             separator = (
                 <div
                     className='todo-separator'
                     onClick={() => this.toggleMy()}
                 >
-                    {`My Todos (${todos.length}) (${actionName})`}
+                    {actionName}
+                    {`My Todos (${todos.length})`}
                 </div>
             );
         }

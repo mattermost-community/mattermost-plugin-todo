@@ -28,7 +28,7 @@ export default class PostTypeTodo extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {done: false};
     }
 
     render() {
@@ -44,7 +44,7 @@ export default class PostTypeTodo extends React.PureComponent {
 
         const content = (
             <div
-                className='todo-post'
+                className={`todo-post d-flex flex-row-reverse align-items-center justify-content-end ${this.state.done ? 'todo-item--done' : ''}`}
                 style={style.body}
             >
                 <RemoveButton
@@ -62,10 +62,12 @@ export default class PostTypeTodo extends React.PureComponent {
                     }}
                 />
                 <CompleteButton
+                    active={this.state.done}
+                    markAsDone={() => this.setState({done: true})}
                     issueId={this.props.post.props.issueId}
-                    complete={(issueID) => {
+                    completeToast={() => {
                         this.props.actions.telemetry('custom_post_complete');
-                        this.props.actions.complete(issueID);
+                        this.props.actions.complete(this.props.post.props.issueId);
                     }}
                 />
             </div>
