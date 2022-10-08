@@ -20,6 +20,9 @@ A plugin to track Todo issues in a list and send you daily reminders about your 
 
 ## Usage
 
+![image](https://user-images.githubusercontent.com/83284294/194702321-995ea864-c11e-400b-9129-0e9e16e65851.png)
+
+
 To add an issue to your Todo list, do one one of the following:
 
 * Open the sidebar from the channel header and click the "Add new issue" button
