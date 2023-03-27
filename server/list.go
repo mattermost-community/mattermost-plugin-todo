@@ -245,8 +245,10 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 		return issue.Message, ir.ForeignUserID, nil
 	}
 
+	if userID != sendTo {
 	if err := l.store.RemoveReference(userID, issueID, list); err != nil {
 		return "", "", err
+		}
 	}
 
 	receiverIssue := newIssue(issue.Message, issue.Description, issue.PostID)
