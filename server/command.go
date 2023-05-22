@@ -125,6 +125,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runListCommand
 		case "pop":
 			handler = p.runPopCommand
+		case "remove":
+			handler = p.runRemoveCommand
 		case "send":
 			handler = p.runSendCommand
 		case "settings":
@@ -327,6 +329,61 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	return false, nil
 }
 
+func (p *Plugin) runRemoveCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	message := strings.Join(args, " ")
+	listID := MyListKey
+	issueList, err := p.listManager.GetIssueList(extra.UserId, listID)
+	if err != nil {
+		return false, err
+	}
+
+	var issueID string
+	for _, issue := range issueList {
+		if issue.Message == message {
+			issueID = issue.ID
+		}
+	}
+
+	if issueID == "" {
+		p.postCommandResponse(extra, "Can't find the todo in list")
+		return false, nil
+	}
+
+	issue, foreignID, _, _, err := p.listManager.RemoveIssue(extra.UserId, issueID)
+	if err != nil {
+		return false, err
+	}
+
+	userName := p.listManager.GetUserName(extra.UserId)
+
+	if foreignID != "" {
+		p.sendRefreshEvent(foreignID, []string{OutListKey})
+
+		message := fmt.Sprintf("@%s removed a Todo you sent: %s", userName, issue.Message)
+		p.PostBotDM(foreignID, message)
+	}
+
+	p.sendRefreshEvent(extra.UserId, []string{MyListKey})
+
+	responseMessage := fmt.Sprintf("Removed given Todo (%s).", issue.Message)
+
+	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+
+	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
+	if err != nil {
+		p.API.LogError(err.Error())
+		p.postCommandResponse(extra, responseMessage)
+		return false, nil
+	}
+
+	responseMessage += listHeaderMessage
+	responseMessage += issuesListToString(issues)
+	p.postCommandResponse(extra, responseMessage)
+
+	return false, nil
+}
+
 func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	const (
 		on  = "on"
@@ -418,7 +475,7 @@ func (p *Plugin) runSettingsCommand(args []string, extra *model.CommandArgs) (bo
 }
 
 func getAutocompleteData() *model.AutocompleteData {
-	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, send, settings, help")
+	todo := model.NewAutocompleteData("todo", "[command]", "Available commands: list, add, pop, remove, send, settings, help")
 
 	add := model.NewAutocompleteData("add", "[message]", "Adds a Todo")
 	add.AddTextArgument("E.g. be awesome", "[message]", "")
@@ -439,6 +496,10 @@ func getAutocompleteData() *model.AutocompleteData {
 
 	pop := model.NewAutocompleteData("pop", "", "Removes the Todo issue at the top of the list")
 	todo.AddCommand(pop)
+
+	remove := model.NewAutocompleteData("remove", "", "Removes the given Todo")
+	remove.AddTextArgument("E.g. be average", "[message]", "")
+	todo.AddCommand(remove)
 
 	send := model.NewAutocompleteData("send", "[user] [todo]", "Sends a Todo to a specified user")
 	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")
