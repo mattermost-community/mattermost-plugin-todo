@@ -678,16 +678,7 @@ func (p *Plugin) getRemoveTodoSuggestions(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
-
-	listInput := r.URL.Query().Get("list")
 	listID := MyListKey
-	switch listInput {
-	case OutFlag:
-		listID = OutListKey
-	case InFlag:
-		listID = InListKey
-	}
-
 	issues, err := p.listManager.GetIssueList(userID, listID)
 	if err != nil {
 		p.API.LogError("Unable to get issues for user err=" + err.Error())
@@ -695,32 +686,6 @@ func (p *Plugin) getRemoveTodoSuggestions(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" && p.getReminderPreference(userID) {
-		var lastReminderAt int64
-		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
-		if err != nil {
-			p.API.LogError("Unable to send reminder err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send reminder", err)
-			return
-		}
-
-		var timezone *time.Location
-		offset, _ := strconv.Atoi(r.Header.Get("X-Timezone-Offset"))
-		timezone = time.FixedZone("local", -60*offset)
-
-		// Post reminder message if it's the next day and been more than an hour since the last post
-		now := model.GetMillis()
-		nt := time.Unix(now/1000, 0).In(timezone)
-		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
-		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
-			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
-			p.trackDailySummary(userID)
-			err = p.saveLastReminderTimeForUser(userID)
-			if err != nil {
-				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
-			}
-		}
-	}
 	out := []model.AutocompleteListItem{}
 	for _, issue := range issues {
 		s := model.AutocompleteListItem{
