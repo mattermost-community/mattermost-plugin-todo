@@ -125,8 +125,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runListCommand
 		case "pop":
 			handler = p.runPopCommand
-		case "delete":
-			handler = p.runDeleteCommand
+		case "remove":
+			handler = p.runRemoveCommand
 		case "send":
 			handler = p.runSendCommand
 		case "settings":
@@ -329,13 +329,13 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 	return false, nil
 }
 
-func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (bool, error) {
+func (p *Plugin) runRemoveCommand(args []string, extra *model.CommandArgs) (bool, error) {
 	if args[0] != "--todo" {
 		p.postCommandResponse(extra, "Invalid command provided")
 		return false, nil
 	}
-	todoID := args[1]
 
+	todoID := args[1]
 	if todoID == "" {
 		p.postCommandResponse(extra, "Empty todoID provided")
 		return false, nil
@@ -489,9 +489,9 @@ func getAutocompleteData() *model.AutocompleteData {
 	pop := model.NewAutocompleteData("pop", "", "Removes the Todo issue at the top of the list")
 	todo.AddCommand(pop)
 
-	delete := model.NewAutocompleteData("delete", "--todo id", "Deletes the given Todo")
-	delete.AddNamedDynamicListArgument("todo", "--todo todoID", getAutocompletePath(AutocompletePathRemoveTodoSuggestions), true)
-	todo.AddCommand(delete)
+	remove := model.NewAutocompleteData("remove", "--todo id", "Removes the given Todo")
+	remove.AddNamedDynamicListArgument("todo", "--todo todoID", getAutocompletePath(AutocompletePathRemoveTodoSuggestions), true)
+	todo.AddCommand(remove)
 
 	send := model.NewAutocompleteData("send", "[user] [todo]", "Sends a Todo to a specified user")
 	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")

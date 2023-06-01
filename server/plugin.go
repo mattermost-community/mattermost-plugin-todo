@@ -128,7 +128,7 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	case "/change_assignment":
 		p.handleChangeAssignment(w, r)
 	case AutocompletePath + AutocompletePathRemoveTodoSuggestions:
-		p.getDeleteTodoSuggestions(w, r)
+		p.getRemoveTodoSuggestions(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -672,7 +672,7 @@ func (p *Plugin) handleErrorWithCode(w http.ResponseWriter, code int, errTitle s
 	_, _ = w.Write(b)
 }
 
-func (p *Plugin) getDeleteTodoSuggestions(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) getRemoveTodoSuggestions(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 	if userID == "" {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
