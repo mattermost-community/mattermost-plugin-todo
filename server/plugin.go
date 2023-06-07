@@ -318,8 +318,8 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 
 	issuesJSON, err := json.Marshal(issues)
 	if err != nil {
-		p.API.LogError("Unable marhsal issues list to json err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal issues list to json", err)
+		p.API.LogError("Unable marshal issues list to json err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marshal issues list to json", err)
 		return
 	}
 
@@ -698,8 +698,8 @@ func (p *Plugin) getRemoveTodoSuggestions(w http.ResponseWriter, r *http.Request
 
 	outJSON, err := json.Marshal(out)
 	if err != nil {
-		p.API.LogError("Unable marhsal issues list to json err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal issues list to json", err)
+		p.API.LogError("Unable marshal issues list to json err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marshal issues list to json", err)
 		return
 	}
 

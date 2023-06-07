@@ -330,7 +330,7 @@ func (p *Plugin) runPopCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runRemoveCommand(args []string, extra *model.CommandArgs) (bool, error) {
-	if args[0] != "--todo" {
+	if len(args) < 2 || args[0] != "--todo" {
 		p.postCommandResponse(extra, "Invalid command provided")
 		return false, nil
 	}
