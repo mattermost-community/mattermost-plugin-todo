@@ -152,6 +152,7 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if telemetryRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -186,6 +187,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	senderName := p.listManager.GetUserName(userID)
 
@@ -473,6 +475,7 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if acceptRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -515,6 +518,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if completeRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -566,6 +570,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if removeRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -623,6 +628,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
+	r.Body.Close()
 
 	if bumpRequest == nil {
 		p.API.LogError("Invalid request body")
