@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -57,6 +59,8 @@ type Plugin struct {
 	// configurationLock synchronizes access to the configuration.
 	configurationLock sync.RWMutex
 
+	router *mux.Router
+
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
@@ -85,6 +89,8 @@ func (p *Plugin) OnActivate() error {
 
 	p.listManager = NewListManager(p.API)
 
+	p.initializeAPI()
+
 	p.telemetryClient, err = telemetry.NewRudderClient()
 	if err != nil {
 		p.API.LogWarn("telemetry client not started", "error", err.Error())
@@ -104,31 +110,56 @@ func (p *Plugin) OnDeactivate() error {
 	return nil
 }
 
+func (p *Plugin) initializeAPI() {
+	p.router = mux.NewRouter()
+	p.router.Use(p.withRecovery)
+
+	p.router.HandleFunc("/add", p.checkAuth(p.handleAdd)).Methods(http.MethodPost)
+	p.router.HandleFunc("/list", p.checkAuth(p.handleList)).Methods(http.MethodGet)
+	p.router.HandleFunc("/remove", p.checkAuth(p.handleRemove)).Methods(http.MethodPost)
+	p.router.HandleFunc("/complete", p.checkAuth(p.handleComplete)).Methods(http.MethodPost)
+	p.router.HandleFunc("/accept", p.checkAuth(p.handleAccept)).Methods(http.MethodPost)
+	p.router.HandleFunc("/bump", p.checkAuth(p.handleBump)).Methods(http.MethodPost)
+	p.router.HandleFunc("/telemetry", p.checkAuth(p.handleTelemetry)).Methods(http.MethodPost)
+	p.router.HandleFunc("/config", p.checkAuth(p.handleConfig)).Methods(http.MethodGet)
+	p.router.HandleFunc("/edit", p.checkAuth(p.handleEdit)).Methods(http.MethodPut)
+	p.router.HandleFunc("/change_assignment", p.checkAuth(p.handleChangeAssignment)).Methods(http.MethodPost)
+
+	// 404 handler
+	p.router.Handle("{anything:.*}", http.NotFoundHandler())
+}
+
 // ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/add":
-		p.handleAdd(w, r)
-	case "/list":
-		p.handleList(w, r)
-	case "/remove":
-		p.handleRemove(w, r)
-	case "/complete":
-		p.handleComplete(w, r)
-	case "/accept":
-		p.handleAccept(w, r)
-	case "/bump":
-		p.handleBump(w, r)
-	case "/telemetry":
-		p.handleTelemetry(w, r)
-	case "/config":
-		p.handleConfig(w, r)
-	case "/edit":
-		p.handleEdit(w, r)
-	case "/change_assignment":
-		p.handleChangeAssignment(w, r)
-	default:
-		http.NotFound(w, r)
+	w.Header().Set("Content-Type", "application/json")
+
+	p.router.ServeHTTP(w, r)
+}
+
+func (p *Plugin) withRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if x := recover(); x != nil {
+				p.API.LogWarn("Recovered from a panic",
+					"url", r.URL.String(),
+					"error", x,
+					"stack", string(debug.Stack()))
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (p *Plugin) checkAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get("Mattermost-User-ID")
+		if userID == "" {
+			http.Error(w, "Not authorized", http.StatusUnauthorized)
+			return
+		}
+
+		handler(w, r)
 	}
 }
 
@@ -139,10 +170,6 @@ type telemetryAPIRequest struct {
 
 func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var telemetryRequest *telemetryAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -152,7 +179,6 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if telemetryRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -174,10 +200,6 @@ type addAPIRequest struct {
 
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var addRequest *addAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -187,7 +209,6 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	senderName := p.listManager.GetUserName(userID)
 
@@ -280,10 +301,6 @@ func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	listInput := r.URL.Query().Get("list")
 	listID := MyListKey
@@ -349,10 +366,6 @@ type editAPIRequest struct {
 
 func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var editRequest *editAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -361,7 +374,6 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if editRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -401,10 +413,6 @@ type changeAssignmentAPIRequest struct {
 
 func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var changeRequest *changeAssignmentAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -413,7 +421,6 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if changeRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -463,10 +470,6 @@ type acceptAPIRequest struct {
 
 func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var acceptRequest *acceptAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -475,7 +478,6 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if acceptRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -506,10 +508,6 @@ type completeAPIRequest struct {
 
 func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var completeRequest *completeAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -518,7 +516,6 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if completeRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -557,10 +554,6 @@ type removeAPIRequest struct {
 
 func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var removeRequest *removeAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -570,7 +563,6 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if removeRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -615,10 +607,6 @@ type bumpAPIRequest struct {
 
 func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	var bumpRequest *bumpAPIRequest
 	decoder := json.NewDecoder(r.Body)
@@ -628,7 +616,6 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
 		return
 	}
-	r.Body.Close()
 
 	if bumpRequest == nil {
 		p.API.LogError("Invalid request body")
@@ -658,12 +645,6 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 // API endpoint to retrieve plugin configurations
 func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
-
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
