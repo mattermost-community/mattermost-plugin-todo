@@ -13,7 +13,7 @@ type telemetryAPIRequest struct {
 }
 
 func GetTelemetryPayloadFromJSON(data io.Reader) (*telemetryAPIRequest, error) {
-	var body *telemetryAPIRequest
+	body := &telemetryAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ type editAPIRequest struct {
 }
 
 func GetEditIssuePayloadFromJSON(data io.Reader) (*editAPIRequest, error) {
-	var body *editAPIRequest
+	body := &editAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ type changeAssignmentAPIRequest struct {
 }
 
 func GetChangeAssignmentPayloadFromJSON(data io.Reader) (*changeAssignmentAPIRequest, error) {
-	var body *changeAssignmentAPIRequest
+	body := &changeAssignmentAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ type acceptAPIRequest struct {
 }
 
 func GetAcceptRequestPayloadFromJSON(data io.Reader) (*acceptAPIRequest, error) {
-	var body *acceptAPIRequest
+	body := &acceptAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ type completeAPIRequest struct {
 }
 
 func GetCompleteIssuePayloadFromJSON(data io.Reader) (*completeAPIRequest, error) {
-	var body *completeAPIRequest
+	body := &completeAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ type removeAPIRequest struct {
 }
 
 func GetRemoveIssuePayloadFromJSON(data io.Reader) (*removeAPIRequest, error) {
-	var body *removeAPIRequest
+	body := &removeAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ type bumpAPIRequest struct {
 }
 
 func GetBumpIssuePayloadFromJSON(data io.Reader) (*bumpAPIRequest, error) {
-	var body *bumpAPIRequest
+	body := &bumpAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}

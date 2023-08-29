@@ -173,7 +173,7 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsTelemetryPayloadValid(telemetryRequest); err != nil {
+	if err = IsTelemetryPayloadValid(telemetryRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate telemetry payload.", err)
 		return
 	}
@@ -193,7 +193,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsAddIssuePayloadValid(addRequest); err != nil {
+	if err = IsAddIssuePayloadValid(addRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate add issue payload.", err)
 		return
 	}
@@ -350,7 +350,7 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsEditIssuePayloadValid(editRequest); err != nil {
+	if err = IsEditIssuePayloadValid(editRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate edit issue payload.", err)
 		return
 	}
@@ -390,7 +390,7 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := IsChangeAssignmentPayloadValid(changeRequest); err != nil {
+	if err = IsChangeAssignmentPayloadValid(changeRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate change request payload.", err)
 		return
 	}
@@ -436,7 +436,7 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsAcceptRequestPayloadValid(acceptRequest); err != nil {
+	if err = IsAcceptRequestPayloadValid(acceptRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate accept request payload.", err)
 		return
 	}
@@ -468,7 +468,7 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsCompleteIssuePayloadValid(completeRequest); err != nil {
+	if err = IsCompleteIssuePayloadValid(completeRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate complete issue request payload.", err)
 		return
 	}
@@ -508,7 +508,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsRemoveIssuePayloadValid(removeRequest); err != nil {
+	if err = IsRemoveIssuePayloadValid(removeRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate remove issue request payload.", err)
 		return
 	}
@@ -554,7 +554,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := IsBumpIssuePayloadValid(bumpRequest); err != nil {
+	if err = IsBumpIssuePayloadValid(bumpRequest); err != nil {
 		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate bump request payload.", err)
 		return
 	}
