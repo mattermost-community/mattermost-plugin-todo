@@ -163,26 +163,18 @@ func (p *Plugin) checkAuth(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-type telemetryAPIRequest struct {
-	Event      string
-	Properties map[string]interface{}
-}
-
 func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var telemetryRequest *telemetryAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&telemetryRequest)
+	telemetryRequest, err := GetTelemetryPayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		p.API.LogError("Unable to get telemetry payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get telemetry payload from JSON.", err)
 		return
 	}
 
-	if telemetryRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsTelemetryPayloadValid(telemetryRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate telemetry payload.", err)
 		return
 	}
 
@@ -191,32 +183,22 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type addAPIRequest struct {
-	Message     string `json:"message"`
-	Description string `json:"description"`
-	SendTo      string `json:"send_to"`
-	PostID      string `json:"post_id"`
-}
-
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var addRequest *addAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&addRequest)
+	addRequest, err := GetAddIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		p.API.LogError("Unable to get add issue payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get add issue payload from JSON.", err)
+		return
+	}
+
+	if err := IsAddIssuePayloadValid(addRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate add issue payload.", err)
 		return
 	}
 
 	senderName := p.listManager.GetUserName(userID)
-
-	if addRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
-		return
-	}
 
 	if addRequest.SendTo == "" {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
@@ -358,26 +340,18 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type editAPIRequest struct {
-	ID          string `json:"id"`
-	Message     string `json:"message"`
-	Description string `json:"description"`
-}
-
 func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var editRequest *editAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&editRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	editRequest, err := GetEditIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get edit issue payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get edit issue payload from JSON.", err)
 		return
 	}
 
-	if editRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsEditIssuePayloadValid(editRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate edit issue payload.", err)
 		return
 	}
 
@@ -406,30 +380,18 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type changeAssignmentAPIRequest struct {
-	ID     string `json:"id"`
-	SendTo string `json:"send_to"`
-}
-
 func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var changeRequest *changeAssignmentAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&changeRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	changeRequest, err := GetChangeAssignmentPayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get change request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get change request from JSON.", err)
 		return
 	}
 
-	if changeRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
-		return
-	}
-
-	if changeRequest.SendTo == "" {
-		http.Error(w, "No user specified", http.StatusBadRequest)
+	if err := IsChangeAssignmentPayloadValid(changeRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate change request payload.", err)
 		return
 	}
 
@@ -464,24 +426,18 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-type acceptAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var acceptRequest *acceptAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&acceptRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	acceptRequest, err := GetAcceptRequestPayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get accept request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get accept request from JSON.", err)
 		return
 	}
 
-	if acceptRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsAcceptRequestPayloadValid(acceptRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate accept request payload.", err)
 		return
 	}
 
@@ -502,24 +458,18 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(sender, message)
 }
 
-type completeAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var completeRequest *completeAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&completeRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	completeRequest, err := GetCompleteIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get complete issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get complete issue request from JSON.", err)
 		return
 	}
 
-	if completeRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsCompleteIssuePayloadValid(completeRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate complete issue request payload.", err)
 		return
 	}
 
@@ -548,25 +498,18 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(foreignID, message)
 }
 
-type removeAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var removeRequest *removeAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&removeRequest)
+	removeRequest, err := GetRemoveIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		p.API.LogError("Unable to get remove issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get remove issue request from JSON.", err)
 		return
 	}
 
-	if removeRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsRemoveIssuePayloadValid(removeRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate remove issue request payload.", err)
 		return
 	}
 
@@ -601,25 +544,18 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(foreignID, message)
 }
 
-type bumpAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	var bumpRequest *bumpAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&bumpRequest)
+	bumpRequest, err := GetBumpIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+		p.API.LogError("Unable to get bump issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get bump issue request from JSON.", err)
 		return
 	}
 
-	if bumpRequest == nil {
-		p.API.LogError("Invalid request body")
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", errors.New("invalid request body"))
+	if err := IsBumpIssuePayloadValid(bumpRequest); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate bump request payload.", err)
 		return
 	}
 
