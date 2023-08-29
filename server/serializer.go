@@ -7,13 +7,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type telemetryAPIRequest struct {
+type TelemetryAPIRequest struct {
 	Event      string
 	Properties map[string]interface{}
 }
 
-func GetTelemetryPayloadFromJSON(data io.Reader) (*telemetryAPIRequest, error) {
-	body := &telemetryAPIRequest{}
+func GetTelemetryPayloadFromJSON(data io.Reader) (*TelemetryAPIRequest, error) {
+	body := &TelemetryAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -21,7 +21,7 @@ func GetTelemetryPayloadFromJSON(data io.Reader) (*telemetryAPIRequest, error) {
 	return body, nil
 }
 
-func IsTelemetryPayloadValid(t *telemetryAPIRequest) error {
+func IsTelemetryPayloadValid(t *TelemetryAPIRequest) error {
 	if t == nil {
 		return errors.New("invalid request body")
 	}
@@ -33,15 +33,15 @@ func IsTelemetryPayloadValid(t *telemetryAPIRequest) error {
 	return nil
 }
 
-type addAPIRequest struct {
+type AddAPIRequest struct {
 	Message     string `json:"message"`
 	Description string `json:"description"`
 	SendTo      string `json:"send_to"`
 	PostID      string `json:"post_id"`
 }
 
-func GetAddIssuePayloadFromJSON(data io.Reader) (*addAPIRequest, error) {
-	body := &addAPIRequest{}
+func GetAddIssuePayloadFromJSON(data io.Reader) (*AddAPIRequest, error) {
+	body := &AddAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func GetAddIssuePayloadFromJSON(data io.Reader) (*addAPIRequest, error) {
 	return body, nil
 }
 
-func IsAddIssuePayloadValid(a *addAPIRequest) error {
+func IsAddIssuePayloadValid(a *AddAPIRequest) error {
 	if a == nil {
 		return errors.New("invalid request body")
 	}
@@ -61,14 +61,14 @@ func IsAddIssuePayloadValid(a *addAPIRequest) error {
 	return nil
 }
 
-type editAPIRequest struct {
+type EditAPIRequest struct {
 	ID          string `json:"id"`
 	Message     string `json:"message"`
 	Description string `json:"description"`
 }
 
-func GetEditIssuePayloadFromJSON(data io.Reader) (*editAPIRequest, error) {
-	body := &editAPIRequest{}
+func GetEditIssuePayloadFromJSON(data io.Reader) (*EditAPIRequest, error) {
+	body := &EditAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func GetEditIssuePayloadFromJSON(data io.Reader) (*editAPIRequest, error) {
 	return body, nil
 }
 
-func IsEditIssuePayloadValid(e *editAPIRequest) error {
+func IsEditIssuePayloadValid(e *EditAPIRequest) error {
 	if e == nil {
 		return errors.New("invalid request body")
 	}
@@ -88,13 +88,13 @@ func IsEditIssuePayloadValid(e *editAPIRequest) error {
 	return nil
 }
 
-type changeAssignmentAPIRequest struct {
+type ChangeAssignmentAPIRequest struct {
 	ID     string `json:"id"`
 	SendTo string `json:"send_to"`
 }
 
-func GetChangeAssignmentPayloadFromJSON(data io.Reader) (*changeAssignmentAPIRequest, error) {
-	body := &changeAssignmentAPIRequest{}
+func GetChangeAssignmentPayloadFromJSON(data io.Reader) (*ChangeAssignmentAPIRequest, error) {
+	body := &ChangeAssignmentAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func GetChangeAssignmentPayloadFromJSON(data io.Reader) (*changeAssignmentAPIReq
 	return body, nil
 }
 
-func IsChangeAssignmentPayloadValid(c *changeAssignmentAPIRequest) error {
+func IsChangeAssignmentPayloadValid(c *ChangeAssignmentAPIRequest) error {
 	if c == nil {
 		return errors.New("invalid request body")
 	}
@@ -118,12 +118,12 @@ func IsChangeAssignmentPayloadValid(c *changeAssignmentAPIRequest) error {
 	return nil
 }
 
-type acceptAPIRequest struct {
+type AcceptAPIRequest struct {
 	ID string `json:"id"`
 }
 
-func GetAcceptRequestPayloadFromJSON(data io.Reader) (*acceptAPIRequest, error) {
-	body := &acceptAPIRequest{}
+func GetAcceptRequestPayloadFromJSON(data io.Reader) (*AcceptAPIRequest, error) {
+	body := &AcceptAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func GetAcceptRequestPayloadFromJSON(data io.Reader) (*acceptAPIRequest, error) 
 	return body, nil
 }
 
-func IsAcceptRequestPayloadValid(a *acceptAPIRequest) error {
+func IsAcceptRequestPayloadValid(a *AcceptAPIRequest) error {
 	if a == nil {
 		return errors.New("invalid request body")
 	}
@@ -143,12 +143,12 @@ func IsAcceptRequestPayloadValid(a *acceptAPIRequest) error {
 	return nil
 }
 
-type completeAPIRequest struct {
+type CompleteAPIRequest struct {
 	ID string `json:"id"`
 }
 
-func GetCompleteIssuePayloadFromJSON(data io.Reader) (*completeAPIRequest, error) {
-	body := &completeAPIRequest{}
+func GetCompleteIssuePayloadFromJSON(data io.Reader) (*CompleteAPIRequest, error) {
+	body := &CompleteAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func GetCompleteIssuePayloadFromJSON(data io.Reader) (*completeAPIRequest, error
 	return body, nil
 }
 
-func IsCompleteIssuePayloadValid(c *completeAPIRequest) error {
+func IsCompleteIssuePayloadValid(c *CompleteAPIRequest) error {
 	if c == nil {
 		return errors.New("invalid request body")
 	}
@@ -168,12 +168,12 @@ func IsCompleteIssuePayloadValid(c *completeAPIRequest) error {
 	return nil
 }
 
-type removeAPIRequest struct {
+type RemoveAPIRequest struct {
 	ID string `json:"id"`
 }
 
-func GetRemoveIssuePayloadFromJSON(data io.Reader) (*removeAPIRequest, error) {
-	body := &removeAPIRequest{}
+func GetRemoveIssuePayloadFromJSON(data io.Reader) (*RemoveAPIRequest, error) {
+	body := &RemoveAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func GetRemoveIssuePayloadFromJSON(data io.Reader) (*removeAPIRequest, error) {
 	return body, nil
 }
 
-func IsRemoveIssuePayloadValid(r *removeAPIRequest) error {
+func IsRemoveIssuePayloadValid(r *RemoveAPIRequest) error {
 	if r == nil {
 		return errors.New("invalid request body")
 	}
@@ -193,12 +193,12 @@ func IsRemoveIssuePayloadValid(r *removeAPIRequest) error {
 	return nil
 }
 
-type bumpAPIRequest struct {
+type BumpAPIRequest struct {
 	ID string `json:"id"`
 }
 
-func GetBumpIssuePayloadFromJSON(data io.Reader) (*bumpAPIRequest, error) {
-	body := &bumpAPIRequest{}
+func GetBumpIssuePayloadFromJSON(data io.Reader) (*BumpAPIRequest, error) {
+	body := &BumpAPIRequest{}
 	if err := json.NewDecoder(data).Decode(&body); err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func GetBumpIssuePayloadFromJSON(data io.Reader) (*bumpAPIRequest, error) {
 	return body, nil
 }
 
-func IsBumpIssuePayloadValid(b *bumpAPIRequest) error {
+func IsBumpIssuePayloadValid(b *BumpAPIRequest) error {
 	if b == nil {
 		return errors.New("invalid request body")
 	}
