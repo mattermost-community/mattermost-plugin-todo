@@ -21,7 +21,7 @@ func GetTelemetryPayloadFromJSON(data io.Reader) (*TelemetryAPIRequest, error) {
 	return body, nil
 }
 
-func IsTelemetryPayloadValid(t *TelemetryAPIRequest) error {
+func (t *TelemetryAPIRequest) IsValid() error {
 	if t == nil {
 		return errors.New("invalid request body")
 	}
@@ -49,7 +49,7 @@ func GetAddIssuePayloadFromJSON(data io.Reader) (*AddAPIRequest, error) {
 	return body, nil
 }
 
-func IsAddIssuePayloadValid(a *AddAPIRequest) error {
+func (a *AddAPIRequest) IsValid() error {
 	if a == nil {
 		return errors.New("invalid request body")
 	}
@@ -76,7 +76,7 @@ func GetEditIssuePayloadFromJSON(data io.Reader) (*EditAPIRequest, error) {
 	return body, nil
 }
 
-func IsEditIssuePayloadValid(e *EditAPIRequest) error {
+func (e *EditAPIRequest) IsValid() error {
 	if e == nil {
 		return errors.New("invalid request body")
 	}
@@ -102,7 +102,7 @@ func GetChangeAssignmentPayloadFromJSON(data io.Reader) (*ChangeAssignmentAPIReq
 	return body, nil
 }
 
-func IsChangeAssignmentPayloadValid(c *ChangeAssignmentAPIRequest) error {
+func (c *ChangeAssignmentAPIRequest) IsValid() error {
 	if c == nil {
 		return errors.New("invalid request body")
 	}
@@ -131,7 +131,7 @@ func GetAcceptRequestPayloadFromJSON(data io.Reader) (*AcceptAPIRequest, error) 
 	return body, nil
 }
 
-func IsAcceptRequestPayloadValid(a *AcceptAPIRequest) error {
+func (a *AcceptAPIRequest) IsValid() error {
 	if a == nil {
 		return errors.New("invalid request body")
 	}
@@ -156,7 +156,7 @@ func GetCompleteIssuePayloadFromJSON(data io.Reader) (*CompleteAPIRequest, error
 	return body, nil
 }
 
-func IsCompleteIssuePayloadValid(c *CompleteAPIRequest) error {
+func (c *CompleteAPIRequest) IsValid() error {
 	if c == nil {
 		return errors.New("invalid request body")
 	}
@@ -181,7 +181,7 @@ func GetRemoveIssuePayloadFromJSON(data io.Reader) (*RemoveAPIRequest, error) {
 	return body, nil
 }
 
-func IsRemoveIssuePayloadValid(r *RemoveAPIRequest) error {
+func (r *RemoveAPIRequest) IsValid() error {
 	if r == nil {
 		return errors.New("invalid request body")
 	}
@@ -206,7 +206,7 @@ func GetBumpIssuePayloadFromJSON(data io.Reader) (*BumpAPIRequest, error) {
 	return body, nil
 }
 
-func IsBumpIssuePayloadValid(b *BumpAPIRequest) error {
+func (b *BumpAPIRequest) IsValid() error {
 	if b == nil {
 		return errors.New("invalid request body")
 	}
