@@ -19,7 +19,7 @@ const MenuWrapper = React.memo((props: Props) => {
     const [open, setOpen] = useState(Boolean(props.isOpen));
 
     if (!Array.isArray(props.children) || props.children.length !== 2) {
-        throw new Error('MenuWrapper needs exactly 2 children');
+        throw new Error('TodoMenuWrapper needs exactly 2 children');
     }
 
     const close = (): void => {
@@ -76,7 +76,7 @@ const MenuWrapper = React.memo((props: Props) => {
     }, []);
 
     const {children} = props;
-    let className = 'MenuWrapper';
+    let className = 'TodoMenuWrapper';
     if (props.disabled) {
         className += ' disabled';
     }

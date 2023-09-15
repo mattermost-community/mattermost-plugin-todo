@@ -1,10 +1,10 @@
 .status-dropdown-menu {
-    > .Menu {
+    > .TodoMenu {
         position: inherit;
     }
 }
 
-.Menu {
+.TodoMenu {
     display: flex;
     flex-direction: column;
     position: absolute;
@@ -125,8 +125,8 @@
     }
 }
 
-.Menu,
-.SubMenuOption .SubMenu {
+.TodoMenu,
+.SubTodoMenuOption .SubTodoMenu {
     @media screen and (max-width: 430px) {
         position: fixed;
         top: 0;
