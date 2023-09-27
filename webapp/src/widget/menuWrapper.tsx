@@ -19,7 +19,7 @@ const MenuWrapper = React.memo((props: Props) => {
     const [open, setOpen] = useState(Boolean(props.isOpen));
 
     if (!Array.isArray(props.children) || props.children.length !== 2) {
-        throw new Error('TodoMenuWrapper needs exactly 2 children');
+        throw new Error('MenuWrapper needs exactly 2 children');
     }
 
     const close = (): void => {
