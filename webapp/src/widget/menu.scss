@@ -125,8 +125,7 @@
     }
 }
 
-.TodoMenu,
-.SubTodoMenuOption .SubTodoMenu {
+.TodoMenu {
     @media screen and (max-width: 430px) {
         position: fixed;
         top: 0;
