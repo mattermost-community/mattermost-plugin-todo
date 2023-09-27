@@ -105,7 +105,7 @@ func (p *Plugin) OnDeactivate() error {
 }
 
 // ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/add":
 		p.handleAdd(w, r)
