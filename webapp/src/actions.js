@@ -128,7 +128,7 @@ export const add = (message, description, sendTo, postID) => async (dispatch, ge
 
 export const editIssue = (postID, message, description) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
-        method: 'post',
+        method: 'put',
         body: JSON.stringify({id: postID, message, description}),
     }));
 };

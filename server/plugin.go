@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -57,6 +59,8 @@ type Plugin struct {
 	// configurationLock synchronizes access to the configuration.
 	configurationLock sync.RWMutex
 
+	router *mux.Router
+
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
@@ -85,6 +89,8 @@ func (p *Plugin) OnActivate() error {
 
 	p.listManager = NewListManager(p.API)
 
+	p.initializeAPI()
+
 	p.telemetryClient, err = telemetry.NewRudderClient()
 	if err != nil {
 		p.API.LogWarn("telemetry client not started", "error", err.Error())
@@ -104,52 +110,71 @@ func (p *Plugin) OnDeactivate() error {
 	return nil
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/add":
-		p.handleAdd(w, r)
-	case "/list":
-		p.handleList(w, r)
-	case "/remove":
-		p.handleRemove(w, r)
-	case "/complete":
-		p.handleComplete(w, r)
-	case "/accept":
-		p.handleAccept(w, r)
-	case "/bump":
-		p.handleBump(w, r)
-	case "/telemetry":
-		p.handleTelemetry(w, r)
-	case "/config":
-		p.handleConfig(w, r)
-	case "/edit":
-		p.handleEdit(w, r)
-	case "/change_assignment":
-		p.handleChangeAssignment(w, r)
-	default:
-		http.NotFound(w, r)
-	}
+func (p *Plugin) initializeAPI() {
+	p.router = mux.NewRouter()
+	p.router.Use(p.withRecovery)
+
+	p.router.HandleFunc("/add", p.checkAuth(p.handleAdd)).Methods(http.MethodPost)
+	p.router.HandleFunc("/list", p.checkAuth(p.handleList)).Methods(http.MethodGet)
+	p.router.HandleFunc("/remove", p.checkAuth(p.handleRemove)).Methods(http.MethodPost)
+	p.router.HandleFunc("/complete", p.checkAuth(p.handleComplete)).Methods(http.MethodPost)
+	p.router.HandleFunc("/accept", p.checkAuth(p.handleAccept)).Methods(http.MethodPost)
+	p.router.HandleFunc("/bump", p.checkAuth(p.handleBump)).Methods(http.MethodPost)
+	p.router.HandleFunc("/telemetry", p.checkAuth(p.handleTelemetry)).Methods(http.MethodPost)
+	p.router.HandleFunc("/config", p.checkAuth(p.handleConfig)).Methods(http.MethodGet)
+	p.router.HandleFunc("/edit", p.checkAuth(p.handleEdit)).Methods(http.MethodPut)
+	p.router.HandleFunc("/change_assignment", p.checkAuth(p.handleChangeAssignment)).Methods(http.MethodPost)
+
+	// 404 handler
+	p.router.Handle("{anything:.*}", http.NotFoundHandler())
 }
 
-type telemetryAPIRequest struct {
-	Event      string
-	Properties map[string]interface{}
+// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
+func (p *Plugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	p.router.ServeHTTP(w, r)
+}
+
+func (p *Plugin) withRecovery(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if x := recover(); x != nil {
+				p.API.LogWarn("Recovered from a panic",
+					"url", r.URL.String(),
+					"error", x,
+					"stack", string(debug.Stack()))
+			}
+		}()
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (p *Plugin) checkAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get("Mattermost-User-ID")
+		if userID == "" {
+			http.Error(w, "Not authorized", http.StatusUnauthorized)
+			return
+		}
+
+		handler(w, r)
+	}
 }
 
 func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	telemetryRequest, err := GetTelemetryPayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get telemetry payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get telemetry payload from JSON.", err)
 		return
 	}
 
-	var telemetryRequest *telemetryAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&telemetryRequest)
-	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = telemetryRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate telemetry payload.", err)
 		return
 	}
 
@@ -158,26 +183,18 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type addAPIRequest struct {
-	Message     string `json:"message"`
-	Description string `json:"description"`
-	SendTo      string `json:"send_to"`
-	PostID      string `json:"post_id"`
-}
-
 func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	addRequest, err := GetAddIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get add issue payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get add issue payload from JSON.", err)
 		return
 	}
 
-	var addRequest *addAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&addRequest)
-	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = addRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate add issue payload.", err)
 		return
 	}
 
@@ -266,10 +283,6 @@ func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
 
 func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
 
 	listInput := r.URL.Query().Get("list")
 	listID := MyListKey
@@ -327,27 +340,20 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type editAPIRequest struct {
-	ID          string `json:"id"`
-	Message     string `json:"message"`
-	Description string `json:"description"`
-}
-
 func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	editRequest, err := GetEditIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get edit issue payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get edit issue payload from JSON.", err)
 		return
 	}
 
-	var editRequest *editAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&editRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = editRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate edit issue payload.", err)
 		return
 	}
-	r.Body.Close()
 
 	foreignUserID, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
 	if err != nil {
@@ -374,29 +380,18 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type changeAssignmentAPIRequest struct {
-	ID     string `json:"id"`
-	SendTo string `json:"send_to"`
-}
-
 func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	changeRequest, err := GetChangeAssignmentPayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get change request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get change request from JSON.", err)
 		return
 	}
 
-	var changeRequest *changeAssignmentAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&changeRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
-		return
-	}
-	r.Body.Close()
-
-	if changeRequest.SendTo == "" {
-		http.Error(w, "No user specified", http.StatusBadRequest)
+	if err = changeRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate change request payload.", err)
 		return
 	}
 
@@ -431,22 +426,18 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
-type acceptAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	acceptRequest, err := GetAcceptRequestPayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get accept request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get accept request from JSON.", err)
 		return
 	}
 
-	var acceptRequest *acceptAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&acceptRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = acceptRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate accept request payload.", err)
 		return
 	}
 
@@ -467,22 +458,18 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(sender, message)
 }
 
-type completeAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	completeRequest, err := GetCompleteIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get complete issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get complete issue request from JSON.", err)
 		return
 	}
 
-	var completeRequest *completeAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&completeRequest); err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = completeRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate complete issue request payload.", err)
 		return
 	}
 
@@ -511,23 +498,18 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(foreignID, message)
 }
 
-type removeAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	removeRequest, err := GetRemoveIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get remove issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get remove issue request from JSON.", err)
 		return
 	}
 
-	var removeRequest *removeAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&removeRequest)
-	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = removeRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate remove issue request payload.", err)
 		return
 	}
 
@@ -562,23 +544,18 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	p.PostBotDM(foreignID, message)
 }
 
-type bumpAPIRequest struct {
-	ID string `json:"id"`
-}
-
 func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
+
+	bumpRequest, err := GetBumpIssuePayloadFromJSON(r.Body)
+	if err != nil {
+		p.API.LogError("Unable to get bump issue request payload from JSON err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get bump issue request from JSON.", err)
 		return
 	}
 
-	var bumpRequest *bumpAPIRequest
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&bumpRequest)
-	if err != nil {
-		p.API.LogError("Unable to decode JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to decode JSON", err)
+	if err = bumpRequest.IsValid(); err != nil {
+		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to validate bump request payload.", err)
 		return
 	}
 
@@ -604,12 +581,6 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 // API endpoint to retrieve plugin configurations
 func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("Mattermost-User-ID")
-	if userID == "" {
-		http.Error(w, "Not authorized", http.StatusUnauthorized)
-		return
-	}
-
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
