@@ -1,6 +1,5 @@
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {id as pluginId} from './manifest';
+import { getConfig } from 'mattermost-redux/selectors/entities/general';
+import { id as pluginId } from './manifest';
 
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
@@ -14,14 +13,14 @@ export const getEditingTodo = (state) => getPluginState(state).editingTodo;
 export const getTodoToast = (state) => getPluginState(state).todoToast;
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 export const getMessage = (state) => {
-    const postID = getPluginState(state).postID;
-    if (!postID) {
-        return '';
-    }
-    const post = state.entities.posts.posts[postID];
-    if (!post) {
-        return '';
-    }
+   const postID = getPluginState(state).postID; 
+if (!postID) {
+   return '';
+}
+const post = state.entities.posts.posts[postID];
+if (!post) {
+   return ''; 
+}
     return post.message;
 };
 export const getIssues = (state) => getPluginState(state).issues;
