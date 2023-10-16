@@ -1,4 +1,5 @@
 import {Client4} from 'mattermost-redux/client';
+import * as TeamSelector from 'mattermost-redux/selectors/entities/teams';
 import * as UserActions from 'mattermost-redux/actions/users';
 
 import {
@@ -202,9 +203,10 @@ export const bump = (id) => async (dispatch, getState) => {
 };
 
 export function autocompleteUsers(username) {
-    return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.autocompleteUsers(username));
-        return data.users;
+    return async (doDispatch, getState) => {
+        const team = TeamSelector.getCurrentTeam(getState());
+        const {data} = await doDispatch(UserActions.autocompleteUsers(username, team.id));
+        return data.users.filter((user) => user.delete_at === 0);
     };
 }
 
