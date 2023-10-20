@@ -3,6 +3,7 @@
 
 import React, {CSSProperties} from 'react';
 
+import {components} from 'react-select';
 import AsyncSelect from 'react-select/async';
 import {OptionsType, ValueType, Theme as ComponentTheme} from 'react-select/src/types';
 import {Props as ComponentProps, StylesConfig} from 'react-select/src/styles';
@@ -16,7 +17,6 @@ import {FormatOptionLabelContext} from 'react-select/src/Select';
 import {getColorStyles, getDescription, getProfilePicture} from '../../utils';
 
 import './autocomplete_selector.scss';
-import {components} from 'react-select';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -30,7 +30,6 @@ type Props = {
     onSelected?: (value: ValueType<UserProfile>) => void,
     theme: Theme,
 }
-
 
 const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     const mmColors = getColorStyles(mattermostTheme);
@@ -53,7 +52,7 @@ const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     return [styles, compTheme];
 };
 
-const renderOption = (option: UserProfile, {context} : {context: FormatOptionLabelContext}) => {
+const renderOption = (option: UserProfile, {context}: {context: FormatOptionLabelContext}) => {
     const {username} = option;
     const name = `@${username}`;
     const description = getDescription(option);
@@ -119,7 +118,11 @@ export default function AutocompleteSelector(props: Props) {
     }
 
     //@ts-ignore
-    const Input = (props) => <components.Input {...props} maxLength={22} />;
+    const Input = (inputProps) => (
+        <components.Input
+            {...inputProps}
+            maxLength={22}
+        />);
 
     return (
         <div
