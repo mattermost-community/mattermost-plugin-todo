@@ -16,6 +16,7 @@ import {FormatOptionLabelContext} from 'react-select/src/Select';
 import {getColorStyles, getDescription, getProfilePicture} from '../../utils';
 
 import './autocomplete_selector.scss';
+import {components} from 'react-select';
 
 type Props = {
     loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
@@ -29,6 +30,7 @@ type Props = {
     onSelected?: (value: ValueType<UserProfile>) => void,
     theme: Theme,
 }
+
 
 const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     const mmColors = getColorStyles(mattermostTheme);
@@ -116,6 +118,9 @@ export default function AutocompleteSelector(props: Props) {
         );
     }
 
+    //@ts-ignore
+    const Input = (props) => <components.Input {...props} maxLength={22} />;
+
     return (
         <div
             data-testid='autoCompleteSelector'
@@ -124,6 +129,7 @@ export default function AutocompleteSelector(props: Props) {
             {labelContent}
             <div className={inputClassName}>
                 <AsyncSelect
+                    components={{Input}}
                     autoFocus={Boolean(props.autoFocus)}
                     cacheOptions={true}
                     loadOptions={loadOptions}
