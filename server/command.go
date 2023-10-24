@@ -256,32 +256,35 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 }
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, error) {
-	listID := MyListKey
 	responseMessage := "Todo List:\n\n"
 
 	if len(args) > 0 {
 		switch args[0] {
 		case MyFlag:
 		case InFlag:
-			listID = InListKey
-			responseMessage = "Received Todo list:\n\n"
+			inIssues, err := p.listManager.GetIssueList(extra.UserId, InListKey)
+			if err != nil {
+				return false, err
+			}
+			myIssues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
+			if err != nil {
+				return false, err
+			}
+			responseMessage = "Received Todo list:\n\n" + issuesListToString(inIssues) + "\n\nTodo List:\n\n" + issuesListToString(myIssues)
 		case OutFlag:
-			listID = OutListKey
-			responseMessage = "Sent Todo list:\n\n"
+			outIssues, err := p.listManager.GetIssueList(extra.UserId, OutListKey)
+			if err != nil {
+				return false, err
+			}
+			responseMessage = "Sent Todo list:\n\n" + issuesListToString(outIssues)
 		default:
 			p.postCommandResponse(extra, getHelp())
 			return true, nil
 		}
 	}
 
-	issues, err := p.listManager.GetIssueList(extra.UserId, listID)
-	if err != nil {
-		return false, err
-	}
-
 	p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
 
-	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
 
 	return false, nil
