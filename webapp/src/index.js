@@ -66,11 +66,15 @@ export default class Plugin {
             return frontendListName;
         };
 
-        const refresh = ({data: {lists}}) => lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+        const refresh = ({data: {lists}}) => {
+            lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+            store.dispatch(count());
+        };
         const refreshAll = () => {
             store.dispatch(list(false));
             store.dispatch(list(false, 'in'));
             store.dispatch(list(false, 'out'));
+            store.dispatch(count());
         };
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
