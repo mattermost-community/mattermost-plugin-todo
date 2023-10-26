@@ -4,15 +4,13 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {list, updateRhsState, telemetry} from '../../actions';
+import {count, updateRhsState, telemetry} from '../../actions';
 
 import SidebarButtons from './sidebar_buttons.jsx';
 
 function mapStateToProps(state) {
     return {
-        issues: state['plugins-com.mattermost.plugin-todo'].issues,
-        inIssues: state['plugins-com.mattermost.plugin-todo'].inIssues,
-        outIssues: state['plugins-com.mattermost.plugin-todo'].outIssues,
+        countIssues: state['plugins-com.mattermost.plugin-todo'].countIssues,
         showRHSPlugin: state['plugins-com.mattermost.plugin-todo'].rhsPluginAction,
     };
 }
@@ -20,7 +18,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            list,
+            count,
             updateRhsState,
             telemetry,
         }, dispatch),

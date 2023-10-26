@@ -20,6 +20,7 @@ import {
     CLOSE_ADD_CARD,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
+    GET_COUNT_ISSUES,
 } from './action_types';
 
 import {getPluginServerRoute} from './selectors';
@@ -168,6 +169,26 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
 
     dispatch({
         type: actionType,
+        data,
+    });
+
+    return {data};
+};
+
+export const count = () => async (dispatch, getState) => {
+    let resp;
+    let data;
+    try {
+        resp = await fetch(getPluginServerRoute(getState()) + '/count', Client4.getOptions({
+            method: 'get',
+        }));
+        data = await resp.json();
+    } catch (error) {
+        return {error};
+    }
+
+    dispatch({
+        type: GET_COUNT_ISSUES,
         data,
     });
 

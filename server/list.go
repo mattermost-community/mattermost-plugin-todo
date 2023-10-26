@@ -43,6 +43,9 @@ type ListStore interface {
 
 	// GetList returns the list of IssueRef in listID for userID
 	GetList(userID, listID string) ([]*IssueRef, error)
+
+	// CountIssues returns all counter issues
+	CountIssues(userID string) (*CountIssue, error)
 }
 
 type listManager struct {
@@ -133,6 +136,10 @@ func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, err
 	}
 
 	return extendedIssues, nil
+}
+
+func (l *listManager) CountIssues(userID string) (countIssues *CountIssue, err error) {
+	return l.store.CountIssues(userID)
 }
 
 func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error) {

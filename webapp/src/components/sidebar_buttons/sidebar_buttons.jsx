@@ -13,11 +13,9 @@ export default class SidebarButtons extends React.PureComponent {
         theme: PropTypes.object.isRequired,
         isTeamSidebar: PropTypes.bool,
         showRHSPlugin: PropTypes.func.isRequired,
-        issues: PropTypes.arrayOf(PropTypes.object),
-        inIssues: PropTypes.arrayOf(PropTypes.object),
-        outIssues: PropTypes.arrayOf(PropTypes.object),
+        countIssues: PropTypes.object,
         actions: PropTypes.shape({
-            list: PropTypes.func.isRequired,
+            count: PropTypes.func.isRequired,
             updateRhsState: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
         }).isRequired,
@@ -49,9 +47,7 @@ export default class SidebarButtons extends React.PureComponent {
             container = style.containerTeam;
         }
 
-        const issues = this.props.issues || [];
-        const inIssues = this.props.inIssues || [];
-        const outIssues = this.props.outIssues || [];
+        const countIssues = this.props.countIssues;
 
         return (
             <div style={container}>
@@ -68,7 +64,7 @@ export default class SidebarButtons extends React.PureComponent {
                         }}
                     >
                         <i className='icon icon-check'/>
-                        {' ' + issues.length}
+                        {' ' + countIssues.my}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -84,7 +80,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-down'/>
-                        {' ' + inIssues.length}
+                        {' ' + countIssues.in}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -100,7 +96,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-up'/>
-                        {' ' + outIssues.length}
+                        {' ' + countIssues.out}
                     </a>
                 </OverlayTrigger>
             </div>

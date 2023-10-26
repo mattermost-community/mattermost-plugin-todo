@@ -12,6 +12,7 @@ import {
     GET_ISSUES,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
+    GET_COUNT_ISSUES,
     GET_IN_ISSUES,
     GET_OUT_ISSUES,
     RECEIVED_SHOW_RHS_ACTION,
@@ -113,6 +114,15 @@ const outIssues = (state = [], action) => {
     }
 };
 
+const countIssues = (state = {}, action) => {
+    switch (action.type) {
+    case GET_COUNT_ISSUES:
+        return action.data;
+    default:
+        return state;
+    }
+};
+
 function rhsPluginAction(state = null, action) {
     switch (action.type) {
     case RECEIVED_SHOW_RHS_ACTION:
@@ -159,6 +169,7 @@ export default combineReducers({
     issues,
     inIssues,
     outIssues,
+    countIssues,
     rhsState,
     rhsPluginAction,
     isRhsVisible,

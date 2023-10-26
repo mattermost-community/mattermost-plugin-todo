@@ -6,7 +6,7 @@ import Root from './components/root';
 import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar} from './actions';
+import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, count} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -83,9 +83,7 @@ export default class Plugin {
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refreshAll);
 
-        store.dispatch(list(true));
-        store.dispatch(list(false, 'in'));
-        store.dispatch(list(false, 'out'));
+        store.dispatch(count());
 
         // register websocket event to track config changes
         const configUpdate = ({data}) => {

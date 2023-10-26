@@ -24,6 +24,13 @@ type ExtendedIssue struct {
 	ForeignPosition int    `json:"position"`
 }
 
+// CountIssue for all counter issues
+type CountIssue struct {
+	In  int `json:"in"`
+	My  int `json:"my"`
+	Out int `json:"out"`
+}
+
 func newIssue(message string, description, postID string) *Issue {
 	return &Issue{
 		ID:          model.NewId(),
