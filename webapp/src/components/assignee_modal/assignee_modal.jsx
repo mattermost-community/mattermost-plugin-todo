@@ -45,6 +45,7 @@ const AssigneeModal = (
         } else {
             removeAssignee();
         }
+        setAssignee(null);
         close();
     }, [close, changeAssignee, removeAssignee, getAssignee, assignee, removeEditingTodo, editingTodo]);
 
