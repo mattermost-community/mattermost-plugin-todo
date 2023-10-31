@@ -238,10 +238,9 @@ export function setHideTeamSidebar(payload) {
 }
 
 export const updateConfig = () => async (dispatch, getState) => {
-    let resp;
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/config', Client4.getOptions({
+        const resp = await fetch(getPluginServerRoute(getState()) + '/config', Client4.getOptions({
             method: 'get',
         }));
         data = await resp.json();
