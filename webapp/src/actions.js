@@ -175,11 +175,10 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
     return {data};
 };
 
-export const count = () => async (dispatch, getState) => {
-    let resp;
+export const fetchIssueCounts = () => async (dispatch, getState) => {
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/count', Client4.getOptions({
+        const resp = await fetch(getPluginServerRoute(getState()) + '/count', Client4.getOptions({
             method: 'get',
         }));
         data = await resp.json();

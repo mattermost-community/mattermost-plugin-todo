@@ -15,7 +15,6 @@ export default class SidebarButtons extends React.PureComponent {
         showRHSPlugin: PropTypes.func.isRequired,
         countIssues: PropTypes.object,
         actions: PropTypes.shape({
-            count: PropTypes.func.isRequired,
             updateRhsState: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
         }).isRequired,

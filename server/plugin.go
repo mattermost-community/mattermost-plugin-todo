@@ -32,7 +32,7 @@ type ListManager interface {
 	SendIssue(senderID, receiverID, message, description, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
-	// CountIssues get counter all issues
+	// CountIssues get all counter issues
 	CountIssues(userID string) (*CountIssue, error)
 	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
 	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error)
@@ -171,8 +171,9 @@ func (p *Plugin) handleTelemetry(w http.ResponseWriter, r *http.Request) {
 
 	telemetryRequest, err := GetTelemetryPayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get telemetry payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get telemetry payload from JSON.", err)
+		msg := "Unable to get telemetry payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -191,8 +192,9 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	addRequest, err := GetAddIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get add issue payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get add issue payload from JSON.", err)
+		msg := "Unable to get add issue payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -206,8 +208,9 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	if addRequest.SendTo == "" {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
-			p.API.LogError("Unable to add issue err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			msg := "Unable to add issue"
+			p.API.LogError(msg, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 			return
 		}
 
@@ -223,16 +226,18 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	receiver, appErr := p.API.GetUserByUsername(addRequest.SendTo)
 	if appErr != nil {
-		p.API.LogError("username not valid, err=" + appErr.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", appErr)
+		msg := "Unable to find user"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
 	if receiver.Id == userID {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
-			p.API.LogError("Unable to add issue err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
+			msg := "Unable to add issue"
+			p.API.LogError(msg, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 			return
 		}
 
@@ -258,8 +263,9 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.Description, addRequest.PostID)
 	if err != nil {
-		p.API.LogError("Unable to send issue err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send issue", err)
+		msg := "Unable to send issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -298,8 +304,9 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 
 	issues, err := p.listManager.GetIssueList(userID, listID)
 	if err != nil {
-		p.API.LogError("Unable to get issues for user err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to get issues for user", err)
+		msg := "Unable to get issues for user"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -307,8 +314,9 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		var lastReminderAt int64
 		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {
-			p.API.LogError("Unable to send reminder err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to send reminder", err)
+			msg := "Unable to send reminder"
+			p.API.LogError(msg, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 			return
 		}
 
@@ -332,8 +340,9 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 
 	issuesJSON, err := json.Marshal(issues)
 	if err != nil {
-		p.API.LogError("Unable marhsal issues list to json err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal issues list to json", err)
+		msg := "Unable marhsal count issue list to json"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -348,15 +357,17 @@ func (p *Plugin) handleCount(w http.ResponseWriter, r *http.Request) {
 
 	countIssues, err := p.listManager.CountIssues(userID)
 	if err != nil {
-		p.API.LogError("Unable to get issues for user err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to get issues for user", err)
+		msg := "Unable to get issues for user"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
 	countIssuesJSON, err := json.Marshal(countIssues)
 	if err != nil {
-		p.API.LogError("Unable marhsal count issue list to json err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal count issue list to json", err)
+		msg := "Unable marhsal count issue list to json"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -364,7 +375,6 @@ func (p *Plugin) handleCount(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		p.API.LogError("Unable to write json response err=" + err.Error())
 	}
-
 }
 
 func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
@@ -372,8 +382,9 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 
 	editRequest, err := GetEditIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get edit issue payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get edit issue payload from JSON.", err)
+		msg := "Unable to get edit issue payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -384,8 +395,9 @@ func (p *Plugin) handleEdit(w http.ResponseWriter, r *http.Request) {
 
 	foreignUserID, list, oldMessage, err := p.listManager.EditIssue(userID, editRequest.ID, editRequest.Message, editRequest.Description)
 	if err != nil {
-		p.API.LogError("Unable to edit message: err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to edit issue", err)
+		msg := "Unable to edit message"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -412,8 +424,9 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 
 	changeRequest, err := GetChangeAssignmentPayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get change request payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get change request from JSON.", err)
+		msg := "Unable to get change request payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -424,15 +437,17 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 
 	receiver, appErr := p.API.GetUserByUsername(changeRequest.SendTo)
 	if appErr != nil {
-		p.API.LogError("username not valid, err=" + appErr.Error())
-		p.handleErrorWithCode(w, http.StatusNotFound, "Unable to find user", appErr)
+		msg := "username not valid"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusNotFound, msg, err)
 		return
 	}
 
 	issueMessage, oldOwner, err := p.listManager.ChangeAssignment(changeRequest.ID, userID, receiver.Id)
 	if err != nil {
-		p.API.LogError("Unable to change the assignment of an issue: err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to change the assignment", err)
+		msg := "Unable to change the assignment of an issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -458,8 +473,9 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 
 	acceptRequest, err := GetAcceptRequestPayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get accept request payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get accept request from JSON.", err)
+		msg := "Unable to get accept request payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -470,8 +486,9 @@ func (p *Plugin) handleAccept(w http.ResponseWriter, r *http.Request) {
 
 	todoMessage, sender, err := p.listManager.AcceptIssue(userID, acceptRequest.ID)
 	if err != nil {
-		p.API.LogError("Unable to accept issue err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to accept issue", err)
+		msg := "Unable to accept issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -490,8 +507,9 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	completeRequest, err := GetCompleteIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get complete issue request payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get complete issue request from JSON.", err)
+		msg := "Unable to get complete issue request payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -502,8 +520,9 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	issue, foreignID, listToUpdate, err := p.listManager.CompleteIssue(userID, completeRequest.ID)
 	if err != nil {
-		p.API.LogError("Unable to complete issue err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to complete issue", err)
+		msg := "Unable to complete issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -530,8 +549,9 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 	removeRequest, err := GetRemoveIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get remove issue request payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get remove issue request from JSON.", err)
+		msg := "Unable to get remove issue request payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -542,8 +562,9 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 	issue, foreignID, isSender, listToUpdate, err := p.listManager.RemoveIssue(userID, removeRequest.ID)
 	if err != nil {
-		p.API.LogError("Unable to remove issue, err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to remove issue", err)
+		msg := "Unable to remove issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 	p.sendRefreshEvent(userID, []string{listToUpdate})
@@ -576,8 +597,9 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 	bumpRequest, err := GetBumpIssuePayloadFromJSON(r.Body)
 	if err != nil {
-		p.API.LogError("Unable to get bump issue request payload from JSON err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusBadRequest, "Unable to get bump issue request from JSON.", err)
+		msg := "Unable to get bump issue request payload from JSON"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusBadRequest, msg, err)
 		return
 	}
 
@@ -588,8 +610,9 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 	todoMessage, foreignUser, foreignIssueID, err := p.listManager.BumpIssue(userID, bumpRequest.ID)
 	if err != nil {
-		p.API.LogError("Unable to bump issue, err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to bump issue", err)
+		msg := "Unable to bump issue"
+		p.API.LogError(msg, "err", err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
@@ -623,8 +646,9 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 
 		configJSON, err := json.Marshal(clientConfig)
 		if err != nil {
-			p.API.LogError("Unable to marshal plugin configuration to json err=" + err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to marshal plugin configuration to json", err)
+			msg := "Unable to marshal plugin configuration to json"
+			p.API.LogError(msg, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 			return
 		}
 

@@ -66,9 +66,11 @@ export default class Plugin {
             return frontendListName;
         };
 
-        const refresh = ({data: {lists}}) => {
-            lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
-            store.dispatch(count());
+        const refresh = (payload) => {
+            if (payload.data && payload.data.lists) {
+                payload.data.lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
+                store.dispatch(count());
+            }
         };
         const refreshAll = () => {
             store.dispatch(list(false));
