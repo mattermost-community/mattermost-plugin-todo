@@ -1,7 +1,7 @@
 #!/bin/sh
 cd ../../../
-git clone --depth 1 https://github.com/mattermost/mattermost-server.git
-cd mattermost-server
+git clone --depth 1 https://github.com/mattermost/mattermost.git
+cd mattermost
 
 source ~/.nvm/nvm.sh
 nvm install
@@ -14,5 +14,5 @@ cd ../e2e-tests/playwright
 npm i
 npx playwright install --with-deps
 
-cd ../../../mattermost-plugin-github/e2e/playwright
+cd ../../../mattermost-plugin-todo/e2e/playwright
 npm i
