@@ -6,7 +6,7 @@ import Root from './components/root';
 import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, fetchIssueCounts} from './actions';
+import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, fetchAllIssue} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -66,17 +66,11 @@ export default class Plugin {
             return frontendListName;
         };
 
-        const refresh = (payload) => {
-            if (payload.data && payload.data.lists) {
-                payload.data.lists.forEach((listName) => store.dispatch(list(false, getFrontendListName(listName))));
-                store.dispatch(fetchIssueCounts());
-            }
+        const refresh = () => {
+            store.dispatch(fetchAllIssue());
         };
         const refreshAll = () => {
-            store.dispatch(list(false));
-            store.dispatch(list(false, 'in'));
-            store.dispatch(list(false, 'out'));
-            store.dispatch(fetchIssueCounts());
+            store.dispatch(fetchAllIssue());
         };
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
@@ -89,7 +83,7 @@ export default class Plugin {
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refreshAll);
 
-        store.dispatch(fetchIssueCounts());
+        store.dispatch(fetchAllIssue());
 
         // register websocket event to track config changes
         const configUpdate = ({data}) => {

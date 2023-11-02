@@ -24,6 +24,13 @@ type ExtendedIssue struct {
 	ForeignPosition int    `json:"position"`
 }
 
+// ListsIssue for all list issues
+type ListsIssue struct {
+	In  []*ExtendedIssue `json:"in"`
+	My  []*ExtendedIssue `json:"my"`
+	Out []*ExtendedIssue `json:"out"`
+}
+
 // CountIssue for all counter issues
 type CountIssue struct {
 	In  int `json:"in"`

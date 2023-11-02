@@ -20,7 +20,7 @@ import {
     CLOSE_ADD_CARD,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
-    GET_COUNT_ISSUES,
+    GET_ALL_ISSUES,
 } from './action_types';
 
 import {getPluginServerRoute} from './selectors';
@@ -175,10 +175,10 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
     return {data};
 };
 
-export const fetchIssueCounts = () => async (dispatch, getState) => {
+export const fetchAllIssue = () => async (dispatch, getState) => {
     let data;
     try {
-        const resp = await fetch(getPluginServerRoute(getState()) + '/count', Client4.getOptions({
+        const resp = await fetch(getPluginServerRoute(getState()) + '/lists', Client4.getOptions({
             method: 'get',
         }));
         data = await resp.json();
@@ -187,7 +187,7 @@ export const fetchIssueCounts = () => async (dispatch, getState) => {
     }
 
     dispatch({
-        type: GET_COUNT_ISSUES,
+        type: GET_ALL_ISSUES,
         data,
     });
 

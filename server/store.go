@@ -327,28 +327,6 @@ func (l *listStore) getList(userID, listID string) ([]*IssueRef, []byte, error) 
 	return list, originalJSONList, nil
 }
 
-func (l *listStore) CountIssues(userID string) (*CountIssue, error) {
-	myList, err := l.GetList(userID, MyListKey)
-	if err != nil {
-		return nil, err
-	}
-	inList, err := l.GetList(userID, InListKey)
-	if err != nil {
-		return nil, err
-	}
-	outList, err := l.GetList(userID, OutListKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return &CountIssue{
-		In:  len(inList),
-		My:  len(myList),
-		Out: len(outList),
-	}, nil
-
-}
-
 func (l *listStore) saveList(userID, listID string, list []*IssueRef, originalJSONList []byte) (bool, error) {
 	newJSONList, jsonErr := json.Marshal(list)
 	if jsonErr != nil {

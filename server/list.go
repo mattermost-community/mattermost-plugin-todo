@@ -35,17 +35,12 @@ type ListStore interface {
 	PopReference(userID, listID string) (*IssueRef, error)
 	// BumpReference moves the Issue reference for issueID in listID for userID to the beginning of the list
 	BumpReference(userID, issueID, listID string) error
-
 	// GetIssueReference gets the IssueRef and position of the issue issueID on user userID's list listID
 	GetIssueReference(userID, issueID, listID string) (*IssueRef, int, error)
 	// GetIssueListAndReference gets the issue list, IssueRef and position for user userID
 	GetIssueListAndReference(userID, issueID string) (string, *IssueRef, int)
-
 	// GetList returns the list of IssueRef in listID for userID
 	GetList(userID, listID string) ([]*IssueRef, error)
-
-	// CountIssues returns all counter issues
-	CountIssues(userID string) (*CountIssue, error)
 }
 
 type listManager struct {
@@ -138,8 +133,24 @@ func (l *listManager) GetIssueList(userID, listID string) ([]*ExtendedIssue, err
 	return extendedIssues, nil
 }
 
-func (l *listManager) CountIssues(userID string) (countIssues *CountIssue, err error) {
-	return l.store.CountIssues(userID)
+func (l *listManager) GetAllList(userID string) (listsIssue *ListsIssue, err error) {
+	inListIssue, err := l.GetIssueList(userID, InListKey)
+	if err != nil {
+		return nil, err
+	}
+	myListIssue, err := l.GetIssueList(userID, MyListKey)
+	if err != nil {
+		return nil, err
+	}
+	outListIssue, err := l.GetIssueList(userID, OutListKey)
+	if err != nil {
+		return nil, err
+	}
+	return &ListsIssue{
+		In:  inListIssue,
+		My:  myListIssue,
+		Out: outListIssue,
+	}, nil
 }
 
 func (l *listManager) CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error) {

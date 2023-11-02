@@ -16,6 +16,7 @@ export const GET_ISSUES = pluginId + '_get_issues';
 export const GET_OUT_ISSUES = pluginId + '_get_out_issues';
 export const GET_IN_ISSUES = pluginId + '_get_in_issues';
 export const GET_COUNT_ISSUES = pluginId + '_get_count_issues';
+export const GET_ALL_ISSUES = pluginId + '_get_all_issues';
 export const RECEIVED_SHOW_RHS_ACTION = pluginId + '_show_rhs';
 export const UPDATE_RHS_STATE = pluginId + '_update_rhs_state';
 export const SET_RHS_VISIBLE = pluginId + '_set_rhs_visible';

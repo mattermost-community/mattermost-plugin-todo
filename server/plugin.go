@@ -32,8 +32,8 @@ type ListManager interface {
 	SendIssue(senderID, receiverID, message, description, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
-	// CountIssues get all counter issues
-	CountIssues(userID string) (*CountIssue, error)
+	// GetAllList get all issues
+	GetAllList(userID string) (*ListsIssue, error)
 	// CompleteIssue completes the todo issueID for userID, and returns the issue and the foreign ID if any
 	CompleteIssue(userID, issueID string) (issue *Issue, foreignID string, listToUpdate string, err error)
 	// AcceptIssue moves one the todo issueID of userID from inbox to myList, and returns the message and the foreignUserID if any
@@ -118,7 +118,7 @@ func (p *Plugin) initializeAPI() {
 
 	p.router.HandleFunc("/add", p.checkAuth(p.handleAdd)).Methods(http.MethodPost)
 	p.router.HandleFunc("/list", p.checkAuth(p.handleList)).Methods(http.MethodGet)
-	p.router.HandleFunc("/count", p.checkAuth(p.handleCount)).Methods(http.MethodGet)
+	p.router.HandleFunc("/lists", p.checkAuth(p.handleLists)).Methods(http.MethodGet)
 	p.router.HandleFunc("/remove", p.checkAuth(p.handleRemove)).Methods(http.MethodPost)
 	p.router.HandleFunc("/complete", p.checkAuth(p.handleComplete)).Methods(http.MethodPost)
 	p.router.HandleFunc("/accept", p.checkAuth(p.handleAccept)).Methods(http.MethodPost)
@@ -352,10 +352,10 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Plugin) handleCount(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) handleLists(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	countIssues, err := p.listManager.CountIssues(userID)
+	allListIssue, err := p.listManager.GetAllList(userID)
 	if err != nil {
 		msg := "Unable to get issues for user"
 		p.API.LogError(msg, "err", err.Error())
@@ -363,15 +363,15 @@ func (p *Plugin) handleCount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	countIssuesJSON, err := json.Marshal(countIssues)
+	allListIssueJSON, err := json.Marshal(allListIssue)
 	if err != nil {
-		msg := "Unable marhsal count issue list to json"
+		msg := "Unable marhsal all lists issues to json"
 		p.API.LogError(msg, "err", err.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
 		return
 	}
 
-	_, err = w.Write(countIssuesJSON)
+	_, err = w.Write(allListIssueJSON)
 	if err != nil {
 		p.API.LogError("Unable to write json response err=" + err.Error())
 	}
