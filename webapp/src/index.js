@@ -47,13 +47,6 @@ export default class Plugin {
             'Open your list of Todo issues',
         );
 
-        const refresh = () => {
-            store.dispatch(fetchAllIssueLists());
-        };
-        const refreshAll = () => {
-            store.dispatch(fetchAllIssueLists());
-        };
-
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
         registry.registerAppBarComponent(
             iconURL,
@@ -61,8 +54,11 @@ export default class Plugin {
             'Open your list of Todo issues',
         );
 
+        const refresh = () => {
+            store.dispatch(fetchAllIssueLists());
+        };
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
-        registry.registerReconnectHandler(refreshAll);
+        registry.registerReconnectHandler(refresh);
 
         store.dispatch(fetchAllIssueLists(true));
 
