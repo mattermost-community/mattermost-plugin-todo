@@ -117,7 +117,6 @@ func (p *Plugin) initializeAPI() {
 	p.router.Use(p.withRecovery)
 
 	p.router.HandleFunc("/add", p.checkAuth(p.handleAdd)).Methods(http.MethodPost)
-	p.router.HandleFunc("/list", p.checkAuth(p.handleList)).Methods(http.MethodGet)
 	p.router.HandleFunc("/lists", p.checkAuth(p.handleLists)).Methods(http.MethodGet)
 	p.router.HandleFunc("/remove", p.checkAuth(p.handleRemove)).Methods(http.MethodPost)
 	p.router.HandleFunc("/complete", p.checkAuth(p.handleComplete)).Methods(http.MethodPost)
@@ -290,19 +289,10 @@ func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
 	}
 }
 
-func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
+func (p *Plugin) handleLists(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 
-	listInput := r.URL.Query().Get("list")
-	listID := MyListKey
-	switch listInput {
-	case OutFlag:
-		listID = OutListKey
-	case InFlag:
-		listID = InListKey
-	}
-
-	issues, err := p.listManager.GetIssueList(userID, listID)
+	allListIssue, err := p.listManager.GetAllList(userID)
 	if err != nil {
 		msg := "Unable to get issues for user"
 		p.API.LogError(msg, "err", err.Error())
@@ -310,7 +300,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(issues) > 0 && r.URL.Query().Get("reminder") == "true" && p.getReminderPreference(userID) {
+	if allListIssue != nil && len(allListIssue.My) > 0 && r.URL.Query().Get("reminder") == "true" && p.getReminderPreference(userID) {
 		var lastReminderAt int64
 		lastReminderAt, err = p.getLastReminderTimeForUser(userID)
 		if err != nil {
@@ -329,38 +319,13 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 		nt := time.Unix(now/1000, 0).In(timezone)
 		lt := time.Unix(lastReminderAt/1000, 0).In(timezone)
 		if nt.Sub(lt).Hours() >= 1 && (nt.Day() != lt.Day() || nt.Month() != lt.Month() || nt.Year() != lt.Year()) {
-			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(issues))
+			p.PostBotDM(userID, "Daily Reminder:\n\n"+issuesListToString(allListIssue.My))
 			p.trackDailySummary(userID)
 			err = p.saveLastReminderTimeForUser(userID)
 			if err != nil {
 				p.API.LogError("Unable to save last reminder for user err=" + err.Error())
 			}
 		}
-	}
-
-	issuesJSON, err := json.Marshal(issues)
-	if err != nil {
-		msg := "Unable marhsal count issue list to json"
-		p.API.LogError(msg, "err", err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
-		return
-	}
-
-	_, err = w.Write(issuesJSON)
-	if err != nil {
-		p.API.LogError("Unable to write json response err=" + err.Error())
-	}
-}
-
-func (p *Plugin) handleLists(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("Mattermost-User-ID")
-
-	allListIssue, err := p.listManager.GetAllList(userID)
-	if err != nil {
-		msg := "Unable to get issues for user"
-		p.API.LogError(msg, "err", err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
-		return
 	}
 
 	allListIssueJSON, err := json.Marshal(allListIssue)

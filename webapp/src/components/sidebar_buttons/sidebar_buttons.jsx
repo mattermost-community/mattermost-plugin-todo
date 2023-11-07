@@ -13,7 +13,9 @@ export default class SidebarButtons extends React.PureComponent {
         theme: PropTypes.object.isRequired,
         isTeamSidebar: PropTypes.bool,
         showRHSPlugin: PropTypes.func.isRequired,
-        allIssues: PropTypes.object,
+        myIssues: PropTypes.array,
+        inIssues: PropTypes.array,
+        outIssues: PropTypes.array,
         actions: PropTypes.shape({
             updateRhsState: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
@@ -46,7 +48,9 @@ export default class SidebarButtons extends React.PureComponent {
             container = style.containerTeam;
         }
 
-        const allIssues = this.props.allIssues;
+        const myIssues = this.props.myIssues;
+        const inIssues = this.props.inIssues;
+        const outIssues = this.props.outIssues;
 
         return (
             <div style={container}>
@@ -63,7 +67,7 @@ export default class SidebarButtons extends React.PureComponent {
                         }}
                     >
                         <i className='icon icon-check'/>
-                        {' ' + allIssues && allIssues.my ? allIssues.my.length : 0}
+                        {' ' + myIssues ? myIssues.length : 0}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -79,7 +83,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-down'/>
-                        {' ' + allIssues && allIssues.in ? allIssues.in.length : 0}
+                        {' ' + inIssues ? inIssues.length : 0}
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -95,7 +99,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-up'/>
-                        {' ' + allIssues && allIssues.out ? allIssues.out.length : 0}
+                        {' ' + outIssues ? outIssues.length : 0}
                     </a>
                 </OverlayTrigger>
             </div>

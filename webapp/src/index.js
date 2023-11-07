@@ -6,7 +6,7 @@ import Root from './components/root';
 import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openAddCard, list, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, fetchAllIssue} from './actions';
+import {openAddCard, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, fetchAllIssueLists} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
 import TeamSidebar from './components/team_sidebar';
@@ -47,30 +47,11 @@ export default class Plugin {
             'Open your list of Todo issues',
         );
 
-        const getFrontendListName = (backendListName) => {
-            let frontendListName = 'my';
-            switch (backendListName) {
-            case '':
-                frontendListName = 'my';
-                break;
-            case '_in':
-                frontendListName = 'in';
-                break;
-            case '_out':
-                frontendListName = 'out';
-                break;
-            default:
-                frontendListName = 'my';
-                break;
-            }
-            return frontendListName;
-        };
-
         const refresh = () => {
-            store.dispatch(fetchAllIssue());
+            store.dispatch(fetchAllIssueLists());
         };
         const refreshAll = () => {
-            store.dispatch(fetchAllIssue());
+            store.dispatch(fetchAllIssueLists());
         };
 
         const iconURL = getPluginServerRoute(store.getState()) + '/public/app-bar-icon.png';
@@ -83,7 +64,7 @@ export default class Plugin {
         registry.registerWebSocketEventHandler(`custom_${pluginId}_refresh`, refresh);
         registry.registerReconnectHandler(refreshAll);
 
-        store.dispatch(fetchAllIssue());
+        store.dispatch(fetchAllIssueLists(true));
 
         // register websocket event to track config changes
         const configUpdate = ({data}) => {
@@ -97,7 +78,7 @@ export default class Plugin {
         activityFunc = () => {
             const now = new Date().getTime();
             if (now - lastActivityTime > activityTimeout) {
-                store.dispatch(list(true));
+                store.dispatch(fetchAllIssueLists(true));
             }
             lastActivityTime = now;
         };
