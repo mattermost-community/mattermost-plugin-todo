@@ -9,7 +9,7 @@ dotenv.config({ path: `${__dirname}/.env` });
 testConfig.testDir = __dirname + "/tests";
 testConfig.outputDir = __dirname + "/test-results";
 testConfig.testMatch = "test.list.ts";
-testConfig.timeout = 30 * 1000;
+testConfig.timeout = 10 * 1000;
 if (!testConfig.use) {
   testConfig.use = {};
 }
