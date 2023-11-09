@@ -22,6 +22,8 @@ const (
 
 	// WSEventConfigUpdate is the WebSocket event to update the Todo list's configurations on webapp
 	WSEventConfigUpdate = "config_update"
+
+	ErrorMsgAddIssue = "Unable to add issue"
 )
 
 // ListManager represents the logic on the lists
@@ -207,9 +209,8 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	if addRequest.SendTo == "" {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
-			msg := "Unable to add issue"
-			p.API.LogError(msg, "err", err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
+			p.API.LogError(ErrorMsgAddIssue, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, ErrorMsgAddIssue, err)
 			return
 		}
 
@@ -226,17 +227,16 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	receiver, appErr := p.API.GetUserByUsername(addRequest.SendTo)
 	if appErr != nil {
 		msg := "Unable to find user"
-		p.API.LogError(msg, "err", err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
+		p.API.LogError(msg, "err", appErr.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, msg, appErr)
 		return
 	}
 
 	if receiver.Id == userID {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
-			msg := "Unable to add issue"
-			p.API.LogError(msg, "err", err.Error())
-			p.handleErrorWithCode(w, http.StatusInternalServerError, msg, err)
+			p.API.LogError(ErrorMsgAddIssue, "err", err.Error())
+			p.handleErrorWithCode(w, http.StatusInternalServerError, ErrorMsgAddIssue, err)
 			return
 		}
 
@@ -403,8 +403,8 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 	receiver, appErr := p.API.GetUserByUsername(changeRequest.SendTo)
 	if appErr != nil {
 		msg := "username not valid"
-		p.API.LogError(msg, "err", err.Error())
-		p.handleErrorWithCode(w, http.StatusNotFound, msg, err)
+		p.API.LogError(msg, "err", appErr.Error())
+		p.handleErrorWithCode(w, http.StatusNotFound, msg, appErr)
 		return
 	}
 

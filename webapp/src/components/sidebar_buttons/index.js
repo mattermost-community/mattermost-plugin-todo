@@ -6,13 +6,13 @@ import {bindActionCreators} from 'redux';
 
 import {fetchAllIssueLists, updateRhsState, telemetry} from '../../actions';
 
-import {getIssues, getInIssues, getOutIssues} from '../../selectors';
+import {getMyIssues, getInIssues, getOutIssues} from '../../selectors';
 
 import SidebarButtons from './sidebar_buttons.jsx';
 
 function mapStateToProps(state) {
     return {
-        myIssues: getIssues(state),
+        myIssues: getMyIssues(state),
         inIssues: getInIssues(state),
         outIssues: getOutIssues(state),
         showRHSPlugin: state['plugins-com.mattermost.plugin-todo'].rhsPluginAction,

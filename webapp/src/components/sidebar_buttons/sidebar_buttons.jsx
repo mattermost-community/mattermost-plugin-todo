@@ -13,9 +13,9 @@ export default class SidebarButtons extends React.PureComponent {
         theme: PropTypes.object.isRequired,
         isTeamSidebar: PropTypes.bool,
         showRHSPlugin: PropTypes.func.isRequired,
-        myIssues: PropTypes.array,
-        inIssues: PropTypes.array,
-        outIssues: PropTypes.array,
+        myIssues: PropTypes.array.isRequired,
+        inIssues: PropTypes.array.isRequired,
+        outIssues: PropTypes.array.isRequired,
         actions: PropTypes.shape({
             updateRhsState: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
@@ -67,7 +67,7 @@ export default class SidebarButtons extends React.PureComponent {
                         }}
                     >
                         <i className='icon icon-check'/>
-                        {' ' + myIssues ? myIssues.length : 0}
+                        {' ' + myIssues.length }
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -83,7 +83,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-down'/>
-                        {' ' + inIssues ? inIssues.length : 0}
+                        {' ' + inIssues.length }
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -99,7 +99,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-up'/>
-                        {' ' + outIssues ? outIssues.length : 0}
+                        {' ' + outIssues.length }
                     </a>
                 </OverlayTrigger>
             </div>

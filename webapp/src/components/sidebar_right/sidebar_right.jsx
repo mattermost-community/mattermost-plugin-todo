@@ -51,9 +51,9 @@ const InListName = 'in';
 
 export default class SidebarRight extends React.PureComponent {
     static propTypes = {
-        myIssues: PropTypes.array,
-        inIssues: PropTypes.array,
-        outIssues: PropTypes.array,
+        myIssues: PropTypes.array.isRequired,
+        inIssues: PropTypes.array.isRequired,
+        outIssues: PropTypes.array.isRequired,
         todoToast: PropTypes.object,
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
@@ -123,18 +123,6 @@ export default class SidebarRight extends React.PureComponent {
         }
     }
 
-    getInIssues() {
-        return this.props.inIssues.length;
-    }
-
-    getOutIssues() {
-        return this.props.outIssues.length;
-    }
-
-    getMyIssues() {
-        return this.props.myIssues.length;
-    }
-
     addTodoItem() {
         this.props.actions.openAddCard('');
     }
@@ -152,12 +140,12 @@ export default class SidebarRight extends React.PureComponent {
 
         switch (this.state.list) {
         case MyListName:
-            todos = this.props.myIssues || [];
+            todos = this.props.myIssues;
             addButton = 'Add Todo';
-            inboxList = this.props.inIssues || [];
+            inboxList = this.props.inIssues;
             break;
         case OutListName:
-            todos = this.props.outIssues || [];
+            todos = this.props.outIssues;
             listHeading = 'Sent Todos';
             addButton = 'Request a Todo from someone';
             break;

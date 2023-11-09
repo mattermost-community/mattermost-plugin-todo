@@ -24,7 +24,7 @@ export const getMessage = (state) => {
     }
     return post.message;
 };
-export const getIssues = (state) => getAllIssues(state).my;
+export const getMyIssues = (state) => getAllIssues(state).my;
 export const getInIssues = (state) => getAllIssues(state).in;
 export const getOutIssues = (state) => getAllIssues(state).out;
 export const getAllIssues = (state) => getPluginState(state).allIssues;
