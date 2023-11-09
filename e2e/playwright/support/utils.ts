@@ -21,7 +21,7 @@ export const getTodoBotDMPageURL = async (client: Client4, teamName: string, use
         const teams = await client.getTeamsForUser(userId);
         team = teams[0].name;
     }
-    return `${team}/messages/@github`;
+    return `${team}/messages/@todo`;
 };
 
 export const fillTextField = async (name: string, value: string, page: Page) => {
