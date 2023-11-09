@@ -42,12 +42,6 @@ export const preferencesForUser = (userId: string) => {
         },
         {
             user_id: userId,
-            category: 'start_trial_modal',
-        name: 'trial_modal_auto_shown',
-        value: 'false',
-        },
-        {
-            user_id: userId,
             category: 'crt_thread_pane_step',
             name: userId,
             value: '999',
