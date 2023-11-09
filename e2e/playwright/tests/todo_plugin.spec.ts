@@ -34,7 +34,6 @@ export default {
             // * Assert help is visible
             await expect(slash.getItemTitleNth(0)).toHaveText('todo [command]');
 
-            //TODO: setup is available but not listed here
             await expect(slash.getItemDescNth(0)).toHaveText('Available commands: list, add, pop, send, settings, help');
             });
         });
