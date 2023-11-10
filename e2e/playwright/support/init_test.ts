@@ -14,6 +14,7 @@ import {preferencesForUser} from './user';
 
 const pluginDistPath = path.join(__dirname, '../../../dist');
 const pluginId = 'com.mattermost.plugin-todo';
+const botUsername = 'todo'
 
 // # One time tasks
 test.beforeAll(async ({pw}) => {
@@ -62,8 +63,7 @@ test.beforeEach(async ({pw}) => {
     if (adminUser === null) {
         throw new Error('can not get adminUser');
     }
-    //TODO: Fails with "Error: Unable to find an existing account matching your username for this team. This team may require an invite from the team owner to join."
-    // await cleanUpBotDMs(adminClient, adminUser.id, pluginId);
+    await cleanUpBotDMs(adminClient, adminUser.id, botUsername);
 });
 
 type TodoPluginSettings = {
