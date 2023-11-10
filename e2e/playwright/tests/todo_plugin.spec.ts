@@ -8,7 +8,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 import SlashCommandSuggestions from 'support/components/slash_commands';
-import {getTodoBotDMPageURL} from 'support/utils';
+import {fillMessage, getTodoBotDMPageURL} from 'support/utils';
 
 export default {
     connected: () => {
@@ -26,7 +26,7 @@ export default {
             const slash = new SlashCommandSuggestions(page.locator('#suggestionList'));
 
             // # Run incomplete command to trigger help
-            page.getByTestId('post_textbox').pressSequentially('/todo');
+            await fillMessage('/todo', page);
 
             // * Assert suggestions are visible
             await expect(slash.container).toBeVisible();

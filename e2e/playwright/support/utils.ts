@@ -25,15 +25,19 @@ export const getTodoBotDMPageURL = async (client: Client4, teamName: string, use
 };
 
 export const fillTextField = async (name: string, value: string, page: Page) => {
-    await page.getByTestId(`${name}input`).fill(value);
+    await page.getByTestId(`${name}`).fill(value);
 };
 
 export const submitDialog = async (page: Page) => {
     await page.click('#interactiveDialogSubmit');
 };
 
-export const postMessage = async (message: string, c: ChannelsPage, page: Page) => {
-    await c.postMessage(message);
+export const fillMessage = async (message: string, page: Page) => {
+    await fillTextField('post_textbox', message, page )
+};
+
+export const postMessage = async (message: string, page: Page) => {
+    await fillMessage(message, page)
     await page.getByTestId('SendMessageButton').click();
 };
 
