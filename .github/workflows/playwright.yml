@@ -4,11 +4,12 @@ on:
     workflows: ["ci"]
     types:
       - completed
+  workflow_dispatch:
 
 env:
   TERM: xterm
   GO_VERSION: 1.19.6
-  NODE_VERSION: 16.15.0
+  NODE_VERSION: 16.13.1
 
 jobs:
   playwright-run:
