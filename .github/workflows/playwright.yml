@@ -9,7 +9,6 @@ on:
 env:
   TERM: xterm
   GO_VERSION: 1.19.6
-  NODE_VERSION: 18.17
 
 jobs:
   playwright-run:
@@ -119,7 +118,7 @@ jobs:
       - name: ci/install-go-dependencies
         run: go mod tidy
 
-      - name: ci/install-npm-dependencies
+      - name: ci/install-plugin-webapp-deps
         run: cd webapp && npm ci
 
       - name: ci/build-and-install-plugin
@@ -128,10 +127,37 @@ jobs:
           PLUGIN_E2E_MOCK_OAUTH_SERVER_URL: http://172.17.0.1:8080
           E2E_TESTING: true
 
-      - name: ci/install-tests-deps
+      - name: ci/checkout-mattermost-monorepo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          path: ../mattermost
+          repository: mattermost/mattermost
+
+      - name: ci/setup-node-for-mattermost-monorepo
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: "../mattermost/.nvmrc"
+
+      - name: ci/install-mattermost-monorepo-webapp-deps
+        run: |
+          cd ../mattermost/webapp
+          npm i
+
+      - name: ci/install-mattermost-monorepo-playwright-deps
+        run: |
+          cd ../mattermost/e2e-tests/playwright
+          npm i
+          npx playwright install --with-deps
+
+      - name: ci/setup-node-for-mattermost-plugin
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: ci/install-plugin-playwright-deps
         run: |
           cd e2e/playwright
-          ./setup-environment
+          npm ci
 
       - name: ci/tsc
         run: |
