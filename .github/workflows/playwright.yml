@@ -9,7 +9,7 @@ on:
 env:
   TERM: xterm
   GO_VERSION: 1.19.6
-  NODE_VERSION: 16.20.2
+  NODE_VERSION: 16.13.1
 
 jobs:
   playwright-run:
@@ -108,8 +108,8 @@ jobs:
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: ".nvmrc"
-          # cache: "npm"
-          # cache-dependency-path: webapp/package-lock.json
+          cache: "npm"
+          cache-dependency-path: webapp/package-lock.json
 
       - name: ci/create-admin-user
         run: |
