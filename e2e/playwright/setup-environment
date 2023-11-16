@@ -3,9 +3,6 @@ cd ../../../
 git clone --depth 1 https://github.com/mattermost/mattermost.git
 cd mattermost
 
-source ~/.nvm/nvm.sh
-nvm install
-
 cd webapp
 npm i
 
