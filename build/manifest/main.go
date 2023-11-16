@@ -95,7 +95,7 @@ func findManifest() (*model.Manifest, error) {
 	// we don't want to accidentally clobber anything we won't preserve.
 	var manifest model.Manifest
 	decoder := json.NewDecoder(manifestFile)
-	decoder.DisallowUnknownFields()
+	// decoder.DisallowUnknownFields()
 	if err = decoder.Decode(&manifest); err != nil {
 		return nil, errors.Wrap(err, "failed to parse manifest")
 	}
