@@ -108,9 +108,8 @@ jobs:
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
-          cache-dependency-path: webapp/package-lock.json
-          cache-key: ${{ runner.os }}-webapp-node-${{ hashFiles('webapp/package-lock.json') }}-v2
+          # cache: "npm"
+          # cache-dependency-path: webapp/package-lock.json
 
       - name: ci/create-admin-user
         run: |
