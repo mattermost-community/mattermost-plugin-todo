@@ -109,7 +109,8 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
-          # cache-dependency-path: webapp/package-lock.json
+          cache-dependency-path: webapp/package-lock.json
+          cache-key: ${{ runner.os }}-webapp-node-${{ hashFiles('webapp/package-lock.json') }}-v2
 
       - name: ci/create-admin-user
         run: |
