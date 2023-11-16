@@ -3,7 +3,6 @@
 
 import type {Page} from '@playwright/test';
 
-import {ChannelsPage} from '@e2e-support/ui/pages';
 import {UserProfile} from '@mattermost/types/users';
 import Client4 from '@mattermost/client/client4';
 
@@ -39,13 +38,6 @@ export const fillMessage = async (message: string, page: Page) => {
 export const postMessage = async (message: string, page: Page) => {
     await fillMessage(message, page)
     await page.getByTestId('SendMessageButton').click();
-};
-
-export const clickPostAction = async (name: string, c: ChannelsPage) => {
-    // We need to wait for the next post to come up, since this opening a new tab and OAuth redirect can take an undeterminate
-    // https://mattermost.atlassian.net/browse/MM-51906
-    const postElement = await c.getLastPost();
-    await postElement.container.getByText(name).last().click();
 };
 
 export const cleanUpBotDMs = async (client: Client4, userId: UserProfile['id'], botUsername: string) => {
