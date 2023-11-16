@@ -1,0 +1,19 @@
+name: Playwright Tests
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types:
+      - completed
+  workflow_dispatch:
+
+env:
+  TERM: xterm
+  GO_VERSION: 1.19.6
+  NODE_VERSION: 16.20.2
+
+jobs:
+  playwright-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
