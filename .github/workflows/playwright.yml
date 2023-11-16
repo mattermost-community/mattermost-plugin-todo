@@ -9,7 +9,7 @@ on:
 env:
   TERM: xterm
   GO_VERSION: 1.19.6
-  NODE_VERSION: 16.13.1
+  NODE_VERSION: 16.20.2
 
 jobs:
   playwright-run:
