@@ -9,7 +9,7 @@ on:
 env:
   TERM: xterm
   GO_VERSION: 1.19.6
-  NODE_VERSION: 16.13.1
+  NODE_VERSION: 16.20.2
 
 jobs:
   playwright-run:
@@ -118,6 +118,7 @@ jobs:
 
       - name: ci/install-go-dependencies
         run: go mod tidy
+
       - name: ci/install-npm-dependencies
         run: cd webapp && npm ci
 
@@ -126,13 +127,6 @@ jobs:
         env:
           PLUGIN_E2E_MOCK_OAUTH_SERVER_URL: http://172.17.0.1:8080
           E2E_TESTING: true
-
-      - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version: "16"
-          # cache: "npm"
-          # cache-dependency-path: e2e/playwright/package-lock.json
 
       - name: ci/install-tests-deps
         run: |
