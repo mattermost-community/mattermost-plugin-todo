@@ -24,7 +24,8 @@
             ],
             "@playwright/test": [
                 "../../../mattermost/e2e-tests/playwright/node_modules/@playwright/test"
-            ]
+            ],
+            "@e2e-types": ["../../../mattermost/e2e-tests/playwright/types.ts"]
         }
     },
     "include": ["./**/*"]
