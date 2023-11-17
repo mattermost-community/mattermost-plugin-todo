@@ -1,0 +1,15 @@
+#!/bin/sh
+cd ../../../
+git clone --depth 1 https://github.com/mattermost/mattermost.git
+cd mattermost
+
+cd webapp
+npm i
+
+cd ../e2e-tests/playwright
+
+npm i
+npx playwright install --with-deps
+
+cd ../../../mattermost-plugin-todo/e2e/playwright
+npm i
