@@ -7,26 +7,33 @@
         "noEmit": true,
         "baseUrl": ".",
         "paths": {
-            "@mattermost/client/*": [
-                "../../../mattermost/webapp/platform/client/lib/*"
-            ],
-            "@mattermost/types/*": [
-                "../../../mattermost/webapp/platform/types/lib/*"
-            ],
+            // "@mattermost/client/*": [
+            //     "../../../mattermost/webapp/platform/client/lib/*"
+            // ],
+            // "@mattermost/types/*": [
+            //     "../../../mattermost/webapp/platform/types/lib/*"
+            // ],
             "@e2e-support/*": [
                 "../../../mattermost/e2e-tests/playwright/support/*"
             ],
-            "@e2e-test.config": [
-                "../../../mattermost/e2e-tests/playwright/test.config.ts"
-            ],
-            "@e2e-test.playwright-config": [
-                "../../../mattermost/e2e-tests/playwright/playwright.config.ts"
-            ],
+            // "@e2e-test.config": [
+            //     "../../../mattermost/e2e-tests/playwright/test.config.ts"
+            // ],
+            // "@e2e-test.playwright-config": [
+            //     "../../../mattermost/e2e-tests/playwright/playwright.config.ts"
+            // ],
             "@playwright/test": [
                 "../../../mattermost/e2e-tests/playwright/node_modules/@playwright/test"
             ],
-            "@e2e-types": ["../../../mattermost/e2e-tests/playwright/types.ts"]
+            // "@e2e-types": [
+            //     "../../../mattermost/e2e-tests/playwright/types.ts"
+            // ],
+            // "@mattermost-plugin-e2e-test-utils": [
+            //     "./mattermost-plugin-e2e-test-utils"
+            // ]
         }
     },
-    "include": ["./**/*"]
+    "include": [
+        "./**/*",
+    ]
 }

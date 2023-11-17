@@ -7,14 +7,14 @@
 // ***************************************************************
 
 import {expect, test} from '@e2e-support/test_fixture';
-import SlashCommandSuggestions from 'support/components/slash_commands';
-import {fillMessage, getTodoBotDMPageURL} from 'support/utils';
+import SlashCommandSuggestions from '../mattermost-plugin-e2e-test-utils/support/components/slash_commands';
+import {fillMessage, getTodoBotDMPageURL} from '../mattermost-plugin-e2e-test-utils/support/utils';
 
 export default {
     connected: () => {
         test.describe('available commands', () => {
             test('with just the main command', async ({pages, page, pw}) => {
-               
+
             const {adminClient, adminUser} = await pw.getAdminClient();
             if (adminUser === null) {
                 throw new Error('can not get adminUser');
@@ -39,4 +39,3 @@ export default {
         });
     },
 };
-

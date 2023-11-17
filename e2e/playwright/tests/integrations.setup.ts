@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'node:path';
+
 import {test as setup} from '@e2e-support/test_fixture';
 
-const authFile = __dirname + '/../.auth-user.json';
+const authFile = path.join(__dirname, '/../.auth-user.json');
 
 setup('authenticate', async ({page, pages, pw}) => {
     const {adminClient, adminUser} = await pw.getAdminClient();

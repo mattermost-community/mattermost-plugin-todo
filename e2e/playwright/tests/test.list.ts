@@ -4,6 +4,6 @@
 import {test} from '@playwright/test';
 import core from './todo_plugin.spec';
 
-import '../support/init_test';
+import '../mattermost-plugin-e2e-test-utils/support/init_test';
 
 test.describe(core.connected);
