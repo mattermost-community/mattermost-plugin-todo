@@ -5,7 +5,7 @@ import path from 'node:path';
 
 import {test as setup} from '@e2e-support/test_fixture';
 
-const authFile = path.join(__dirname, '/../.auth-user.json');
+const authFile = path.join(__dirname, '../mattermost-plugin-e2e-test-utils/.auth-user.json');
 
 setup('authenticate', async ({page, pages, pw}) => {
     const {adminClient, adminUser} = await pw.getAdminClient();
