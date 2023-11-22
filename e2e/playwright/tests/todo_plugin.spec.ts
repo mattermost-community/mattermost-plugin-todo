@@ -8,7 +8,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 import SlashCommandSuggestions from '../mattermost-plugin-e2e-test-utils/support/components/slash_commands';
-import {fillMessage, getTodoBotDMPageURL} from '../mattermost-plugin-e2e-test-utils/support/utils';
+import {fillMessage, getBotDMPageURL} from '../mattermost-plugin-e2e-test-utils/support/utils';
 
 export default {
     connected: () => {
@@ -18,7 +18,7 @@ export default {
             if (adminUser === null) {
                 throw new Error('can not get adminUser');
             }
-            const dmURL = await getTodoBotDMPageURL(adminClient, '', adminUser.id);
+            const dmURL = await getBotDMPageURL(adminClient, '', adminUser.id, 'todo');
             await page.goto(dmURL, {waitUntil: 'load'});
 
             const c = new pages.ChannelsPage(page);
