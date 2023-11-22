@@ -131,12 +131,6 @@ jobs:
           PLUGIN_E2E_MOCK_OAUTH_SERVER_URL: http://172.17.0.1:8080
           E2E_TESTING: true
 
-      # - name: ci/checkout-mattermost-monorepo
-      #   uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      #   with:
-      #     path: ../mattermost
-      #     repository: mattermost/mattermost
-
       - name: ci/checkout-mattermost-monorepo
         run: |
           git clone https://github.com/mattermost/mattermost.git ../mattermost
@@ -170,7 +164,6 @@ jobs:
       - name: ci/tsc
         run: |
           cd e2e/playwright/mattermost-plugin-e2e-test-utils
-          npm run tsc
 
       # - name: ci/lint
       #   run: |

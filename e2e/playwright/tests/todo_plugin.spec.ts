@@ -14,7 +14,6 @@ export default {
     connected: () => {
         test.describe('available commands', () => {
             test('with just the main command', async ({pages, page, pw}) => {
-
             const {adminClient, adminUser} = await pw.getAdminClient();
             if (adminUser === null) {
                 throw new Error('can not get adminUser');
