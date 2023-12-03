@@ -77,5 +77,39 @@ export default {
       // * Assert /todo help command is visible
       await expect(postBody).toContainText("help");
     });
+
+    test("list action", async ({ pages, page, pw }) => {
+      const c = new pages.ChannelsPage(page);
+      const slash = new SlashCommandSuggestions(
+        page.locator("#suggestionList")
+      );
+      const todoMessage = "Don't forget to be awesome";
+
+      // # Run command to add todo
+      await c.postMessage(`/todo add ${todoMessage}`);
+
+      // # Type command to list todo
+      await fillMessage("/todo list ", page);
+
+      // * Assert suggestions are visible
+      await expect(slash.container).toBeVisible();
+      await expect(slash.getItemTitleNth(1)).toHaveText("in (optional)");
+      await expect(slash.getItemDescNth(1)).toHaveText("Received Todos");
+      await expect(slash.getItemTitleNth(2)).toHaveText("out (optional)");
+      await expect(slash.getItemDescNth(2)).toHaveText("Sent Todos");
+
+      // # Run command to list todo
+      await c.postMessage(`/todo list`);
+
+      // # Grab the last post
+      const post = await c.getLastPost();
+      const postBody = post.container.locator(".post-message__text-container");
+
+      // * Assert post body has correct title
+      await expect(postBody).toContainText("Todo List:");
+
+      // * Assert added todo is visible
+      await expect(postBody).toContainText(todoMessage);
+    });
   },
 };
