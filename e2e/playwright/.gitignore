@@ -1,0 +1,9 @@
+node_modules/
+/blob-report/
+/playwright/.cache/
+.env
+screenshots
+playwright-report
+test-results
+.auth-user.json
+.eslintcache

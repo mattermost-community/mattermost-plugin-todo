@@ -258,7 +258,7 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 		return "", "", err
 	}
 
-	if err := l.store.AddReference(ir.ForeignUserID, receiverIssue.ID, InListKey, userID, issue.ID); err != nil {
+	if err := l.store.AddReference(sendTo, receiverIssue.ID, InListKey, userID, issue.ID); err != nil {
 		return "", "", err
 	}
 

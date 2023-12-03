@@ -76,7 +76,7 @@ const MenuWrapper = React.memo((props: Props) => {
     }, []);
 
     const {children} = props;
-    let className = 'MenuWrapper';
+    let className = 'TodoMenuWrapper';
     if (props.disabled) {
         className += ' disabled';
     }
