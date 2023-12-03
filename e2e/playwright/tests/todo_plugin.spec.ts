@@ -22,7 +22,6 @@ test.beforeEach(async ({ page, pw }) => {
 export default {
   setup: () => {
     test("checking available commands", async ({ pages, page, pw }) => {
-      const c = new pages.ChannelsPage(page);
       const slash = new SlashCommandSuggestions(
         page.locator("#suggestionList")
       );
@@ -44,9 +43,6 @@ export default {
   actions: () => {
     test("help action", async ({ pages, page, pw }) => {
       const c = new pages.ChannelsPage(page);
-      const slash = new SlashCommandSuggestions(
-        page.locator("#suggestionList")
-      );
 
       // # Run command to trigger help
       await c.postMessage("/todo help");
