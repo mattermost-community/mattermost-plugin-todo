@@ -6,4 +6,8 @@ import core from "./todo_plugin.spec";
 
 import "../support/init_test";
 
+// Test if plugin is setup correctly
 test.describe("setup", core.setup);
+
+// Test various plugin actions
+test.describe("actions", core.actions);
