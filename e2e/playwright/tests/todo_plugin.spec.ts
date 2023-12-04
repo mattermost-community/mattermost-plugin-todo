@@ -36,8 +36,8 @@ export default {
       await expect(slash.getItemDescNth(0)).toHaveText('Available commands: list, add, pop, send, settings, help');
     });
   },
-  actions: () => {
-    test('help action', async ({ pages, page, pw }) => {
+  commands: () => {
+    test('help', async ({ pages, page, pw }) => {
       const c = new pages.ChannelsPage(page);
 
       // # Run command to trigger help
@@ -48,7 +48,7 @@ export default {
       const postBody = post.locator('.post-message__text-container');
 
       // * Assert /todo add [message] command is visible
-      await expect(postBody).toContainText(`add [message]`);
+      await expect(postBody).toContainText('add [message]');
 
       // * Assert /todo list command is visible
       await expect(postBody).toContainText('list');
