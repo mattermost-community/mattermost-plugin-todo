@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type { Page } from "@playwright/test";
+import type {Page} from "@playwright/test";
 
 import Client4 from "@mattermost/client/client4";
-import { UserProfile } from "@mattermost/types/users";
+import {UserProfile} from "@mattermost/types/users";
 
 export const waitForNewMessages = async (page: Page) => {
   await page.waitForTimeout(1000);

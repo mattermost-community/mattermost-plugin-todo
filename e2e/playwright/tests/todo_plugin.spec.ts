@@ -6,13 +6,13 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-import { expect, test } from "@e2e-support/test_fixture";
+import {expect, test} from "@e2e-support/test_fixture";
 import SlashCommandSuggestions from "support/components/slash_commands";
 import {
-  fillMessage,
-  getLastPost,
-  getTodoBotDMPageURL,
-  postMessage,
+    fillMessage,
+    getLastPost,
+    getTodoBotDMPageURL,
+    postMessage,
 } from "support/utils";
 
 test.beforeEach(async ({ page, pw }) => {
