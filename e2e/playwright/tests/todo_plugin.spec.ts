@@ -8,7 +8,12 @@
 
 import { expect, test } from "@e2e-support/test_fixture";
 import SlashCommandSuggestions from "support/components/slash_commands";
-import { fillMessage, getTodoBotDMPageURL } from "support/utils";
+import {
+  fillMessage,
+  getLastPost,
+  getTodoBotDMPageURL,
+  postMessage,
+} from "support/utils";
 
 test.beforeEach(async ({ page, pw }) => {
   const { adminClient, adminUser } = await pw.getAdminClient();
@@ -45,11 +50,11 @@ export default {
       const c = new pages.ChannelsPage(page);
 
       // # Run command to trigger help
-      await c.postMessage("/todo help");
+      postMessage("/todo help", page);
 
       // # Grab the last post
-      const post = await c.getLastPost();
-      const postBody = post.container.locator(".post-message__text-container");
+      const post = await getLastPost(page);
+      const postBody = post.locator(".post-message__text-container");
 
       // * Assert /todo add [message] command is visible
       await expect(postBody).toContainText(`add [message]`);
