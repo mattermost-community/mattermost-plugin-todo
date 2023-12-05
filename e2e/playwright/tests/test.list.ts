@@ -10,4 +10,4 @@ import '../support/init_test';
 test.describe("setup", core.setup);
 
 // Test various plugin actions
-test.describe("actions", core.actions);
+test.describe("actions", core.commands);
