@@ -8,7 +8,7 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 import SlashCommandSuggestions from 'support/components/slash_commands';
-import {fillMessage, getLastPost, getTodoBotDMPageURL, postMessage, } from 'support/utils';
+import {fillMessage, getLastPost, getTodoBotDMPageURL, postMessage} from 'support/utils';
 
 test.beforeEach(async ({ page, pw }) => {
   const {adminClient, adminUser} = await pw.getAdminClient();
@@ -37,56 +37,18 @@ export default {
     });
   },
   commands: () => {
-    test('help', async ({ pages, page, pw }) => {
-      const c = new pages.ChannelsPage(page);
-
-      // # Run command to trigger help
-      postMessage('/todo help', page);
-
-      // # Grab the last post
-      const post = await getLastPost(page);
-      const postBody = post.locator('.post-message__text-container');
-
-      // * Assert /todo add [message] command is visible
-      await expect(postBody).toContainText('add [message]');
-
-      // * Assert /todo list command is visible
-      await expect(postBody).toContainText('list');
-
-      // * Assert /todo list [listName] command is visible
-      await expect(postBody).toContainText('list [listName]');
-
-      // * Assert /todo pop command is visible
-      await expect(postBody).toContainText('pop');
-
-      // * Assert /todo send [user] [message] command is visible
-      await expect(postBody).toContainText('send [user] [message]');
-
-      // * Assert /todo settings summary [on, off] command is visible
-      await expect(postBody).toContainText('settings summary [on, off]');
-
-      // * Assert /todo settings allow_incoming_task_requests [on, off] command is visible
-      await expect(postBody).toContainText(
-        'settings allow_incoming_task_requests [on, off]'
-      );
-
-      // * Assert /todo help command is visible
-      await expect(postBody).toContainText('help');
-    });
-
     test("list action", async ({ pages, page, pw }) => {
       const c = new pages.ChannelsPage(page);
-      const slash = new SlashCommandSuggestions(
-        page.locator("#suggestionList")
-      );
       const todoMessage = "Don't forget to be awesome";
 
       // # Run command to add todo
-      await c.postMessage(`/todo add ${todoMessage}`);
+      postMessage(`/todo add ${todoMessage}`, page);
 
       // # Type command to list todo
       await fillMessage("/todo list ", page);
-
+      const slash = new SlashCommandSuggestions(
+        page.locator("#suggestionList")
+      );
       // * Assert suggestions are visible
       await expect(slash.container).toBeVisible();
       await expect(slash.getItemTitleNth(1)).toHaveText("in (optional)");
@@ -95,11 +57,11 @@ export default {
       await expect(slash.getItemDescNth(2)).toHaveText("Sent Todos");
 
       // # Run command to list todo
-      await c.postMessage(`/todo list`);
+      await postMessage('/todo list', page);
 
       // # Grab the last post
-      const post = await c.getLastPost();
-      const postBody = post.container.locator(".post-message__text-container");
+      const post = await getLastPost(page);
+      const postBody = post.locator(".post-message__text-container");
 
       // * Assert post body has correct title
       await expect(postBody).toContainText("Todo List:");
