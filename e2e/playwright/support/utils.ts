@@ -3,8 +3,8 @@
 
 import type {Page} from '@playwright/test';
 
-import {UserProfile} from '@mattermost/types/users';
 import Client4 from '@mattermost/client/client4';
+import {UserProfile} from '@mattermost/types/users';
 
 export const waitForNewMessages = async (page: Page) => {
     await page.waitForTimeout(1000);
@@ -57,4 +57,10 @@ export const getSlackAttachmentLocatorId = (postId: string) => {
 
 export const getPostMessageLocatorId = (postId: string) => {
     return `#post_${postId} .post-message`;
+};
+
+export const getLastPost = async (page: Page) => {
+  const lastPost = page.getByTestId("postView").last();
+  await lastPost.waitFor();
+  return lastPost;
 };
