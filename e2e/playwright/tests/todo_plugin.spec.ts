@@ -33,12 +33,14 @@ test.beforeEach(async ({page, pw}) => {
 });
 
 export default {
-  setup: () => {
-    test('checking available commands', async ({page}) => {
+  todo: () => {
+    const command = "/todo";
+
+    test(`${command}`, async ({page}) => {
       const slash = new SlashCommandSuggestions(page.locator('#suggestionList'));
 
-      // # Run command to trigger todo
-      await fillMessage('/todo', page);
+      // # Type command to show suggestions
+      await fillMessage(command, page);
 
       // * Assert suggestions are visible
       await expect(slash.container).toBeVisible();
@@ -51,39 +53,27 @@ export default {
   },
 
   help: () => {
-    test('help', async ({pages, page, pw}) => {
+    const command = "/todo help";
+
+    test(`${command}`, async ({pages, page, pw}) => {
       const c = new pages.ChannelsPage(page);
 
       // # Run command to trigger help
-      postMessage('/todo help', page);
+      postMessage(command, page);
 
       // # Grab the last post
       const lastPost = await getLastPost(page);
 
-      // * Assert /todo add [message] command is visible
+      // * Assert all commands are shown in the help text output
       await expect(lastPost).toContainText('add [message]');
-
-      // * Assert /todo list command is visible
       await expect(lastPost).toContainText('list');
-
-      // * Assert /todo list [listName] command is visible
       await expect(lastPost).toContainText('list [listName]');
-
-      // * Assert /todo pop command is visible
       await expect(lastPost).toContainText('pop');
-
-      // * Assert /todo send [user] [message] command is visible
       await expect(lastPost).toContainText('send [user] [message]');
-
-      // * Assert /todo settings summary [on, off] command is visible
       await expect(lastPost).toContainText('settings summary [on, off]');
-
-      // * Assert /todo settings allow_incoming_task_requests [on, off] command is visible
       await expect(lastPost).toContainText(
         'settings allow_incoming_task_requests [on, off]'
       );
-
-      // * Assert /todo help command is visible
       await expect(lastPost).toContainText('help');
     });
   }

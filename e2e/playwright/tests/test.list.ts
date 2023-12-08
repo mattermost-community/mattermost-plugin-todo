@@ -6,8 +6,8 @@ import commands from './todo_plugin.spec';
 
 import '../support/init_test';
 
-// Test if plugin is setup correctly
-test.describe("setup", commands.setup);
+// Test if plugin shows the correct suggestions
+test.describe("testing todo command", commands.todo);
 
-// Test various plugin actions
+// Test if plugin actions work correctly
 test.describe("testing help command", commands.help);
