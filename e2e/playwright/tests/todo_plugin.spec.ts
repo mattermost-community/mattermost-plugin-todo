@@ -10,7 +10,7 @@ import {expect, test} from '@e2e-support/test_fixture';
 import SlashCommandSuggestions from 'support/components/slash_commands';
 import {fillMessage, getLastPost, getTodoBotDMPageURL, postMessage, } from 'support/utils';
 
-test.beforeEach(async ({ page, pw }) => {
+test.beforeEach(async ({page, pw}) => {
   const {adminClient, adminUser} = await pw.getAdminClient();
   if (adminUser === null) {
     throw new Error('can not get adminUser');
@@ -21,7 +21,7 @@ test.beforeEach(async ({ page, pw }) => {
 
 export default {
   setup: () => {
-    test('checking available commands', async ({ page }) => {
+    test('checking available commands', async ({page}) => {
       const slash = new SlashCommandSuggestions(page.locator('#suggestionList'));
 
       // # Run command to trigger todo
@@ -36,8 +36,9 @@ export default {
       await expect(slash.getItemDescNth(0)).toHaveText('Available commands: list, add, pop, send, settings, help');
     });
   },
-  commands: () => {
-    test('help', async ({ pages, page, pw }) => {
+
+  help: () => {
+    test('help', async ({pages, page, pw}) => {
       const c = new pages.ChannelsPage(page);
 
       // # Run command to trigger help
@@ -73,6 +74,6 @@ export default {
       // * Assert /todo help command is visible
       await expect(postBody).toContainText('help');
     });
-  },
+  }
 };
 

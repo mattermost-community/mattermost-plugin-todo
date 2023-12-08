@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@playwright/test';
-import core from './todo_plugin.spec';
+import commands from './todo_plugin.spec';
 
 import '../support/init_test';
 
 // Test if plugin is setup correctly
-test.describe("setup", core.setup);
+test.describe("setup", commands.setup);
 
 // Test various plugin actions
-test.describe("actions", core.commands);
+test.describe("testing help command", commands.help);
