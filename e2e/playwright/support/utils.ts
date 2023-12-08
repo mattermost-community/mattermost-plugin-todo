@@ -14,13 +14,14 @@ export const waitForNewMessages = async (page: Page) => {
     // await page.locator('#postListContent').getByTestId('NotificationSeparator').getByText('New Messages').waitFor();
 };
 
-export const getTodoBotDMPageURL = async (client: Client4, teamName: string, userId: string) => {
-    let team = teamName;
-    if (team === '') {
-        const teams = await client.getTeamsForUser(userId);
-        team = teams[0].name;
-    }
-    return `${team}/messages/@todo`;
+export const getTeamName = async (client: Client4, userId: string) => {
+    const teams = await client.getTeamsForUser(userId);
+    const team = teams[0].name;
+    return team;
+};
+
+export const getBotDMPageURL = async (client: Client4, userId: string, teamName: string, botUsername: string) => {
+    return `${teamName}/messages/${botUsername}`;
 };
 
 export const fillTextField = async (name: string, value: string, page: Page) => {
@@ -32,7 +33,7 @@ export const submitDialog = async (page: Page) => {
 };
 
 export const fillMessage = async (message: string, page: Page) => {
-    await fillTextField('post_textbox', message, page )
+    await fillTextField('post_textbox', message, page)
 };
 
 export const postMessage = async (message: string, page: Page) => {
@@ -60,7 +61,7 @@ export const getPostMessageLocatorId = (postId: string) => {
 };
 
 export const getLastPost = async (page: Page) => {
-  const lastPost = page.getByTestId("postView").last();
-  await lastPost.waitFor();
-  return lastPost;
+    const lastPost = page.getByTestId("postView").last();
+    await lastPost.waitFor();
+    return lastPost;
 };

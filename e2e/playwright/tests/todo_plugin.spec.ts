@@ -8,14 +8,27 @@
 
 import {expect, test} from '@e2e-support/test_fixture';
 import SlashCommandSuggestions from 'support/components/slash_commands';
-import {fillMessage, getLastPost, getTodoBotDMPageURL, postMessage, } from 'support/utils';
+import {fillMessage, getBotDMPageURL, getLastPost, getTeamName, postMessage, } from 'support/utils';
+
+const botUserName = 'todo';
+let teamName = '';
+
+test.beforeAll(async ({pw}) => {
+  const {adminClient, adminUser} = await pw.getAdminClient();
+  if (adminUser === null) {
+    throw new Error('can not get adminUser');
+  }
+  if (teamName === '') {
+    teamName = await getTeamName(adminClient, adminUser.id)
+  }
+});
 
 test.beforeEach(async ({page, pw}) => {
   const {adminClient, adminUser} = await pw.getAdminClient();
   if (adminUser === null) {
     throw new Error('can not get adminUser');
   }
-  const dmURL = await getTodoBotDMPageURL(adminClient, '', adminUser.id);
+  const dmURL = await getBotDMPageURL(adminClient, adminUser.id, teamName, botUserName);
   await page.goto(dmURL, {waitUntil: 'load'});
 });
 
