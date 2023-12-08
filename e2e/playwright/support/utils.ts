@@ -63,5 +63,6 @@ export const getPostMessageLocatorId = (postId: string) => {
 export const getLastPost = async (page: Page) => {
     const lastPost = page.getByTestId("postView").last();
     await lastPost.waitFor();
-    return lastPost;
+    const postBody = lastPost.locator('.post-message__text-container');
+    return postBody;
 };

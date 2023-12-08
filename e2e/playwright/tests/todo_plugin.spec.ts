@@ -58,34 +58,33 @@ export default {
       postMessage('/todo help', page);
 
       // # Grab the last post
-      const post = await getLastPost(page);
-      const postBody = post.locator('.post-message__text-container');
+      const lastPost = await getLastPost(page);
 
       // * Assert /todo add [message] command is visible
-      await expect(postBody).toContainText('add [message]');
+      await expect(lastPost).toContainText('add [message]');
 
       // * Assert /todo list command is visible
-      await expect(postBody).toContainText('list');
+      await expect(lastPost).toContainText('list');
 
       // * Assert /todo list [listName] command is visible
-      await expect(postBody).toContainText('list [listName]');
+      await expect(lastPost).toContainText('list [listName]');
 
       // * Assert /todo pop command is visible
-      await expect(postBody).toContainText('pop');
+      await expect(lastPost).toContainText('pop');
 
       // * Assert /todo send [user] [message] command is visible
-      await expect(postBody).toContainText('send [user] [message]');
+      await expect(lastPost).toContainText('send [user] [message]');
 
       // * Assert /todo settings summary [on, off] command is visible
-      await expect(postBody).toContainText('settings summary [on, off]');
+      await expect(lastPost).toContainText('settings summary [on, off]');
 
       // * Assert /todo settings allow_incoming_task_requests [on, off] command is visible
-      await expect(postBody).toContainText(
+      await expect(lastPost).toContainText(
         'settings allow_incoming_task_requests [on, off]'
       );
 
       // * Assert /todo help command is visible
-      await expect(postBody).toContainText('help');
+      await expect(lastPost).toContainText('help');
     });
   }
 };
