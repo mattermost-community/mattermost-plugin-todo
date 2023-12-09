@@ -20,7 +20,7 @@ export const getTeamName = async (client: Client4, userId: string) => {
     return team;
 };
 
-export const getBotDMPageURL = async (client: Client4, userId: string, teamName: string, botUsername: string) => {
+export const getBotDMPageURL = async (teamName: string, botUsername: string) => {
     return `${teamName}/messages/${botUsername}`;
 };
 
