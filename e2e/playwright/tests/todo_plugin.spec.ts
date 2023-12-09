@@ -23,11 +23,7 @@ test.beforeAll(async ({pw}) => {
   }
 });
 
-test.beforeEach(async ({page, pw}) => {
-  const {adminClient, adminUser} = await pw.getAdminClient();
-  if (adminUser === null) {
-    throw new Error('can not get adminUser');
-  }
+test.beforeEach(async ({page}) => {
   const dmURL = await getBotDMPageURL(teamName, botUserName);
   await page.goto(dmURL, {waitUntil: 'load'});
 });
