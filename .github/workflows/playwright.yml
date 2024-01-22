@@ -170,10 +170,10 @@ jobs:
           cd e2e/playwright
           npm run tsc
 
-      # - name: ci/lint
-      #   run: |
-      #     cd e2e/playwright
-      #     npm run lint
+      - name: ci/lint
+        run: |
+          cd e2e/playwright
+          npm run lint
 
       - name: ci/run-playwright-tests
         run: |
