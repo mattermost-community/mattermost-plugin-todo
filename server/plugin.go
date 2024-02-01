@@ -203,7 +203,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	if addRequest.SendTo == "" {
 		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
 		if err != nil {
-			p.API.LogError("Unable to add issue err=" + err.Error())
+			p.API.LogError("Unable to add the issue err=" + err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to add issue", err)
 			return
 		}
@@ -220,7 +220,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 
 	receiver, appErr := p.API.GetUserByUsername(addRequest.SendTo)
 	if appErr != nil {
-		p.API.LogError("username not valid, err=" + appErr.Error())
+		p.API.LogError("invalid username, err=" + appErr.Error())
 		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to find user", appErr)
 		return
 	}
@@ -336,7 +336,7 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(issuesJSON)
 	if err != nil {
-		p.API.LogError("Unable to write json response err=" + err.Error())
+		p.API.LogError("Unable to write json response while listing issues err=" + err.Error())
 	}
 }
 
