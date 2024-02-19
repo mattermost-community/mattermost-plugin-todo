@@ -1,5 +1,6 @@
-import {id as pluginId} from './manifest';
+import manifest from './manifest';
 
+const {id: pluginId} = manifest;
 export const OPEN_ROOT_MODAL = pluginId + '_open_root_modal';
 export const CLOSE_ROOT_MODAL = pluginId + '_close_root_modal';
 export const OPEN_ADD_CARD = pluginId + '_open_add_card';
