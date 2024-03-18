@@ -1,2 +1,4 @@
 dist
 .DS_Store
+webapp/src/manifest.ts
+server/manifest.go
