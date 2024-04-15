@@ -185,7 +185,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	message := strings.Join(args[1:], " ")
 
-	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "", "")
+	receiverIssueID, err := p.listManager.SendIssue(extra.UserId, receiver.Id, message, "", "", "")
 	if err != nil {
 		return false, err
 	}
@@ -201,7 +201,7 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
-	p.PostBotCustomDM(receiver.Id, receiverMessage, message, receiverIssueID)
+	p.PostBotCustomDM(receiver.Id, receiverMessage, message, "", receiverIssueID)
 	p.postCommandResponse(extra, responseMessage)
 	return false, nil
 }
@@ -214,7 +214,7 @@ func (p *Plugin) runAddCommand(args []string, extra *model.CommandArgs) (bool, e
 		return false, nil
 	}
 
-	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "", "")
+	newIssue, err := p.listManager.AddIssue(extra.UserId, message, "", "", "")
 	if err != nil {
 		return false, err
 	}
@@ -311,7 +311,7 @@ func (p *Plugin) runPopCommand(_ []string, extra *model.CommandArgs) (bool, erro
 	responseMessage := "Removed top Todo."
 
 	replyMessage := fmt.Sprintf("@%s popped a todo attached to this thread", userName)
-	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message, issue.PostPermalink)
 
 	issues, err := p.listManager.GetIssueList(extra.UserId, MyListKey)
 	if err != nil {

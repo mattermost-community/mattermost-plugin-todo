@@ -22,6 +22,7 @@ export default class AddIssue extends React.PureComponent {
     static propTypes = {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
+        postPermalink: PropTypes.string,
         postID: PropTypes.string.isRequired,
         assignee: PropTypes.object,
         closeAddBox: PropTypes.func.isRequired,
@@ -37,6 +38,7 @@ export default class AddIssue extends React.PureComponent {
 
         this.state = {
             message: props.message || '',
+            postPermalink: props.postPermalink,
             description: '',
             sendTo: null,
             attachToThread: false,
@@ -77,7 +79,7 @@ export default class AddIssue extends React.PureComponent {
 
     submit = () => {
         const {submit, postID, assignee, closeAddBox, removeAssignee} = this.props;
-        const {message, description, attachToThread, sendTo} = this.state;
+        const {message, postPermalink, description, attachToThread, sendTo} = this.state;
         this.setState({
             message: '',
             description: '',
@@ -85,14 +87,14 @@ export default class AddIssue extends React.PureComponent {
 
         if (attachToThread) {
             if (assignee) {
-                submit(message, description, assignee.username, postID);
+                submit(message, postPermalink, description, assignee.username, postID);
             } else {
-                submit(message, description, sendTo, postID);
+                submit(message, postPermalink, description, sendTo, postID);
             }
         } else if (assignee) {
-            submit(message, description, assignee.username);
+            submit(message, postPermalink, description, assignee.username);
         } else {
-            submit(message, description);
+            submit(message, postPermalink, description);
         }
 
         removeAssignee();
@@ -121,8 +123,8 @@ export default class AddIssue extends React.PureComponent {
         }
 
         const {message, description} = this.state;
-
         const style = getStyle(theme);
+        const postPermalink = this.props.postID ? `\n[Permalink](${this.state.postPermalink})` : '';
 
         return (
             <div className='AddIssueBox'>
@@ -136,7 +138,7 @@ export default class AddIssue extends React.PureComponent {
                                     style={style.markdown}
                                 >
                                     {PostUtils.messageHtmlToComponent(
-                                        PostUtils.formatText(this.state.message),
+                                        PostUtils.formatText(this.state.message + postPermalink),
                                     )}
                                 </div>
                             ) : (
@@ -146,7 +148,7 @@ export default class AddIssue extends React.PureComponent {
                                         placeholder='Enter a title'
                                         autoFocus={true}
                                         onKeyDown={(e) => this.onKeyDown(e)}
-                                        value={message}
+                                        value={message + postPermalink}
                                         onChange={(e) =>
                                             this.setState({
                                                 message: e.target.value,

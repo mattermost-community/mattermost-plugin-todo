@@ -54,6 +54,19 @@ function TodoItem(props) {
     const issueMessage = PostUtils.messageHtmlToComponent(htmlFormattedMessage);
     const issueDescription = PostUtils.messageHtmlToComponent(htmlFormattedDescription);
 
+    const postPermalink = (
+        <a
+            className='theme markdown_link'
+            href={issue.postPermalink}
+            rel='noreferrer'
+            data-link={issue.postPermalink}
+        >
+            <span data-link={issue.postPermalink}>
+                {'Permalink'}
+            </span>
+        </a>
+    );
+
     let listPositionMessage = '';
     let createdMessage = 'Created ';
     if (issue.user) {
@@ -190,6 +203,7 @@ function TodoItem(props) {
                                 onClick={handleClick}
                             >
                                 {issueMessage}
+                                {postPermalink}
                                 <div style={style.description}>{issueDescription}</div>
                                 {(canRemove(list, issue.list) ||
                                 canComplete(list) ||

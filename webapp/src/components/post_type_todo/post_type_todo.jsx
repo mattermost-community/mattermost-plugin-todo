@@ -42,6 +42,19 @@ export default class PostTypeTodo extends React.PureComponent {
         const subtitleHTMLFormattedText = PostUtils.formatText(this.props.post.props.todo, {siteURL: this.props.siteURL});
         const subtitle = PostUtils.messageHtmlToComponent(subtitleHTMLFormattedText);
 
+        const postPermalink = (
+            <a
+                className='theme markdown_link'
+                href={this.props.post.props.postPermalink}
+                rel='noreferrer'
+                data-link={this.props.post.props.postPermalink}
+            >
+                <span data-link={this.props.post.props.postPermalink}>
+                    {'Permalink'}
+                </span>
+            </a>
+        );
+
         const content = (
             <div
                 className={`todo-post d-flex flex-row-reverse align-items-center justify-content-end ${this.state.done ? 'todo-item--done' : ''}`}
@@ -83,6 +96,7 @@ export default class PostTypeTodo extends React.PureComponent {
                                 {title}
                             </h1>
                             {subtitle}
+                            {postPermalink}
                             <div>
                                 {this.props.pendingAnswer && content}
                             </div>
