@@ -19,7 +19,7 @@ export default class Menu extends React.PureComponent<Props> {
 
         return (
             <div
-                className={'Menu noselect ' + (position || 'bottom')}
+                className={'TodoMenu noselect ' + (position || 'bottom')}
                 tabIndex={0}
             >
                 <div className='menu-contents'>

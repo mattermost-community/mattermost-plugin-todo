@@ -4,16 +4,15 @@
     "description": "This plugin makes it easy to keep track of Todo issues and get daily reminders.",
     "homepage_url": "https://github.com/mattermost/mattermost-plugin-todo",
     "support_url": "https://github.com/mattermost/mattermost-plugin-todo/issues",
-    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-todo/releases/tag/v0.7.0",
-    "version": "0.7.0",
     "min_server_version": "6.5.0",
     "server": {
         "executables": {
             "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
-        },
-        "executable": ""
+        }
     },
     "webapp": {
         "bundle_path": "webapp/dist/main.js"

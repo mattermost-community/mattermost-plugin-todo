@@ -3,8 +3,8 @@ package main
 import (
 	"reflect"
 
-	"github.com/mattermost/mattermost-plugin-api/experimental/bot/logger"
-	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/bot/logger"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/telemetry"
 	"github.com/pkg/errors"
 )
 
@@ -97,14 +97,8 @@ func (p *Plugin) OnConfigurationChange() error {
 		p.sendConfigUpdateEvent()
 	}
 
-	enableDiagnostics := false
-	if config := p.API.GetConfig(); config != nil {
-		if configValue := config.LogSettings.EnableDiagnostics; configValue != nil {
-			enableDiagnostics = *configValue
-		}
-	}
-	logger := logger.NewLogger(logger.Config{}, p.API, nil, "")
-	p.tracker = telemetry.NewTracker(p.telemetryClient, p.API.GetDiagnosticId(), p.API.GetServerVersion(), manifest.Id, manifest.Version, "todo", enableDiagnostics, logger)
+	logger := logger.New(p.API)
+	p.tracker = telemetry.NewTracker(p.telemetryClient, p.API.GetDiagnosticId(), p.API.GetServerVersion(), manifest.Id, manifest.Version, "todo", telemetry.NewTrackerConfig(p.API.GetConfig()), logger)
 
 	return nil
 }
