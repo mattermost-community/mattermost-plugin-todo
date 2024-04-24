@@ -201,7 +201,8 @@ func (p *Plugin) runSendCommand(args []string, extra *model.CommandArgs) (bool, 
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
 
-	p.PostBotCustomDM(receiver.Id, receiverMessage, message, "", receiverIssueID)
+	postPermalink := ""
+	p.PostBotCustomDM(receiver.Id, receiverMessage, message, postPermalink, receiverIssueID)
 	p.postCommandResponse(extra, responseMessage)
 	return false, nil
 }

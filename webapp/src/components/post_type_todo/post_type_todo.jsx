@@ -7,6 +7,8 @@ import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
 
+import PostPermalink from '../todo_item/post_permalink';
+
 const PostUtils = window.PostUtils; // import the post utilities
 
 export default class PostTypeTodo extends React.PureComponent {
@@ -41,19 +43,6 @@ export default class PostTypeTodo extends React.PureComponent {
 
         const subtitleHTMLFormattedText = PostUtils.formatText(this.props.post.props.todo, {siteURL: this.props.siteURL});
         const subtitle = PostUtils.messageHtmlToComponent(subtitleHTMLFormattedText);
-
-        const postPermalink = (
-            <a
-                className='theme markdown_link'
-                href={this.props.post.props.postPermalink}
-                rel='noreferrer'
-                data-link={this.props.post.props.postPermalink}
-            >
-                <span data-link={this.props.post.props.postPermalink}>
-                    {'Permalink'}
-                </span>
-            </a>
-        );
 
         const content = (
             <div
@@ -96,7 +85,7 @@ export default class PostTypeTodo extends React.PureComponent {
                                 {title}
                             </h1>
                             {subtitle}
-                            {postPermalink}
+                            {this.props.post.props.postPermalink && <PostPermalink postPermalink={this.props.post.props.postPermalink}/>}
                             <div>
                                 {this.props.pendingAnswer && content}
                             </div>

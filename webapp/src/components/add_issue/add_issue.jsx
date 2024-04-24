@@ -83,6 +83,7 @@ export default class AddIssue extends React.PureComponent {
         this.setState({
             message: '',
             description: '',
+            postPermalink: '',
         });
 
         if (attachToThread) {

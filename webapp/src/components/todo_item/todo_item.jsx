@@ -19,6 +19,8 @@ import MenuItem from '../../widget/menuItem';
 import MenuWrapper from '../../widget/menuWrapper';
 import Button from '../../widget/buttons/button';
 
+import PostPermalink from './post_permalink';
+
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
@@ -53,19 +55,6 @@ function TodoItem(props) {
 
     const issueMessage = PostUtils.messageHtmlToComponent(htmlFormattedMessage);
     const issueDescription = PostUtils.messageHtmlToComponent(htmlFormattedDescription);
-
-    const postPermalink = (
-        <a
-            className='theme markdown_link'
-            href={issue.postPermalink}
-            rel='noreferrer'
-            data-link={issue.postPermalink}
-        >
-            <span data-link={issue.postPermalink}>
-                {'Permalink'}
-            </span>
-        </a>
-    );
 
     let listPositionMessage = '';
     let createdMessage = 'Created ';
@@ -203,7 +192,7 @@ function TodoItem(props) {
                                 onClick={handleClick}
                             >
                                 {issueMessage}
-                                {postPermalink}
+                                {issue.postPermalink && <PostPermalink postPermalink={issue.postPermalink}/>}
                                 <div style={style.description}>{issueDescription}</div>
                                 {(canRemove(list, issue.list) ||
                                 canComplete(list) ||
