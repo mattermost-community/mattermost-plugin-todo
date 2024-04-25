@@ -21,6 +21,7 @@ const AssigneeModal = (
     },
 ) => {
     const [assignee, setAssignee] = useState();
+    const [error, setError] = useState('');
 
     useEffect(() => {
         function handleKeypress(e) {
@@ -36,9 +37,13 @@ const AssigneeModal = (
         };
     }, [visible]);
 
-    const submit = useCallback(() => {
+    const submit = useCallback(async () => {
         if (editingTodo && assignee) {
-            changeAssignee(editingTodo, assignee.username);
+            let {error} = await changeAssignee(editingTodo, assignee.username);
+            if (error) {
+                setError('Error updating todo assignee')
+                return;
+            }
             removeEditingTodo();
         } else if (assignee) {
             getAssignee(assignee);
@@ -54,6 +59,7 @@ const AssigneeModal = (
 
     const closeModal = () => {
         removeEditingTodo();
+        setError('');
         close();
     };
 
@@ -84,24 +90,29 @@ const AssigneeModal = (
                     theme={theme}
                 />
                 <div
-                    className='todoplugin-button-container'
-                    style={style.buttons}
+                    style={style.footer}
                 >
-                    <Button
-                        emphasis='tertiary'
-                        size='medium'
-                        onClick={closeModal}
+                    {error && <div style={style.errorMessage}>{error}</div>}
+                    <div
+                        className='todoplugin-button-container'
+                        style={style.buttons}
                     >
-                        {'Cancel'}
-                    </Button>
-                    <Button
-                        emphasis='primary'
-                        size='medium'
-                        onClick={submit}
-                        disabled={!assignee}
-                    >
-                        {'Assign'}
-                    </Button>
+                        <Button
+                            emphasis='tertiary'
+                            size='medium'
+                            onClick={closeModal}
+                        >
+                            {'Cancel'}
+                        </Button>
+                        <Button
+                            emphasis='primary'
+                            size='medium'
+                            onClick={submit}
+                            disabled={!assignee}
+                        >
+                            {'Assign'}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -142,9 +153,6 @@ const getStyle = (theme) => ({
         color: theme.centerChannelColor,
         backgroundColor: theme.centerChannelBg,
     },
-    buttons: {
-        marginTop: 24,
-    },
     heading: {
         fontSize: 20,
         fontWeight: 600,
@@ -154,6 +162,17 @@ const getStyle = (theme) => ({
         position: 'absolute',
         top: 8,
         right: 8,
+    },
+    errorMessage: {
+        width: '100%',
+        color: 'red',
+    },
+    footer: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        marginTop: '24px',
     },
 });
 
