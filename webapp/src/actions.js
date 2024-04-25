@@ -121,24 +121,47 @@ export const telemetry = (event, properties) => async (dispatch, getState) => {
 };
 
 export const add = (message, description, sendTo, postID) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
+    let resp = await fetch(getPluginServerRoute(getState()) + '/add', Client4.getOptions({
         method: 'post',
         body: JSON.stringify({send_to: sendTo, message, description, post_id: postID}),
     }));
-};
+    let data = await resp.json();
+
+    if (data && data.error) {
+        return {error: data.error}
+    }
+
+    return data;
+}
 
 export const editIssue = (postID, message, description) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
+    let resp =  await fetch(getPluginServerRoute(getState()) + '/edit', Client4.getOptions({
         method: 'put',
         body: JSON.stringify({id: postID, message, description}),
     }));
+
+    let data = await resp.json();
+
+    if (data && data.error) {
+        return {error: data.error}
+    }
+
+    return data;
 };
 
 export const changeAssignee = (id, assignee) => async (dispatch, getState) => {
-    await fetch(getPluginServerRoute(getState()) + '/change_assignment', Client4.getOptions({
+    let resp =  await fetch(getPluginServerRoute(getState()) + '/change_assignment', Client4.getOptions({
         method: 'post',
         body: JSON.stringify({id, send_to: assignee}),
     }));
+
+    let data = await resp.json();
+
+    if (data && data.error) {
+        return {error: data.error}
+    }
+
+    return data;
 };
 
 export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {

@@ -1,4 +1,4 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback,} from 'react';
 import PropTypes from 'prop-types';
 
 import {changeOpacity, makeStyleFromTheme} from 'mattermost-redux/utils/theme_utils';
@@ -107,7 +107,7 @@ function TodoItem(props) {
     const removeTimeout = useRef(null);
 
     const completeToast = useCallback(() => {
-        openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo});
+        openTodoToast({icon: 'check', message: 'Todo completed', undo: undoCompleteTodo, showUndo: true});
 
         setHidden(true);
 
@@ -138,16 +138,19 @@ function TodoItem(props) {
     );
 
     const removeTodo = useCallback(() => {
-        openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo});
+        openTodoToast({icon: 'trash-can-outline', message: 'Todo deleted', undo: undoRemoveTodo, showUndo: true});
         setHidden(true);
         removeTimeout.current = setTimeout(() => {
             remove(issue.id);
         }, 5000);
     }, [remove, issue.id, openTodoToast]);
 
-    const saveEditedTodo = () => {
+    const saveEditedTodo = async () => {
         setEditTodo(false);
-        editIssue(issue.id, message, description);
+        let {error} = await editIssue(issue.id, message, description);
+        if (error) {
+            openTodoToast({message: "Something went wrong 2", showUndo: false})
+        }
     };
 
     const editAssignee = () => {

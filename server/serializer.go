@@ -85,6 +85,10 @@ func (e *EditAPIRequest) IsValid() error {
 		return errors.New("id is required")
 	}
 
+	if e.Message == "" {
+		return errors.New("message is required")
+	}
+
 	return nil
 }
 

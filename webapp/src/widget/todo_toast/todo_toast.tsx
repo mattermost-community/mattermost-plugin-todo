@@ -18,6 +18,7 @@ type Props = {
         icon: string,
         message: string,
         undo: () => void,
+        showUndo: boolean,
     },
     className?: string,
 }
@@ -60,12 +61,12 @@ function TodoToast(props: Props): JSX.Element {
                 <div>
                     <CompassIcon icon={props.content.icon}/>
                     <span>{props.content.message}</span>
-                    <button
+                    {content.showUndo && <button
                         onClick={undoTodo}
                         className='TodoToast__undo'
                     >
                         {'Undo'}
-                    </button>
+                    </button>}
                 </div>
                 <IconButton
                     onClick={closeToast}

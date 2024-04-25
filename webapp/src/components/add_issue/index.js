@@ -5,6 +5,7 @@ import {add, autocompleteUsers, openAssigneeModal, removeAssignee} from 'actions
 import {getMessage, getPostID, getAssignee, getCurrentTeamRoute, isAddCardVisible} from 'selectors';
 
 import AddIssue from './add_issue';
+import { openTodoToast } from 'src/actions';
 
 function mapStateToProps(state) {
     const postID = getPostID(state);
@@ -29,6 +30,7 @@ const mapDispatchToProps = (dispatch) => bindActionCreators({
     submit: add,
     autocompleteUsers,
     openAssigneeModal,
+    openTodoToast,
 }, dispatch);
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddIssue);

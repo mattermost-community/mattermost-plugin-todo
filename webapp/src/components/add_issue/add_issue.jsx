@@ -26,6 +26,7 @@ export default class AddIssue extends React.PureComponent {
         assignee: PropTypes.object,
         closeAddBox: PropTypes.func.isRequired,
         submit: PropTypes.func.isRequired,
+        openTodoToast: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
         autocompleteUsers: PropTypes.func.isRequired,
         openAssigneeModal: PropTypes.func.isRequired,
@@ -75,24 +76,29 @@ export default class AddIssue extends React.PureComponent {
         closeAddBox();
     }
 
-    submit = () => {
-        const {submit, postID, assignee, closeAddBox, removeAssignee} = this.props;
+    submit = async () => {
+        const {submit, postID, assignee, closeAddBox, removeAssignee, openTodoToast} = this.props;
         const {message, description, attachToThread, sendTo} = this.state;
         this.setState({
             message: '',
             description: '',
         });
 
+        let error;
         if (attachToThread) {
             if (assignee) {
-                submit(message, description, assignee.username, postID);
+                ({error} = submit(message, description, assignee.username, postID));
             } else {
-                submit(message, description, sendTo, postID);
+                ( {error} = submit(message, description, sendTo, postID));
             }
         } else if (assignee) {
-            submit(message, description, assignee.username);
+            ({error} = await submit(message, description, assignee.username));
         } else {
-            submit(message, description);
+            ({error} = await submit(message, description));
+        }
+
+        if (error) {
+            openTodoToast({icon: "exclamation-triangle", message: "Something went wrong", showUndo: false})
         }
 
         removeAssignee();
