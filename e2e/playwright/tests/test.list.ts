@@ -9,5 +9,8 @@ import "../support/init_test";
 // Test if plugin shows the correct suggestions
 test.describe("testing todo command", commands.todo);
 
+// Test if adding todo works correctly
+test.describe("testing add todo command", commands.addTodo);
+
 // Test if plugin actions work correctly
 test.describe("testing help command", commands.help);

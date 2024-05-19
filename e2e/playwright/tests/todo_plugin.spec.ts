@@ -61,9 +61,7 @@ export default {
   help: () => {
     const command = "/todo help";
 
-    test(`${command}`, async ({ pages, page, pw }) => {
-      const c = new pages.ChannelsPage(page);
-
+    test(`${command}`, async ({ page }) => {
       // # Run command to trigger help
       postMessage(command, page);
 
@@ -82,26 +80,26 @@ export default {
       );
       await expect(lastPost).toContainText("help");
     });
+  },
 
-    test("add action", async ({ pages, page, pw }) => {
-      const c = new pages.ChannelsPage(page);
-      const slash = new SlashCommandSuggestions(
-        page.locator("#suggestionList")
-      );
-      const todoMessage = "Don't forget to be awesome";
+  addTodo: () => {
+    const todoMessage = "Don't forget to be awesome";
+    const command = `/todo add ${todoMessage}`;
 
+    test("/todo add <message>", async ({ page }) => {
       // # Run command to add todo
-      await c.postMessage(`/todo add ${todoMessage}`);
+      postMessage(command, page);
 
       // # Grab the last post
-      const post = await c.getLastPost();
-      const postBody = post.container.locator(".post-message__text-container");
+      const post = await getLastPost(page);
 
-      // * Assert post body has correct title
-      await expect(postBody).toContainText("Added Todo. Todo List:");
+      await expect(post).toBeVisible();
+
+      await expect(post).toContainText("Added Todo. Todo List:");
+      await expect(post).toContainText(todoMessage);
 
       // * Assert added todo is visible
-      await expect(postBody).toContainText(todoMessage);
+      await expect(post).toContainText(todoMessage);
     });
   },
 };
