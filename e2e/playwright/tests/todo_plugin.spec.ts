@@ -63,7 +63,7 @@ export default {
 
     test(`${command}`, async ({ page }) => {
       // # Run command to trigger help
-      postMessage(command, page);
+      await postMessage(command, page);
 
       // # Grab the last post
       const lastPost = await getLastPost(page);
@@ -88,7 +88,7 @@ export default {
 
     test("/todo add <message>", async ({ page }) => {
       // # Run command to add todo
-      postMessage(command, page);
+      await postMessage(command, page);
 
       // # Grab the last post
       const post = await getLastPost(page);
@@ -96,6 +96,29 @@ export default {
       await expect(post).toBeVisible();
 
       await expect(post).toContainText("Added Todo. Todo List:");
+      await expect(post).toContainText(todoMessage);
+
+      // * Assert added todo is visible
+      await expect(post).toContainText(todoMessage);
+    });
+  },
+
+  listTodo: () => {
+    const todoMessage = "Don't forget to be awesome";
+
+    test("/todo list", async ({ page }) => {
+      // # Run command to add todo
+      await postMessage(`/todo add ${todoMessage}`, page);
+
+      // # Type command to list todo
+      await postMessage(`/todo list`, page);
+
+      // # Grab the last post
+      const post = await getLastPost(page);
+
+      await expect(post).toBeVisible();
+
+      await expect(post).toContainText("Todo List:");
       await expect(post).toContainText(todoMessage);
 
       // * Assert added todo is visible
