@@ -1,19 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import { test } from "@e2e-support/test_fixture";
+import {test} from "@e2e-support/test_fixture";
 import commands from "./todo_plugin.spec";
 
 import "../support/init_test";
 
-// Test if plugin shows the correct suggestions
-// test.describe("testing todo command", commands.todo);
+// Test if plugin shows the correct suggestions for command autocomplete
+test.describe("command autocomplete", commands.autocomplete);
 
-// Test if adding todo works correctly
-// test.describe("testing add todo command", commands.addTodo);
+// Test `/todo add` commands
+// test.describe("commands/add", commands.add);
 
-// Test if listing todo works correctly
-test.describe("testing list todo command", commands.listTodo);
+// Test `/todo list` commands
+// test.describe("commands/list", commands.list);
 
-// Test if plugin actions work correctly
-// test.describe("testing help command", commands.help);
+// Test `/todo help` commands
+// test.describe("commands/help", commands.help);

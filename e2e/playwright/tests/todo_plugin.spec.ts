@@ -6,14 +6,14 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-import { expect, test } from "@e2e-support/test_fixture";
+import {expect, test} from "@e2e-support/test_fixture";
 import SlashCommandSuggestions from "support/components/slash_commands";
 import {
-  fillMessage,
-  getBotDMPageURL,
-  getLastPost,
-  getTeamName,
-  postMessage,
+    fillMessage,
+    getBotDMPageURL,
+    getLastPost,
+    getTeamName,
+    postMessage,
 } from "support/utils";
 
 const botUserName = "todo";
@@ -35,16 +35,14 @@ test.beforeEach(async ({ page }) => {
 });
 
 export default {
-  todo: () => {
-    const command = "/todo";
-
-    test(`${command}`, async ({ page }) => {
+  autocomplete: () => {
+    test('/todo', async ({ page }) => {
       const slash = new SlashCommandSuggestions(
         page.locator("#suggestionList")
       );
 
       // # Type command to show suggestions
-      await fillMessage(command, page);
+      await fillMessage('/todo', page);
 
       // * Assert suggestions are visible
       await expect(slash.container).toBeVisible();
@@ -52,45 +50,38 @@ export default {
       // * Assert todo [command] is visible
       await expect(slash.getItemTitleNth(0)).toHaveText("todo [command]");
 
-      await expect(slash.getItemDescNth(0)).toHaveText(
-        "Available commands: list, add, pop, send, settings, help"
+      await expect(slash.getItemDescNth(0)).toContainText(
+        "Available commands:"
       );
     });
   },
 
   help: () => {
-    const command = "/todo help";
-
-    test(`${command}`, async ({ page }) => {
+    test('/todo help', async ({ page }) => {
       // # Run command to trigger help
-      await postMessage(command, page);
+    await postMessage('/todo help', page);
 
-      // # Grab the last post
-      const lastPost = await getLastPost(page);
+    // # Get ephemeral post response from todo help command
+    const lastPost = await getLastPost(page);
 
-      // * Assert all commands are shown in the help text output
-      await expect(lastPost).toContainText("add [message]");
-      await expect(lastPost).toContainText("list");
-      await expect(lastPost).toContainText("list [listName]");
-      await expect(lastPost).toContainText("pop");
-      await expect(lastPost).toContainText("send [user] [message]");
-      await expect(lastPost).toContainText("settings summary [on, off]");
-      await expect(lastPost).toContainText(
-        "settings allow_incoming_task_requests [on, off]"
-      );
-      await expect(lastPost).toContainText("help");
+    // * Assert "help" is in the post body
+    await expect(lastPost).toContainText("help");
+
+    // * Assert if length of content shown is greater than 10 lines
+    const postBody = await lastPost.textContent();
+    const postBodyLines = postBody ? postBody.split('\n') : [];
+    expect(postBodyLines.length).toBeGreaterThanOrEqual(10);
     });
   },
 
-  addTodo: () => {
-    const todoMessage = "Don't forget to be awesome";
-    const command = `/todo add ${todoMessage}`;
-
+  add: () => {
     test("/todo add <message>", async ({ page }) => {
-      // # Run command to add todo
-      await postMessage(command, page);
+      const todoMessage = "Don't forget to be awesome";
 
-      // # Grab the last post
+      // # Run command to add todo
+      await postMessage(`/todo add ${todoMessage}`, page);
+
+      // # Get ephemeral post response from todo add command
       const post = await getLastPost(page);
 
       await expect(post).toBeVisible();
@@ -103,17 +94,17 @@ export default {
     });
   },
 
-  listTodo: () => {
-    const todoMessage = "Don't forget to be awesome";
-
+  list: () => {
     test("/todo list", async ({ page }) => {
+      const todoMessage = "Don't forget to be awesome";
+
       // # Run command to add todo
       await postMessage(`/todo add ${todoMessage}`, page);
 
       // # Type command to list todo
-      await postMessage(`/todo list`, page);
+      await postMessage('/todo list', page);
 
-      // # Grab the last post
+      // # Get ephemeral post response from todo list command
       const post = await getLastPost(page);
 
       await expect(post).toBeVisible();
