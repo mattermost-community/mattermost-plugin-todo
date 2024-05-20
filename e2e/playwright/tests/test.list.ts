@@ -10,10 +10,10 @@ import "../support/init_test";
 test.describe("command autocomplete", commands.autocomplete);
 
 // Test `/todo add` commands
-// test.describe("commands/add", commands.add);
+test.describe("commands/add", commands.add);
 
 // Test `/todo list` commands
-// test.describe("commands/list", commands.list);
+test.describe("commands/list", commands.list);
 
 // Test `/todo help` commands
-// test.describe("commands/help", commands.help);
+test.describe("commands/help", commands.help);
