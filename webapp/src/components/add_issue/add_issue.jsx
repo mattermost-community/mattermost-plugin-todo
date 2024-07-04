@@ -116,6 +116,12 @@ export default class AddIssue extends React.PureComponent {
         }
     }
 
+    handleInputChange = (e, field) => {
+        this.setState({
+            [field]: e.target.value,
+        });
+    }
+
     render() {
         const {assignee, visible, theme} = this.props;
 
@@ -123,9 +129,9 @@ export default class AddIssue extends React.PureComponent {
             return null;
         }
 
-        const {message, description} = this.state;
+        const {message, description, postPermalink} = this.state;
         const style = getStyle(theme);
-        const postPermalink = this.props.postID ? `\n[Permalink](${this.state.postPermalink})` : '';
+        const formattedMessage = message.includes(`[Permalink](${postPermalink})`) ? message : message + (postPermalink ? `\n[Permalink](${postPermalink})` : '');
 
         return (
             <div className='AddIssueBox'>
@@ -139,7 +145,7 @@ export default class AddIssue extends React.PureComponent {
                                     style={style.markdown}
                                 >
                                     {PostUtils.messageHtmlToComponent(
-                                        PostUtils.formatText(this.state.message + postPermalink),
+                                        PostUtils.formatText(formattedMessage),
                                     )}
                                 </div>
                             ) : (
@@ -149,23 +155,15 @@ export default class AddIssue extends React.PureComponent {
                                         placeholder='Enter a title'
                                         autoFocus={true}
                                         onKeyDown={(e) => this.onKeyDown(e)}
-                                        value={message + postPermalink}
-                                        onChange={(e) =>
-                                            this.setState({
-                                                message: e.target.value,
-                                            })
-                                        }
+                                        value={formattedMessage}
+                                        onChange={(e) => this.handleInputChange(e, 'message')}
                                     />
                                     <TextareaAutosize
                                         style={style.textareaResizeDescription}
                                         placeholder='Enter a description'
                                         onKeyDown={(e) => this.onKeyDown(e)}
                                         value={description}
-                                        onChange={(e) =>
-                                            this.setState({
-                                                description: e.target.value,
-                                            })
-                                        }
+                                        onChange={(e) => this.handleInputChange(e, 'description')}
                                     />
                                 </React.Fragment>
                             )}
