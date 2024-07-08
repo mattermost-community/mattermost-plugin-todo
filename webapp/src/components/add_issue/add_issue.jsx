@@ -38,7 +38,7 @@ export default class AddIssue extends React.PureComponent {
 
         this.state = {
             message: props.message || '',
-            postPermalink: props.postPermalink,
+            postPermalink: props.postPermalink || '',
             description: '',
             sendTo: null,
             attachToThread: false,
@@ -48,12 +48,16 @@ export default class AddIssue extends React.PureComponent {
     }
 
     static getDerivedStateFromProps(props, state) {
-        if (props.visible && !state.message && props.message !== state.message) {
-            return {message: props.message};
+        if (props.visible && (props.message !== state.message || props.postPermalink !== state.postPermalink)) {
+            return {
+                message: props.message,
+                postPermalink: props.postPermalink,
+            };
         }
         if (!props.visible && (state.message || state.sendTo)) {
             return {
                 message: '',
+                postPermalink: '',
                 sendTo: null,
                 attachToThread: false,
                 previewMarkdown: false,
