@@ -30,7 +30,6 @@ const AssigneeModal = (
             removeAssignee={removeAssignee}
             removeEditingTodo={removeEditingTodo}
             theme={theme}
-            visible={visible}
         />
     );
 };

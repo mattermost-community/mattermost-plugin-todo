@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 
 import AutocompleteSelector from '../user_selector/autocomplete_selector';
@@ -7,9 +7,10 @@ import IconButton from '../../widget/iconButton/iconButton';
 
 import CompassIcon from '../icons/compassIcons';
 
+import {useEscapeKey} from '../../hooks/useEscapeKey';
+
 const AssigneeForm = (
     {
-        visible,
         close,
         autocompleteUsers,
         theme,
@@ -21,21 +22,7 @@ const AssigneeForm = (
     },
 ) => {
     const [assignee, setAssignee] = useState();
-
-    useEffect(() => {
-        function handleKeypress(e) {
-            if (e.key === 'Escape') {
-                close();
-            }
-        }
-
-        document.addEventListener('keyup', handleKeypress);
-
-        return () => {
-            document.removeEventListener('keyup', handleKeypress);
-        };
-    }, [visible]);
-
+    useEscapeKey(close);
     const submit = useCallback(() => {
         if (editingTodo && assignee) {
             changeAssignee(editingTodo, assignee.username);
@@ -105,7 +92,6 @@ const AssigneeForm = (
 };
 
 AssigneeForm.propTypes = {
-    visible: PropTypes.func.isRequired,
     close: PropTypes.func.isRequired,
     theme: PropTypes.object.isRequired,
     autocompleteUsers: PropTypes.func.isRequired,
