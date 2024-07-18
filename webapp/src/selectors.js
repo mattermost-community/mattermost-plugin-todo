@@ -25,9 +25,10 @@ export const getMessage = (state) => {
     }
     return post.message;
 };
-export const getIssues = (state) => getPluginState(state).issues;
-export const getInIssues = (state) => getPluginState(state).inIssues;
-export const getOutIssues = (state) => getPluginState(state).outIssues;
+export const getMyIssues = (state) => getAllIssues(state).my;
+export const getInIssues = (state) => getAllIssues(state).in;
+export const getOutIssues = (state) => getAllIssues(state).out;
+export const getAllIssues = (state) => getPluginState(state).allIssues;
 export const getCurrentTeamRoute = (state) => {
     const basePath = getSiteURL(state);
     const teamName = state.entities.teams.teams[state.entities.teams.currentTeamId].name;

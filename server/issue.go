@@ -24,6 +24,13 @@ type ExtendedIssue struct {
 	ForeignPosition int    `json:"position"`
 }
 
+// ListsIssue for all list issues
+type ListsIssue struct {
+	In  []*ExtendedIssue `json:"in"`
+	My  []*ExtendedIssue `json:"my"`
+	Out []*ExtendedIssue `json:"out"`
+}
+
 func newIssue(message string, description, postID string) *Issue {
 	return &Issue{
 		ID:          model.NewId(),

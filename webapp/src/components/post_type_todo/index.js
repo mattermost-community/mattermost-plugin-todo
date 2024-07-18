@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {remove, complete, accept, telemetry} from '../../actions';
-import {getSiteURL} from '../../selectors';
+import {getInIssues, getSiteURL} from '../../selectors';
 
 import PostTypeTodo from './post_type_todo';
 
@@ -13,7 +13,7 @@ function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
         siteURL: getSiteURL(state),
-        pendingAnswer: state['plugins-com.mattermost.plugin-todo'].inIssues.some((issue) => issue.id === ownProps.post.props.issueId),
+        pendingAnswer: getInIssues(state).some((issue) => issue.id === ownProps.post.props.issueId),
     };
 }
 
