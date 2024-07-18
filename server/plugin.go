@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-plugin-api/experimental/telemetry"
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/pluginapi"
+	"github.com/mattermost/mattermost/server/public/pluginapi/experimental/telemetry"
 	"github.com/pkg/errors"
 )
 
@@ -57,6 +58,7 @@ type ListManager interface {
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
 type Plugin struct {
 	plugin.MattermostPlugin
+	client *pluginapi.Client
 
 	BotUserID string
 
@@ -81,7 +83,11 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	botID, err := p.Helpers.EnsureBot(&model.Bot{
+	if p.client == nil {
+		p.client = pluginapi.NewClient(p.API, p.Driver)
+	}
+
+	botID, err := p.client.Bot.EnsureBot(&model.Bot{
 		Username:    "todo",
 		DisplayName: "Todo Bot",
 		Description: "Created by the Todo plugin.",
@@ -338,7 +344,7 @@ func (p *Plugin) handleLists(w http.ResponseWriter, r *http.Request) {
 
 	_, err = w.Write(allListIssueJSON)
 	if err != nil {
-		p.API.LogError("Unable to write json response err=" + err.Error())
+		p.API.LogError("Unable to write json response while listing issues err=" + err.Error())
 	}
 }
 

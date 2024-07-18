@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {id as pluginId} from './manifest';
+import manifest from './manifest';
 
 import Root from './components/root';
 import AssigneeModal from './components/assignee_modal';
@@ -16,6 +16,7 @@ import {getPluginServerRoute} from './selectors';
 let activityFunc;
 let lastActivityTime = Number.MAX_SAFE_INTEGER;
 const activityTimeout = 60 * 60 * 1000; // 1 hour
+const {id: pluginId} = manifest;
 
 export default class Plugin {
     initialize(registry, store) {
