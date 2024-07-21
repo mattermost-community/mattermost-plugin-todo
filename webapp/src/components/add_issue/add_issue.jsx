@@ -143,7 +143,7 @@ export default class AddIssue extends React.PureComponent {
                                 <React.Fragment>
                                     <TextareaAutosize
                                         style={style.textareaResizeMessage}
-                                        placeholder='Enter a title *'
+                                        placeholder='Enter a title'
                                         autoFocus={true}
                                         onKeyDown={(e) => this.onKeyDown(e)}
                                         value={message}
