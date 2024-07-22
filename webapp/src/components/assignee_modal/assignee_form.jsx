@@ -104,7 +104,7 @@ AssigneeForm.propTypes = {
 
 const getStyle = (theme) => ({
     backdrop: {
-        position: 'absolute',
+        position: 'fixed',
         display: 'flex',
         top: 0,
         left: 0,
