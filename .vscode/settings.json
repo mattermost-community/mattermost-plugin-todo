@@ -3,14 +3,11 @@
     "editor.tabSize": 4,
     // Controls if the editor will insert spaces for tabs. Accepted values:  "auto", true, false. If set to "auto", the value will be guessed when a file is opened.
     "editor.insertSpaces": true,
-    "eslint.validate": [
-        "typescript",
-        "typescriptreact"
-    ],
+    "eslint.validate": ["typescript", "typescriptreact"],
     "files.exclude": {
         ".vscode": false,
         "**/__snapshots__": false,
-        "**/node_modules": true,
+        "**/node_modules": false,
         "bin": true,
         "files": true,
         "linux/config.json": true,
@@ -34,7 +31,7 @@
         "webapp/webpack-profile.html": true,
         "linux/config.json": true,
         "linux/webapp/**": true,
-        "linux/dist/**": true,
+        "linux/dist/**": true
     },
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": "explicit"
@@ -42,7 +39,7 @@
     "[typescriptreact]": {
         "editor.codeActionsOnSave": {
             // "source.organizeImports": true,
-        },
+        }
     },
     "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
     "go.delveConfig": {
