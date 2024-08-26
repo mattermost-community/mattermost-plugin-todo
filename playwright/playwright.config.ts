@@ -1,71 +1,27 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-// import dotenv from "dotenv";
-// import testConfig from "@e2e-test.playwright-config";
-// dotenv.config({ path: `${__dirname}/.env` });
-
-// // Configuration override for plugin tests
-// testConfig.testMatch = "test.list.ts";
-// if (!testConfig.use) {
-//   testConfig.use = {};
-// }
-// testConfig.use.video = {
-//   mode: "on",
-//   size: { width: 1024, height: 768 },
-// };
-// testConfig.projects = [
-//   {
-//     name: "setup",
-//     testMatch: /integrations\.setup\.ts/,
-//   },
-//   {
-//     name: "chrome",
-//     use: {
-//       browserName: "chromium",
-//       permissions: ["notifications"],
-//       viewport: { width: 1280, height: 1024 },
-//       storageState: __dirname + "/.auth-user.json",
-//     },
-//     dependencies: ["setup"],
-//   },
-// ];
-
-// export default testConfig;
-
 import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// require('dotenv').config();
+// import dotenv from 'dotenv';
+// dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: "./tests",
-  outputDir: "./test-results",
-
   /* Run tests in files in parallel */
   fullyParallel: true,
-
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: Boolean(process.env.CI),
-
+  forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
-
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: "html",
-
-  /* More timeout since raising containers are costly  */
-  timeout: 10 * 1000,
-
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */

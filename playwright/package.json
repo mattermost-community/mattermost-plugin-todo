@@ -1,0 +1,17 @@
+{
+  "name": "playwright",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "playwright test",
+    "ui": "playwright test --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.42.1",
+    "@types/node": "^20.11.24",
+    "mattermost-plugin-e2e-test-utils": "https://github.com/mattermost-community/mattermost-plugin-e2e-test-utils.git#f073874fa4941333c5e540943749aa03f7c32bf2"
+  }
+}
