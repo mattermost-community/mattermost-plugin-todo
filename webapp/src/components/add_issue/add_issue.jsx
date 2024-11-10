@@ -44,10 +44,14 @@ export default class AddIssue extends React.PureComponent {
             attachToThread: false,
             previewMarkdown: false,
             assigneeModal: false,
+            isTyping: false,
         };
     }
 
     static getDerivedStateFromProps(props, state) {
+        if (state.isTyping) {
+            return null;
+        }
         if (props.visible && (props.message !== state.message || props.postPermalink !== state.postPermalink)) {
             return {
                 message: props.message,
@@ -88,6 +92,7 @@ export default class AddIssue extends React.PureComponent {
             message: '',
             description: '',
             postPermalink: '',
+            isTyping: false,
         });
 
         if (attachToThread) {
@@ -123,6 +128,7 @@ export default class AddIssue extends React.PureComponent {
     handleInputChange = (e, field) => {
         this.setState({
             [field]: e.target.value,
+            isTyping: true,
         });
     }
 
