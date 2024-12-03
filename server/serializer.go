@@ -34,10 +34,11 @@ func (t *TelemetryAPIRequest) IsValid() error {
 }
 
 type AddAPIRequest struct {
-	Message     string `json:"message"`
-	Description string `json:"description"`
-	SendTo      string `json:"send_to"`
-	PostID      string `json:"post_id"`
+	Message       string `json:"message"`
+	PostPermalink string `json:"postPermalink"`
+	Description   string `json:"description"`
+	SendTo        string `json:"send_to"`
+	PostID        string `json:"post_id"`
 }
 
 func GetAddIssuePayloadFromJSON(data io.Reader) (*AddAPIRequest, error) {

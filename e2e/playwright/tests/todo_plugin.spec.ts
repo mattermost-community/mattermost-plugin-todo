@@ -13,8 +13,8 @@ import {fillMessage, getTodoBotDMPageURL} from 'support/utils';
 export default {
     connected: () => {
         test.describe('available commands', () => {
-            test('with just the main command', async ({pages, page, pw}) => {
-               
+            test('with just the main command', async ({page, pw}) => {
+
             const {adminClient, adminUser} = await pw.getAdminClient();
             if (adminUser === null) {
                 throw new Error('can not get adminUser');
@@ -22,7 +22,6 @@ export default {
             const dmURL = await getTodoBotDMPageURL(adminClient, '', adminUser.id);
             await page.goto(dmURL, {waitUntil: 'load'});
 
-            const c = new pages.ChannelsPage(page);
             const slash = new SlashCommandSuggestions(page.locator('#suggestionList'));
 
             // # Run incomplete command to trigger help
@@ -39,4 +38,3 @@ export default {
         });
     },
 };
-

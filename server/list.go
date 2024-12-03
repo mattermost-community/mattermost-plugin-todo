@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/pkg/errors"
 )
 
@@ -58,8 +58,8 @@ func NewListManager(api plugin.API) ListManager {
 	}
 }
 
-func (l *listManager) AddIssue(userID, message, description, postID string) (*Issue, error) {
-	issue := newIssue(message, description, postID)
+func (l *listManager) AddIssue(userID, message, postPermalink, description, postID string) (*Issue, error) {
+	issue := newIssue(message, postPermalink, description, postID)
 
 	if err := l.store.SaveIssue(issue); err != nil {
 		return nil, err
@@ -75,13 +75,13 @@ func (l *listManager) AddIssue(userID, message, description, postID string) (*Is
 	return issue, nil
 }
 
-func (l *listManager) SendIssue(senderID, receiverID, message, description, postID string) (string, error) {
-	senderIssue := newIssue(message, description, postID)
+func (l *listManager) SendIssue(senderID, receiverID, message, postPermalink, description, postID string) (string, error) {
+	senderIssue := newIssue(message, postPermalink, description, postID)
 	if err := l.store.SaveIssue(senderIssue); err != nil {
 		return "", err
 	}
 
-	receiverIssue := newIssue(message, description, postID)
+	receiverIssue := newIssue(message, postPermalink, description, postID)
 	if err := l.store.SaveIssue(receiverIssue); err != nil {
 		if rollbackError := l.store.RemoveIssue(senderIssue.ID); rollbackError != nil {
 			l.api.LogError("cannot rollback sender issue after send error, Err=", err.Error())
@@ -201,30 +201,30 @@ func (l *listManager) EditIssue(userID, issueID, newMessage, newDescription stri
 	return ir.ForeignUserID, list, oldMessage, nil
 }
 
-func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo string) (issueMessage, oldOwner string, err error) {
-	issue, err := l.store.GetIssue(issueID)
+func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo string) (issue *Issue, oldOwner string, err error) {
+	issue, err = l.store.GetIssue(issueID)
 	if err != nil {
-		return "", "", err
+		return nil, "", err
 	}
 
 	list, ir, _ := l.store.GetIssueListAndReference(userID, issueID)
 	if ir == nil {
-		return "", "", errors.New("reference not found")
+		return nil, "", errors.New("reference not found")
 	}
 
 	if (list == InListKey) || (ir.ForeignIssueID != "" && list == MyListKey) {
-		return "", "", errors.New("trying to change the assignment of a todo not owned")
+		return nil, "", errors.New("trying to change the assignment of a todo not owned")
 	}
 
 	if ir.ForeignUserID != "" {
 		// Remove reference from foreign user
 		foreignList, foreignIR, _ := l.store.GetIssueListAndReference(ir.ForeignUserID, ir.ForeignIssueID)
 		if foreignIR == nil {
-			return "", "", errors.New("reference not found")
+			return nil, "", errors.New("reference not found")
 		}
 
 		if err := l.store.RemoveReference(ir.ForeignUserID, ir.ForeignIssueID, foreignList); err != nil {
-			return "", "", err
+			return nil, "", err
 		}
 
 		_, err := l.store.GetAndRemoveIssue(ir.ForeignIssueID)
@@ -235,34 +235,36 @@ func (l *listManager) ChangeAssignment(issueID string, userID string, sendTo str
 
 	if userID == sendTo && list == OutListKey {
 		if err := l.store.RemoveReference(userID, issueID, OutListKey); err != nil {
-			return "", "", err
+			return nil, "", err
 		}
 
 		if err := l.store.AddReference(userID, issueID, MyListKey, "", ""); err != nil {
-			return "", "", err
+			return nil, "", err
 		}
 
-		return issue.Message, ir.ForeignUserID, nil
+		return issue, ir.ForeignUserID, nil
 	}
 
-	if err := l.store.RemoveReference(userID, issueID, list); err != nil {
-		return "", "", err
+	if userID != sendTo {
+		if err := l.store.RemoveReference(userID, issueID, list); err != nil {
+			return nil, "", err
+		}
 	}
 
-	receiverIssue := newIssue(issue.Message, issue.Description, issue.PostID)
+	receiverIssue := newIssue(issue.Message, issue.PostPermalink, issue.Description, issue.PostID)
 	if err := l.store.SaveIssue(receiverIssue); err != nil {
-		return "", "", err
+		return nil, "", err
 	}
 
 	if err := l.store.AddReference(userID, issueID, OutListKey, sendTo, receiverIssue.ID); err != nil {
-		return "", "", err
+		return nil, "", err
 	}
 
 	if err := l.store.AddReference(sendTo, receiverIssue.ID, InListKey, userID, issue.ID); err != nil {
-		return "", "", err
+		return nil, "", err
 	}
 
-	return issue.Message, ir.ForeignUserID, nil
+	return issue, ir.ForeignUserID, nil
 }
 
 func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, foreignUserID string, outErr error) {
@@ -290,6 +292,10 @@ func (l *listManager) AcceptIssue(userID, issueID string) (todoMessage string, f
 			l.api.LogError("cannot rollback accept operation, Err=", rollbackError.Error())
 		}
 		return "", "", err
+	}
+
+	if issue.PostPermalink != "" {
+		issue.Message = fmt.Sprintf("%s\n[Permalink](%s)", issue.Message, issue.PostPermalink)
 	}
 
 	return issue.Message, ir.ForeignUserID, nil
@@ -360,28 +366,28 @@ func (l *listManager) PopIssue(userID string) (issue *Issue, foreignID string, e
 	return issue, ir.ForeignUserID, nil
 }
 
-func (l *listManager) BumpIssue(userID, issueID string) (todoMessage string, receiver string, foreignIssueID string, outErr error) {
+func (l *listManager) BumpIssue(userID, issueID string) (todo *Issue, receiver string, foreignIssueID string, outErr error) {
 	ir, _, err := l.store.GetIssueReference(userID, issueID, OutListKey)
 	if err != nil {
-		return "", "", "", err
+		return nil, "", "", err
 	}
 
 	if ir == nil {
-		return "", "", "", fmt.Errorf("cannot find sender issue")
+		return nil, "", "", fmt.Errorf("cannot find sender issue")
 	}
 
 	err = l.store.BumpReference(ir.ForeignUserID, ir.ForeignIssueID, InListKey)
 	if err != nil {
-		return "", "", "", err
+		return nil, "", "", err
 	}
 
 	issue, err := l.store.GetIssue(ir.ForeignIssueID)
 	if err != nil {
 		l.api.LogError("cannot find foreigner issue after bump, Err=", err.Error())
-		return "", "", "", nil
+		return nil, "", "", nil
 	}
 
-	return issue.Message, ir.ForeignUserID, ir.ForeignIssueID, nil
+	return issue, ir.ForeignUserID, ir.ForeignIssueID, nil
 }
 
 func (l *listManager) GetUserName(userID string) string {

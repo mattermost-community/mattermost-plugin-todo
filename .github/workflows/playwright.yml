@@ -10,7 +10,7 @@ on:
 
 env:
   TERM: xterm
-  GO_VERSION: 1.19.6
+  GO_VERSION: 1.21
 
 jobs:
   playwright-run:
@@ -170,10 +170,10 @@ jobs:
           cd e2e/playwright
           npm run tsc
 
-      # - name: ci/lint
-      #   run: |
-      #     cd e2e/playwright
-      #     npm run lint
+      - name: ci/lint
+        run: |
+          cd e2e/playwright
+          npm run lint
 
       - name: ci/run-playwright-tests
         run: |

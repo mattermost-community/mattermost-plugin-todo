@@ -1,9 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -16,16 +17,17 @@ func (p *Plugin) PostBotDM(userID string, message string) {
 }
 
 // PostBotCustomDM posts a DM as the cloud bot user using custom post with action buttons.
-func (p *Plugin) PostBotCustomDM(userID string, message string, todo string, issueID string) {
+func (p *Plugin) PostBotCustomDM(userID, message, todo, postPermalink, issueID string) {
 	p.createBotPostDM(&model.Post{
 		UserId:  p.BotUserID,
 		Message: message + ": " + todo,
 		Type:    "custom_todo",
 		Props: map[string]interface{}{
-			"type":    "custom_todo",
-			"message": message,
-			"todo":    todo,
-			"issueId": issueID,
+			"type":          "custom_todo",
+			"message":       message,
+			"todo":          todo,
+			"postPermalink": postPermalink,
+			"issueId":       issueID,
 		},
 	}, userID)
 }
@@ -51,7 +53,7 @@ func (p *Plugin) createBotPostDM(post *model.Post, userID string) {
 }
 
 // ReplyPostBot post a message and a todo in the same thread as the post postID
-func (p *Plugin) ReplyPostBot(postID, message, todo string) error {
+func (p *Plugin) ReplyPostBot(postID, message, todo, postPermalink string) error {
 	if postID == "" {
 		return errors.New("post ID not defined")
 	}
@@ -65,7 +67,8 @@ func (p *Plugin) ReplyPostBot(postID, message, todo string) error {
 		rootID = post.RootId
 	}
 
-	quotedTodo := "\n> " + strings.Join(strings.Split(todo, "\n"), "\n> ")
+	postPermalink = fmt.Sprintf("[Permalink](%s)", postPermalink)
+	quotedTodo := "\n> " + strings.Join([]string{todo, postPermalink}, "\n> ")
 	_, appErr = p.API.CreatePost(&model.Post{
 		UserId:    p.BotUserID,
 		ChannelId: post.ChannelId,
