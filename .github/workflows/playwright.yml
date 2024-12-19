@@ -1,6 +1,6 @@
 name: Playwright Tests
 on:
-  # <--- Disabling teh playwright testcases for now as they are broken ---> 
+  # <--- Disabling the playwright testcases for now as they are broken ---> 
 
   # push:
   #   branches:
