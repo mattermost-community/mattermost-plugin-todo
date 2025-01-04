@@ -130,6 +130,7 @@ func (p *Plugin) initializeAPI() {
 	p.router.HandleFunc("/config", p.checkAuth(p.handleConfig)).Methods(http.MethodGet)
 	p.router.HandleFunc("/edit", p.checkAuth(p.handleEdit)).Methods(http.MethodPut)
 	p.router.HandleFunc("/change_assignment", p.checkAuth(p.handleChangeAssignment)).Methods(http.MethodPost)
+  p.router.HandleFunc(AutocompletePath + AutocompletePathRemoveTodoSuggestions, p.checkAuth(p.getRemoveTodoSuggestions)).Methods(http.MethodPost)
 
 	// 404 handler
 	p.router.Handle("{anything:.*}", http.NotFoundHandler())
@@ -335,8 +336,8 @@ func (p *Plugin) handleList(w http.ResponseWriter, r *http.Request) {
 
 	issuesJSON, err := json.Marshal(issues)
 	if err != nil {
-		p.API.LogError("Unable marhsal issues list to json err=" + err.Error())
-		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marhsal issues list to json", err)
+		p.API.LogError("Unable marshal issues list to json err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marshal issues list to json", err)
 		return
 	}
 
@@ -653,4 +654,41 @@ func (p *Plugin) handleErrorWithCode(w http.ResponseWriter, code int, errTitle s
 		Details: err.Error(),
 	})
 	_, _ = w.Write(b)
+}
+
+func (p *Plugin) getRemoveTodoSuggestions(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+	listID := MyListKey
+	issues, err := p.listManager.GetIssueList(userID, listID)
+	if err != nil {
+		p.API.LogError("Unable to get issues for user err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable to get issues for user", err)
+		return
+	}
+
+	out := []model.AutocompleteListItem{}
+	for _, issue := range issues {
+		s := model.AutocompleteListItem{
+			Item:     issue.ID,
+			Hint:     issue.Message,
+			HelpText: issue.Description,
+		}
+		out = append(out, s)
+	}
+
+	outJSON, err := json.Marshal(out)
+	if err != nil {
+		p.API.LogError("Unable marshal issues list to json err=" + err.Error())
+		p.handleErrorWithCode(w, http.StatusInternalServerError, "Unable marshal issues list to json", err)
+		return
+	}
+
+	_, err = w.Write(outJSON)
+	if err != nil {
+		p.API.LogError("Unable to write json response err=" + err.Error())
+	}
 }
