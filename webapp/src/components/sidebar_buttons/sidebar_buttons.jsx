@@ -13,11 +13,10 @@ export default class SidebarButtons extends React.PureComponent {
         theme: PropTypes.object.isRequired,
         isTeamSidebar: PropTypes.bool,
         showRHSPlugin: PropTypes.func.isRequired,
-        issues: PropTypes.arrayOf(PropTypes.object),
-        inIssues: PropTypes.arrayOf(PropTypes.object),
-        outIssues: PropTypes.arrayOf(PropTypes.object),
+        myIssues: PropTypes.array.isRequired,
+        inIssues: PropTypes.array.isRequired,
+        outIssues: PropTypes.array.isRequired,
         actions: PropTypes.shape({
-            list: PropTypes.func.isRequired,
             updateRhsState: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
         }).isRequired,
@@ -49,9 +48,9 @@ export default class SidebarButtons extends React.PureComponent {
             container = style.containerTeam;
         }
 
-        const issues = this.props.issues || [];
-        const inIssues = this.props.inIssues || [];
-        const outIssues = this.props.outIssues || [];
+        const myIssues = this.props.myIssues;
+        const inIssues = this.props.inIssues;
+        const outIssues = this.props.outIssues;
 
         return (
             <div style={container}>
@@ -68,7 +67,7 @@ export default class SidebarButtons extends React.PureComponent {
                         }}
                     >
                         <i className='icon icon-check'/>
-                        {' ' + issues.length}
+                        {' ' + myIssues.length }
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -84,7 +83,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-down'/>
-                        {' ' + inIssues.length}
+                        {' ' + inIssues.length }
                     </a>
                 </OverlayTrigger>
                 <OverlayTrigger
@@ -100,7 +99,7 @@ export default class SidebarButtons extends React.PureComponent {
                         style={button}
                     >
                         <i className='icon icon-arrow-up'/>
-                        {' ' + outIssues.length}
+                        {' ' + outIssues.length }
                     </a>
                 </OverlayTrigger>
             </div>

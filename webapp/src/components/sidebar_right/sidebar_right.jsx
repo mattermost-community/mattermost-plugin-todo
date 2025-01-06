@@ -51,9 +51,9 @@ const InListName = 'in';
 
 export default class SidebarRight extends React.PureComponent {
     static propTypes = {
-        todos: PropTypes.arrayOf(PropTypes.object),
-        inTodos: PropTypes.arrayOf(PropTypes.object),
-        outTodos: PropTypes.arrayOf(PropTypes.object),
+        myIssues: PropTypes.array.isRequired,
+        inIssues: PropTypes.array.isRequired,
+        outIssues: PropTypes.array.isRequired,
         todoToast: PropTypes.object,
         theme: PropTypes.object.isRequired,
         siteURL: PropTypes.string.isRequired,
@@ -63,7 +63,7 @@ export default class SidebarRight extends React.PureComponent {
             complete: PropTypes.func.isRequired,
             accept: PropTypes.func.isRequired,
             bump: PropTypes.func.isRequired,
-            list: PropTypes.func.isRequired,
+            fetchAllIssueLists: PropTypes.func.isRequired,
             openAddCard: PropTypes.func.isRequired,
             closeAddCard: PropTypes.func.isRequired,
             openAssigneeModal: PropTypes.func.isRequired,
@@ -101,9 +101,7 @@ export default class SidebarRight extends React.PureComponent {
 
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeypress);
-        this.props.actions.list(false, 'my');
-        this.props.actions.list(false, 'in');
-        this.props.actions.list(false, 'out');
+        this.props.actions.fetchAllIssueLists();
         this.props.actions.setVisible(true);
     }
 
@@ -125,18 +123,6 @@ export default class SidebarRight extends React.PureComponent {
         }
     }
 
-    getInIssues() {
-        return this.props.inTodos.length;
-    }
-
-    getOutIssues() {
-        return this.props.outTodos.length;
-    }
-
-    getMyIssues() {
-        return this.props.todos.length;
-    }
-
     addTodoItem() {
         this.props.actions.openAddCard('');
     }
@@ -154,12 +140,12 @@ export default class SidebarRight extends React.PureComponent {
 
         switch (this.state.list) {
         case MyListName:
-            todos = this.props.todos || [];
+            todos = this.props.myIssues;
             addButton = 'Add Todo';
-            inboxList = this.props.inTodos || [];
+            inboxList = this.props.inIssues;
             break;
         case OutListName:
-            todos = this.props.outTodos || [];
+            todos = this.props.outIssues;
             listHeading = 'Sent Todos';
             addButton = 'Request a Todo from someone';
             break;

@@ -8,9 +8,6 @@ import {
     OPEN_TODO_TOAST,
     CLOSE_TODO_TOAST,
     RECEIVED_SHOW_RHS_ACTION,
-    GET_ISSUES,
-    GET_IN_ISSUES,
-    GET_OUT_ISSUES,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
     SET_HIDE_TEAM_SIDEBAR_BUTTONS,
@@ -20,6 +17,7 @@ import {
     CLOSE_ADD_CARD,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
+    GET_ALL_ISSUES,
 } from './action_types';
 
 import {getPluginServerRoute} from './selectors';
@@ -141,11 +139,10 @@ export const changeAssignee = (id, assignee) => async (dispatch, getState) => {
     }));
 };
 
-export const list = (reminder = false, listName = 'my') => async (dispatch, getState) => {
-    let resp;
+export const fetchAllIssueLists = (reminder = false) => async (dispatch, getState) => {
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/list?reminder=' + reminder + '&list=' + listName, Client4.getOptions({
+        const resp = await fetch(getPluginServerRoute(getState()) + '/lists?reminder=' + reminder, Client4.getOptions({
             method: 'get',
         }));
         data = await resp.json();
@@ -153,21 +150,8 @@ export const list = (reminder = false, listName = 'my') => async (dispatch, getS
         return {error};
     }
 
-    let actionType = GET_ISSUES;
-    switch (listName) {
-    case 'my':
-        actionType = GET_ISSUES;
-        break;
-    case 'in':
-        actionType = GET_IN_ISSUES;
-        break;
-    case 'out':
-        actionType = GET_OUT_ISSUES;
-        break;
-    }
-
     dispatch({
-        type: actionType,
+        type: GET_ALL_ISSUES,
         data,
     });
 
@@ -218,10 +202,9 @@ export function setHideTeamSidebar(payload) {
 }
 
 export const updateConfig = () => async (dispatch, getState) => {
-    let resp;
     let data;
     try {
-        resp = await fetch(getPluginServerRoute(getState()) + '/config', Client4.getOptions({
+        const resp = await fetch(getPluginServerRoute(getState()) + '/config', Client4.getOptions({
             method: 'get',
         }));
         data = await resp.json();

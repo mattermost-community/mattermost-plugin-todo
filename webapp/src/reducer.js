@@ -9,11 +9,9 @@ import {
     CLOSE_TODO_TOAST,
     OPEN_ADD_CARD,
     CLOSE_ADD_CARD,
-    GET_ISSUES,
     SET_EDITING_TODO,
     REMOVE_EDITING_TODO,
-    GET_IN_ISSUES,
-    GET_OUT_ISSUES,
+    GET_ALL_ISSUES,
     RECEIVED_SHOW_RHS_ACTION,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
@@ -86,28 +84,10 @@ const postID = (state = '', action) => {
     }
 };
 
-const issues = (state = [], action) => {
+const allIssues = (state = {my: [], in: [], out: []}, action) => {
     switch (action.type) {
-    case GET_ISSUES:
-        return action.data;
-    default:
-        return state;
-    }
-};
-
-const inIssues = (state = [], action) => {
-    switch (action.type) {
-    case GET_IN_ISSUES:
-        return action.data;
-    default:
-        return state;
-    }
-};
-
-const outIssues = (state = [], action) => {
-    switch (action.type) {
-    case GET_OUT_ISSUES:
-        return action.data;
+    case GET_ALL_ISSUES:
+        return action.data ?? state;
     default:
         return state;
     }
@@ -156,9 +136,7 @@ export default combineReducers({
     todoToast,
     editingTodo,
     postID,
-    issues,
-    inIssues,
-    outIssues,
+    allIssues,
     rhsState,
     rhsPluginAction,
     isRhsVisible,
