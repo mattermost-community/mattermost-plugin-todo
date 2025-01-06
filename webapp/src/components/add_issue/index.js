@@ -9,16 +9,17 @@ import AddIssue from './add_issue';
 function mapStateToProps(state) {
     const postID = getPostID(state);
 
-    let permalink = '';
+    let postPermalink = '';
     if (postID) {
-        permalink = `\n[Permalink](${getCurrentTeamRoute(state)}pl/${postID})`;
+        postPermalink = `${getCurrentTeamRoute(state)}pl/${postID}`;
     }
 
-    const message = getMessage(state) + permalink;
+    const message = getMessage(state);
 
     return {
         visible: isAddCardVisible(state),
         message,
+        postPermalink,
         postID: getPostID(state),
         assignee: getAssignee(state),
     };

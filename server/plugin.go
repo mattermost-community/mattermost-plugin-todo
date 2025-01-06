@@ -30,9 +30,9 @@ const (
 // ListManager represents the logic on the lists
 type ListManager interface {
 	// AddIssue adds a todo to userID's myList with the message
-	AddIssue(userID, message, description, postID string) (*Issue, error)
+	AddIssue(userID, message, postPermalink, description, postID string) (*Issue, error)
 	// SendIssue sends the todo with the message from senderID to receiverID and returns the receiver's issueID
-	SendIssue(senderID, receiverID, message, description, postID string) (string, error)
+	SendIssue(senderID, receiverID, message, postPermalink, description, postID string) (string, error)
 	// GetIssueList gets the todos on listID for userID
 	GetIssueList(userID, listID string) ([]*ExtendedIssue, error)
 	// GetAllList get all issues
@@ -46,11 +46,11 @@ type ListManager interface {
 	// PopIssue the first element of myList for userID and returns the issue and the foreign ID if any
 	PopIssue(userID string) (issue *Issue, foreignID string, err error)
 	// BumpIssue moves a issueID sent by userID to the top of its receiver inbox list
-	BumpIssue(userID string, issueID string) (todoMessage string, receiver string, foreignIssueID string, err error)
+	BumpIssue(userID string, issueID string) (todo *Issue, receiver string, foreignIssueID string, err error)
 	// EditIssue updates the message on an issue
 	EditIssue(userID string, issueID string, newMessage string, newDescription string) (foreignUserID string, list string, oldMessage string, err error)
 	// ChangeAssignment updates an issue to assign a different person
-	ChangeAssignment(issueID string, userID string, sendTo string) (issueMessage, oldOwner string, err error)
+	ChangeAssignment(issueID string, userID string, sendTo string) (issue *Issue, oldOwner string, err error)
 	// GetUserName returns the readable username from userID
 	GetUserName(userID string) string
 }
@@ -213,7 +213,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	senderName := p.listManager.GetUserName(userID)
 
 	if addRequest.SendTo == "" {
-		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.PostPermalink, addRequest.Description, addRequest.PostID)
 		if err != nil {
 			p.API.LogError(ErrorMsgAddIssue, "err", err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, ErrorMsgAddIssue, err)
@@ -225,7 +225,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.sendRefreshEvent(userID, []string{MyListKey})
 
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
-		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message, addRequest.PostPermalink)
 
 		return
 	}
@@ -239,7 +239,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if receiver.Id == userID {
-		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID)
+		_, err = p.listManager.AddIssue(userID, addRequest.Message, addRequest.Description, addRequest.PostID, addRequest.PostPermalink)
 		if err != nil {
 			p.API.LogError(ErrorMsgAddIssue, "err", err.Error())
 			p.handleErrorWithCode(w, http.StatusInternalServerError, ErrorMsgAddIssue, err)
@@ -251,7 +251,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		p.sendRefreshEvent(userID, []string{MyListKey})
 
 		replyMessage := fmt.Sprintf("@%s attached a todo to this thread", senderName)
-		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+		p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message, addRequest.PostPermalink)
 		return
 	}
 
@@ -266,7 +266,7 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.Description, addRequest.PostID)
+	issueID, err := p.listManager.SendIssue(userID, receiver.Id, addRequest.Message, addRequest.PostPermalink, addRequest.Description, addRequest.PostID)
 	if err != nil {
 		msg := "Unable to send issue"
 		p.API.LogError(msg, "err", err.Error())
@@ -280,15 +280,15 @@ func (p *Plugin) handleAdd(w http.ResponseWriter, r *http.Request) {
 	p.sendRefreshEvent(receiver.Id, []string{InListKey})
 
 	receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", senderName)
-	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, issueID)
+	p.PostBotCustomDM(receiver.Id, receiverMessage, addRequest.Message, addRequest.PostPermalink, issueID)
 
 	replyMessage := fmt.Sprintf("@%s sent @%s a todo attached to this thread", senderName, addRequest.SendTo)
-	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message)
+	p.postReplyIfNeeded(addRequest.PostID, replyMessage, addRequest.Message, addRequest.PostPermalink)
 }
 
-func (p *Plugin) postReplyIfNeeded(postID, message, todo string) {
+func (p *Plugin) postReplyIfNeeded(postID, message, todo, postPermalink string) {
 	if postID != "" {
-		err := p.ReplyPostBot(postID, message, todo)
+		err := p.ReplyPostBot(postID, message, todo, postPermalink)
 		if err != nil {
 			p.API.LogError(err.Error())
 		}
@@ -414,7 +414,7 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	issueMessage, oldOwner, err := p.listManager.ChangeAssignment(changeRequest.ID, userID, receiver.Id)
+	issue, oldOwner, err := p.listManager.ChangeAssignment(changeRequest.ID, userID, receiver.Id)
 	if err != nil {
 		msg := "Unable to change the assignment of an issue"
 		p.API.LogError(msg, "err", err.Error())
@@ -430,11 +430,11 @@ func (p *Plugin) handleChangeAssignment(w http.ResponseWriter, r *http.Request) 
 	if receiver.Id != userID {
 		p.sendRefreshEvent(receiver.Id, []string{InListKey})
 		receiverMessage := fmt.Sprintf("You have received a new Todo from @%s", userName)
-		p.PostBotCustomDM(receiver.Id, receiverMessage, issueMessage, changeRequest.ID)
+		p.PostBotCustomDM(receiver.Id, receiverMessage, issue.Message, issue.PostPermalink, changeRequest.ID)
 	}
 	if oldOwner != "" {
 		p.sendRefreshEvent(oldOwner, []string{InListKey, MyListKey})
-		oldOwnerMessage := fmt.Sprintf("@%s removed you from Todo:\n%s", userName, issueMessage)
+		oldOwnerMessage := fmt.Sprintf("@%s removed you from Todo:\n%s", userName, issue.Message)
 		p.PostBotDM(oldOwner, oldOwnerMessage)
 	}
 }
@@ -503,13 +503,17 @@ func (p *Plugin) handleComplete(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s completed a todo attached to this thread", userName)
-	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message, issue.PostPermalink)
 
 	if foreignID == "" {
 		return
 	}
 
 	p.sendRefreshEvent(foreignID, []string{OutListKey})
+
+	if issue.PostPermalink != "" {
+		issue.Message = fmt.Sprintf("%s\n[Permalink](%s)", issue.Message, issue.PostPermalink)
+	}
 
 	message := fmt.Sprintf("@%s completed a Todo you sent: %s", userName, issue.Message)
 	p.PostBotDM(foreignID, message)
@@ -544,7 +548,7 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.listManager.GetUserName(userID)
 	replyMessage := fmt.Sprintf("@%s removed a todo attached to this thread", userName)
-	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message)
+	p.postReplyIfNeeded(issue.PostID, replyMessage, issue.Message, issue.PostPermalink)
 
 	if foreignID == "" {
 		return
@@ -556,6 +560,10 @@ func (p *Plugin) handleRemove(w http.ResponseWriter, r *http.Request) {
 	if isSender {
 		message = fmt.Sprintf("@%s declined a Todo you sent: %s", userName, issue.Message)
 		list = OutListKey
+	}
+
+	if issue.PostPermalink != "" {
+		message = fmt.Sprintf("%s\n[Permalink](%s)", message, issue.PostPermalink)
 	}
 
 	p.sendRefreshEvent(foreignID, []string{list})
@@ -579,7 +587,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todoMessage, foreignUser, foreignIssueID, err := p.listManager.BumpIssue(userID, bumpRequest.ID)
+	todo, foreignUser, foreignIssueID, err := p.listManager.BumpIssue(userID, bumpRequest.ID)
 	if err != nil {
 		msg := "Unable to bump issue"
 		p.API.LogError(msg, "err", err.Error())
@@ -597,7 +605,7 @@ func (p *Plugin) handleBump(w http.ResponseWriter, r *http.Request) {
 
 	userName := p.listManager.GetUserName(userID)
 	message := fmt.Sprintf("@%s bumped a Todo you received.", userName)
-	p.PostBotCustomDM(foreignUser, message, todoMessage, foreignIssueID)
+	p.PostBotCustomDM(foreignUser, message, todo.Message, todo.PostPermalink, foreignIssueID)
 }
 
 // API endpoint to retrieve plugin configurations

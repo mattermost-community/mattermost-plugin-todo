@@ -22,6 +22,7 @@ export default class AddIssue extends React.PureComponent {
     static propTypes = {
         visible: PropTypes.bool.isRequired,
         message: PropTypes.string.isRequired,
+        postPermalink: PropTypes.string,
         postID: PropTypes.string.isRequired,
         assignee: PropTypes.object,
         closeAddBox: PropTypes.func.isRequired,
@@ -37,21 +38,30 @@ export default class AddIssue extends React.PureComponent {
 
         this.state = {
             message: props.message || '',
+            postPermalink: props.postPermalink || '',
             description: '',
             sendTo: null,
             attachToThread: false,
             previewMarkdown: false,
             assigneeModal: false,
+            isTyping: false,
         };
     }
 
     static getDerivedStateFromProps(props, state) {
-        if (props.visible && !state.message && props.message !== state.message) {
-            return {message: props.message};
+        if (state.isTyping) {
+            return null;
+        }
+        if (props.visible && (props.message !== state.message || props.postPermalink !== state.postPermalink)) {
+            return {
+                message: props.message,
+                postPermalink: props.postPermalink,
+            };
         }
         if (!props.visible && (state.message || state.sendTo)) {
             return {
                 message: '',
+                postPermalink: '',
                 sendTo: null,
                 attachToThread: false,
                 previewMarkdown: false,
@@ -77,22 +87,24 @@ export default class AddIssue extends React.PureComponent {
 
     submit = () => {
         const {submit, postID, assignee, closeAddBox, removeAssignee} = this.props;
-        const {message, description, attachToThread, sendTo} = this.state;
+        const {message, postPermalink, description, attachToThread, sendTo} = this.state;
         this.setState({
             message: '',
             description: '',
+            postPermalink: '',
+            isTyping: false,
         });
 
         if (attachToThread) {
             if (assignee) {
-                submit(message, description, assignee.username, postID);
+                submit(message, postPermalink, description, assignee.username, postID);
             } else {
-                submit(message, description, sendTo, postID);
+                submit(message, postPermalink, description, sendTo, postID);
             }
         } else if (assignee) {
-            submit(message, description, assignee.username);
+            submit(message, postPermalink, description, assignee.username);
         } else {
-            submit(message, description);
+            submit(message, postPermalink, description);
         }
 
         removeAssignee();
@@ -113,6 +125,13 @@ export default class AddIssue extends React.PureComponent {
         }
     }
 
+    handleInputChange = (e, field) => {
+        this.setState({
+            [field]: e.target.value,
+            isTyping: true,
+        });
+    }
+
     render() {
         const {assignee, visible, theme} = this.props;
 
@@ -120,9 +139,9 @@ export default class AddIssue extends React.PureComponent {
             return null;
         }
 
-        const {message, description} = this.state;
-
+        const {message, description, postPermalink} = this.state;
         const style = getStyle(theme);
+        const formattedMessage = message.includes(`[Permalink](${postPermalink})`) ? message : message + (postPermalink ? `\n[Permalink](${postPermalink})` : '');
 
         return (
             <div className='AddIssueBox'>
@@ -136,7 +155,7 @@ export default class AddIssue extends React.PureComponent {
                                     style={style.markdown}
                                 >
                                     {PostUtils.messageHtmlToComponent(
-                                        PostUtils.formatText(this.state.message),
+                                        PostUtils.formatText(formattedMessage),
                                     )}
                                 </div>
                             ) : (
@@ -146,23 +165,15 @@ export default class AddIssue extends React.PureComponent {
                                         placeholder='Enter a title'
                                         autoFocus={true}
                                         onKeyDown={(e) => this.onKeyDown(e)}
-                                        value={message}
-                                        onChange={(e) =>
-                                            this.setState({
-                                                message: e.target.value,
-                                            })
-                                        }
+                                        value={formattedMessage}
+                                        onChange={(e) => this.handleInputChange(e, 'message')}
                                     />
                                     <TextareaAutosize
                                         style={style.textareaResizeDescription}
                                         placeholder='Enter a description'
                                         onKeyDown={(e) => this.onKeyDown(e)}
                                         value={description}
-                                        onChange={(e) =>
-                                            this.setState({
-                                                description: e.target.value,
-                                            })
-                                        }
+                                        onChange={(e) => this.handleInputChange(e, 'description')}
                                     />
                                 </React.Fragment>
                             )}
