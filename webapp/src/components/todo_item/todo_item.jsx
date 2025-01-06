@@ -19,6 +19,8 @@ import MenuItem from '../../widget/menuItem';
 import MenuWrapper from '../../widget/menuWrapper';
 import Button from '../../widget/buttons/button';
 
+import PostPermalink from './post_permalink';
+
 const PostUtils = window.PostUtils; // import the post utilities
 
 function TodoItem(props) {
@@ -190,6 +192,7 @@ function TodoItem(props) {
                                 onClick={handleClick}
                             >
                                 {issueMessage}
+                                {issue.postPermalink && <PostPermalink postPermalink={issue.postPermalink}/>}
                                 <div style={style.description}>{issueDescription}</div>
                                 {(canRemove(list, issue.list) ||
                                 canComplete(list) ||

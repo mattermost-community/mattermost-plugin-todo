@@ -7,6 +7,8 @@ import RemoveButton from '../buttons/remove';
 import CompleteButton from '../buttons/complete';
 import AcceptButton from '../buttons/accept';
 
+import PostPermalink from '../todo_item/post_permalink';
+
 const PostUtils = window.PostUtils; // import the post utilities
 
 export default class PostTypeTodo extends React.PureComponent {
@@ -83,6 +85,7 @@ export default class PostTypeTodo extends React.PureComponent {
                                 {title}
                             </h1>
                             {subtitle}
+                            {this.props.post.props.postPermalink && <PostPermalink postPermalink={this.props.post.props.postPermalink}/>}
                             <div>
                                 {this.props.pendingAnswer && content}
                             </div>
