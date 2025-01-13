@@ -48,11 +48,11 @@ let pluginInstance: MattermostPlugin<PluginConfig>;
 
 test.beforeAll(async () => {
   pluginInstance = new MattermostPlugin<PluginConfig>({
-    pluginId: "com.mattermost.demo-plugin",
+    pluginId: "com.mattermost.plugin-todo",
     pluginConfig: {
       clientId: "client-id",
     },
-  }).withLocalBinary("./dist");
+  }).withLocalBinary("../dist");
 
   mattermost = await new MattermostContainer()
     .withPlugin(pluginInstance)

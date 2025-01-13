@@ -12,6 +12,6 @@
   "devDependencies": {
     "@playwright/test": "^1.42.1",
     "@types/node": "^20.11.24",
-    "mattermost-plugin-e2e-test-utils": "https://github.com/mattermost-community/mattermost-plugin-e2e-test-utils.git#b5a874bbef2866c8ae0c66200a187eac1279efa7"
+    "mattermost-plugin-e2e-test-utils": "file:../../mattermost-plugin-e2e-test-utils"
   }
 }
