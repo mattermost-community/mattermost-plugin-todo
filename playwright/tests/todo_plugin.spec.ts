@@ -1,19 +1,43 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+// // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// // See LICENSE.txt for license information.
 
-// ***************************************************************
-// - [#] indicates a test step (e.g. # Go to a page)
-// - [*] indicates an assertion (e.g. * Check the title)
-// ***************************************************************
+// // ***************************************************************
+// // - [#] indicates a test step (e.g. # Go to a page)
+// // - [*] indicates an assertion (e.g. * Check the title)
+// // ***************************************************************
 
-import { test, expect } from "@playwright/test";
-import SlashCommandSuggestions from "support/components/slash_commands";
+import { test, expect, Locator } from "@playwright/test";
 import {
   MattermostContainer,
   MattermostPlugin,
   login,
   logout,
 } from "mattermost-plugin-e2e-test-utils";
+
+class SlashCommandSuggestions {
+  constructor(readonly container: Locator) {
+    this.container = container;
+  }
+
+  getItems() {
+    return this.container.getByRole("button");
+  }
+
+  getItemNth(n: number) {
+    return this.container.getByRole("button").nth(n);
+  }
+  getItemTitleNth(n: number) {
+    return this.getItemNth(n).locator(".slash-command__title");
+  }
+  getItemDescNth(n: number) {
+    return this.getItemNth(n).locator(".slash-command__desc");
+  }
+
+  // The text must be exact and complete, otherwise won't match the item
+  getItemByText(text: string) {
+    return this.container.getByRole("button", { name: text });
+  }
+}
 
 type PluginConfig = {
   clientId: string;
@@ -24,11 +48,11 @@ let pluginInstance: MattermostPlugin<PluginConfig>;
 
 test.beforeAll(async () => {
   pluginInstance = new MattermostPlugin<PluginConfig>({
-    pluginId: "com.mattermost.demo-plugin",
+    pluginId: "com.mattermost.plugin-todo",
     pluginConfig: {
       clientId: "client-id",
     },
-  }).withLocalBinary("./dist");
+  }).withLocalBinary("../dist");
 
   mattermost = await new MattermostContainer()
     .withPlugin(pluginInstance)

@@ -1,7 +1,7 @@
 {
     "name": "plugin-e2e-tests",
     "scripts": {
-        "test": "PW_SLOMO=200 npm run test --prefix ../../../mattermost/e2e-tests/playwright -- --project=chrome --config='../../../mattermost-plugin-todo/e2e/playwright/playwright.config.ts'",
+        "test": "playwright test",
         "test-ci": "PW_HEADLESS=true npm test",
         "test-slomo": "npm run test-slomo --prefix ../../../mattermost/e2e-tests/playwright -- --project=chrome --config='../../../mattermost-plugin-todo/e2e/playwright/playwright.config.ts",
         "debug": "npm test -- --debug",
@@ -10,21 +10,13 @@
         "lint:fix": "eslint --ignore-pattern node_modules --ignore-pattern dist --ext .js  --ext ts . --quiet --cache --fix",
         "tsc": "tsc"
     },
-    "devDependencies": {
-        "@types/express": "^4.17.17",
-        "@types/pg": "^8.6.6",
+    "dependencies": {
         "@typescript-eslint/eslint-plugin": "~5.59.0",
-        "@typescript-eslint/parser": "~5.59.0",
-        "cross-env": "7.0.3",
-        "dotenv": "^16.0.3",
-        "eslint": "^7.9.0",
-        "eslint-plugin-import": "2.22.0",
-        "eslint-plugin-react": "~7.32.2",
-        "eslint-plugin-react-hooks": "~4.6.0",
         "typescript": "^4.9.5"
     },
-    "dependencies": {
-        "express": "^4.18.2",
-        "pg": "^8.10.0"
+    "devDependencies": {
+        "@playwright/test": "^1.42.1",
+        "@types/node": "^20.11.24",
+        "mattermost-plugin-e2e-test-utils": "https://github.com/mattermost-community/mattermost-plugin-e2e-test-utils.git#f073874fa4941333c5e540943749aa03f7c32bf2"
     }
 }
