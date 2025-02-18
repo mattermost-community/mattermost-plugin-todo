@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {isButtonSidebarVisible} from 'selectors';
 
-import TeamSidebar from './team_sidebar.jsx';
+import SidebarHeader from './sidebar_header.jsx';
 
 function mapStateToProps(state) {
     const members = state.entities.teams.myMembers || {};
@@ -15,4 +15,4 @@ function mapStateToProps(state) {
     };
 }
 
-export default connect(mapStateToProps)(TeamSidebar);
+export default connect(mapStateToProps)(SidebarHeader);

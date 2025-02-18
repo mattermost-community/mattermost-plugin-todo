@@ -6,9 +6,10 @@ import Root from './components/root';
 import AssigneeModal from './components/assignee_modal';
 import SidebarRight from './components/sidebar_right';
 
-import {openAddCard, setShowRHSAction, telemetry, updateConfig, setHideTeamSidebar, fetchAllIssueLists} from './actions';
+import {openAddCard, setShowRHSAction, telemetry, updateConfig, setHideSidebarButtons, fetchAllIssueLists} from './actions';
 import reducer from './reducer';
 import PostTypeTodo from './components/post_type_todo';
+import SidebarHeader from './components/sidebar_header';
 import TeamSidebar from './components/team_sidebar';
 import ChannelHeaderButton from './components/channel_header_button';
 import {getPluginServerRoute} from './selectors';
@@ -25,7 +26,7 @@ export default class Plugin {
         registry.registerReducer(reducer);
         registry.registerRootComponent(Root);
         registry.registerRootComponent(AssigneeModal);
-
+        registry.registerLeftSidebarHeaderComponent(SidebarHeader);
         registry.registerBottomTeamSidebarComponent(TeamSidebar);
 
         registry.registerPostDropdownMenuAction(
@@ -65,7 +66,7 @@ export default class Plugin {
 
         // register websocket event to track config changes
         const configUpdate = ({data}) => {
-            store.dispatch(setHideTeamSidebar(data.hide_team_sidebar));
+            store.dispatch(setHideSidebarButtons(data.hide_sidebar_buttons));
         };
 
         registry.registerWebSocketEventHandler(`custom_${pluginId}_config_update`, configUpdate);

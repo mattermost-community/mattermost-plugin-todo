@@ -10,7 +10,7 @@ import {
     RECEIVED_SHOW_RHS_ACTION,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
-    SET_HIDE_TEAM_SIDEBAR_BUTTONS,
+    SET_HIDE_SIDEBAR_BUTTONS,
     GET_ASSIGNEE,
     REMOVE_ASSIGNEE,
     OPEN_ADD_CARD,
@@ -194,9 +194,9 @@ export function autocompleteUsers(username) {
     };
 }
 
-export function setHideTeamSidebar(payload) {
+export function setHideSidebarButtons(payload) {
     return {
-        type: SET_HIDE_TEAM_SIDEBAR_BUTTONS,
+        type: SET_HIDE_SIDEBAR_BUTTONS,
         payload,
     };
 }
@@ -212,7 +212,7 @@ export const updateConfig = () => async (dispatch, getState) => {
         return {error};
     }
 
-    dispatch(setHideTeamSidebar(data.hide_team_sidebar));
+    dispatch(setHideSidebarButtons(data.hide_sidebar_buttons));
 
     return {data};
 };

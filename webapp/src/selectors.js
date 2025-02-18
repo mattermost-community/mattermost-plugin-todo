@@ -58,4 +58,4 @@ export const getPluginServerRoute = (state) => {
 };
 
 export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;
-export const isTeamSidebarVisible = (state) => !getPluginState(state).isTeamSidebarHidden;
+export const isButtonSidebarVisible = (state) => !getPluginState(state).isButtonSidebarHidden;

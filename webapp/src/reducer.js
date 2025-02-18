@@ -15,7 +15,7 @@ import {
     RECEIVED_SHOW_RHS_ACTION,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
-    SET_HIDE_TEAM_SIDEBAR_BUTTONS,
+    SET_HIDE_SIDEBAR_BUTTONS,
 } from './action_types';
 
 const addCardVisible = (state = false, action) => {
@@ -120,9 +120,9 @@ function isRhsVisible(state = false, action) {
     }
 }
 
-function isTeamSidebarHidden(state = false, action) {
+function isButtonSidebarHidden(state = false, action) {
     switch (action.type) {
-    case SET_HIDE_TEAM_SIDEBAR_BUTTONS:
+    case SET_HIDE_SIDEBAR_BUTTONS:
         return action.payload;
     default:
         return state;
@@ -140,5 +140,5 @@ export default combineReducers({
     rhsState,
     rhsPluginAction,
     isRhsVisible,
-    isTeamSidebarHidden,
+    isButtonSidebarHidden,
 });

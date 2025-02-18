@@ -22,10 +22,10 @@
         "footer": "",
         "settings": [
             {
-                "key": "hide_team_sidebar",
-                "display_name": "Hide team sidebar buttons:",
+                "key": "hide_sidebar_buttons",
+                "display_name": "Hide sidebar buttons:",
                 "type": "bool",
-                "help_text": "When true, the buttons in the team sidebar on the left toolbar will be hidden.",
+                "help_text": "When true, the buttons in the sidebar header (or team sidebar when applicable) will be hidden.",
                 "placeholder": "",
                 "default": null
             }
