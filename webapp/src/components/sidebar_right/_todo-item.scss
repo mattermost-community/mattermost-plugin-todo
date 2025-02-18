@@ -1,7 +1,8 @@
 .todo-item {
     transition: all 0.15s ease;
     cursor: pointer;
-    padding: 8px 16px;
+    padding: 16px 16px 8px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.28);
 
     &.todo-item--hidden {
         height: 0;
