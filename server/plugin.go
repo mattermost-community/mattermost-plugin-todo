@@ -618,9 +618,9 @@ func (p *Plugin) handleConfig(w http.ResponseWriter, r *http.Request) {
 	if p.configuration != nil {
 		// retrieve client only configurations
 		clientConfig := struct {
-			HideTeamSidebar bool `json:"hide_team_sidebar"`
+			HideSidebarButtons bool `json:"hide_team_sidebar"`
 		}{
-			HideTeamSidebar: p.configuration.HideTeamSidebar,
+			HideSidebarButtons: p.configuration.HideSidebarButtons,
 		}
 
 		configJSON, err := json.Marshal(clientConfig)
@@ -649,7 +649,7 @@ func (p *Plugin) sendRefreshEvent(userID string, lists []string) {
 // Publish a WebSocket event to update the client config of the plugin on the webapp end.
 func (p *Plugin) sendConfigUpdateEvent() {
 	clientConfigMap := map[string]interface{}{
-		"hide_team_sidebar": p.configuration.HideTeamSidebar,
+		"hide_sidebar_buttons": p.configuration.HideSidebarButtons,
 	}
 
 	p.API.PublishWebSocketEvent(
