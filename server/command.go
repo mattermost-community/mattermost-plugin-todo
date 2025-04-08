@@ -53,6 +53,10 @@ settings allow_incoming_task_requests [on, off]
 
 	example: /todo settings allow_incoming_task_requests on
 
+show [user]
+  Show todos for a user
+
+	example: /todo show tom
 
 help
 	Display usage.
@@ -86,7 +90,7 @@ func getCommand() *model.Command {
 		DisplayName:      "Todo Bot",
 		Description:      "Interact with your Todo list.",
 		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: add, list, pop, send, help",
+		AutoCompleteDesc: "Available commands: add, list, pop, send, show, help",
 		AutoCompleteHint: "[command]",
 		AutocompleteData: getAutocompleteData(),
 	}
@@ -127,6 +131,8 @@ func (p *Plugin) ExecuteCommand(_ *plugin.Context, args *model.CommandArgs) (*mo
 			handler = p.runPopCommand
 		case "send":
 			handler = p.runSendCommand
+		case "show":
+			handler = p.runShowCommand
 		case "settings":
 			handler = p.runSettingsCommand
 		default:
@@ -281,6 +287,54 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (bool, 
 	}
 
 	p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
+
+	responseMessage += issuesListToString(issues)
+	p.postCommandResponse(extra, responseMessage)
+
+	return false, nil
+}
+
+func (p *Plugin) runShowCommand(args []string, extra *model.CommandArgs) (bool, error) {
+	listID := MyListKey
+
+	if len(args) < 1 {
+		p.postCommandResponse(extra, "You must specify a user.\n"+getHelp())
+		return false, nil
+	}
+
+	userName := args[0]
+	if args[0][0] == '@' {
+		userName = args[0][1:]
+	}
+	receiver, appErr := p.API.GetUserByUsername(userName)
+	if appErr != nil {
+		p.postCommandResponse(extra, "Please, provide a valid user.\n"+getHelp())
+		return false, nil
+	}
+
+	issues, err := p.listManager.GetIssueList(receiver.Id, listID)
+	if err != nil {
+		return false, err
+	}
+
+	responseMessage := receiver.Username + "'s Todo List:\n\n"
+
+	// if len(args) < 2 {
+	// 	switch args[1] {
+	// 	case MyFlag:
+	// 	case InFlag:
+	// 		listID = InListKey
+	// 		responseMessage = receiver.Username + "'s Received Todo list:\n\n"
+	// 	case OutFlag:
+	// 		listID = OutListKey
+	// 		responseMessage = receiver.Username + "'s Sent Todo list:\n\n"
+	// 	default:
+	// 		p.postCommandResponse(extra, getHelp())
+	// 		return true, nil
+	// 	}
+	// }
+
+	// p.sendRefreshEvent(extra.UserId, []string{MyListKey, OutListKey, InListKey})
 
 	responseMessage += issuesListToString(issues)
 	p.postCommandResponse(extra, responseMessage)
@@ -445,6 +499,10 @@ func getAutocompleteData() *model.AutocompleteData {
 	send.AddTextArgument("Whom to send", "[@awesomePerson]", "")
 	send.AddTextArgument("Todo message", "[message]", "")
 	todo.AddCommand(send)
+
+	show := model.NewAutocompleteData("show", "[user]", "Shows a Todo list for a specified user")
+	show.AddTextArgument("Whom to list", "[@awesomePerson]", "")
+	todo.AddCommand(show)
 
 	settings := model.NewAutocompleteData("settings", "[setting] [on] [off]", "Sets the user settings")
 	summary := model.NewAutocompleteData("summary", "[on] [off]", "Sets the summary settings")
