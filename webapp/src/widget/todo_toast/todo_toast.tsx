@@ -1,6 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
-import React, {useEffect, useCallback} from 'react';
+import React, {useEffect, useCallback, useRef} from 'react';
 
 import './todo_toast.scss';
 import {CSSTransition} from 'react-transition-group';
@@ -22,8 +22,9 @@ type Props = {
     className?: string,
 }
 
-function TodoToast(props: Props): JSX.Element {
+function TodoToast(props: Props): React.JSX.Element {
     const {close, content} = props;
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     const closeToast = useCallback(close, [close]);
     const undoTodo = useCallback(() => {
@@ -52,8 +53,10 @@ function TodoToast(props: Props): JSX.Element {
             unmountOnExit={true}
             timeout={300}
             appear={true}
+            nodeRef={nodeRef}
         >
             <div
+                ref={nodeRef}
                 className={generateClassName(classNames)}
                 title={props.title}
             >

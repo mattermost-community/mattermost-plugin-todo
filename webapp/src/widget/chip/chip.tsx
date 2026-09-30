@@ -16,7 +16,7 @@ type Props = {
     rightIcon?: boolean
 }
 
-function Chip(props: Props): JSX.Element {
+function Chip(props: Props): React.JSX.Element {
     const classNames: Record<string, boolean> = {
         Chip: true,
     };

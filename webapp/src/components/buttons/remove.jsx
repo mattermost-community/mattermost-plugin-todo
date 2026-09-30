@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 
 import Button from 'src/widget/buttons/button';
 
-const RemoveButton = (props) => {
+const RemoveButton = ({issueId, remove, list = 'my'}) => {
     return (
         <Button
             emphasis='tertiary'
-            onClick={() => props.remove(props.issueId)}
+            onClick={() => remove(issueId)}
         >
-            {props.list === 'out' ? 'Cancel' : 'Won\'t do'}
+            {list === 'out' ? 'Cancel' : 'Won\'t do'}
         </Button>
     );
 };
@@ -19,9 +19,4 @@ RemoveButton.propTypes = {
     remove: PropTypes.func.isRequired,
     list: PropTypes.string,
 };
-
-RemoveButton.defaultProps = {
-    list: 'my',
-};
-
 export default RemoveButton;

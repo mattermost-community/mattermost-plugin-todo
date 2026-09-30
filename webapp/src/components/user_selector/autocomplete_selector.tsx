@@ -1,25 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
+import React from 'react';
 
-import {components} from 'react-select';
+import {components, FormatOptionLabelMeta, InputProps, OptionsOrGroups, GroupBase, SingleValue, StylesConfig, ThemeConfig, Theme as ComponentTheme} from 'react-select';
 import AsyncSelect from 'react-select/async';
-import {OptionsType, ValueType, Theme as ComponentTheme} from 'react-select/src/types';
-import {Props as ComponentProps, StylesConfig} from 'react-select/src/styles';
-import {ThemeConfig} from 'react-select/src/theme';
 
 import {Theme} from 'mattermost-redux/types/preferences';
 import {UserProfile} from 'mattermost-redux/types/users';
-
-import {FormatOptionLabelContext} from 'react-select/src/Select';
 
 import {getColorStyles, getDescription, getProfilePicture} from '../../utils';
 
 import './autocomplete_selector.scss';
 
 type Props = {
-    loadOptions: (inputValue: string, callback: ((options: OptionsType<UserProfile>) => void)) => Promise<unknown> | void,
+    loadOptions: (inputValue: string, callback: ((options: OptionsOrGroups<UserProfile, GroupBase<UserProfile>>) => void)) => Promise<OptionsOrGroups<UserProfile, GroupBase<UserProfile>>> | void,
     autoFocus?: boolean,
     label?: string,
     labelClassName?: string,
@@ -27,15 +22,15 @@ type Props = {
     inputClassName?: string,
     placeholder?: string,
     disabled?: boolean,
-    onSelected?: (value: ValueType<UserProfile>) => void,
+    onSelected?: (value: SingleValue<UserProfile>) => void,
     theme: Theme,
 }
 
-const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
+const useTheme = (mattermostTheme: Theme): [StylesConfig<UserProfile, false>, ThemeConfig] => {
     const mmColors = getColorStyles(mattermostTheme);
 
-    const styles: StylesConfig = {
-        option: (provided: CSSProperties, state: ComponentProps) => ({
+    const styles: StylesConfig<UserProfile, false> = {
+        option: (provided, state) => ({
             ...provided,
             color: state.isDisabled ? mmColors.neutral30 : mmColors.neutral90,
         }),
@@ -52,7 +47,7 @@ const useTheme = (mattermostTheme: Theme): [StylesConfig, ThemeConfig] => {
     return [styles, compTheme];
 };
 
-const renderOption = (option: UserProfile, {context}: {context: FormatOptionLabelContext}) => {
+const renderOption = (option: UserProfile, {context}: FormatOptionLabelMeta<UserProfile>) => {
     const {username} = option;
     const name = `@${username}`;
     const description = getDescription(option);
@@ -91,7 +86,7 @@ export default function AutocompleteSelector(props: Props) {
 
     const [styles, componentTheme] = useTheme(theme);
 
-    const handleSelected = (selected: ValueType<UserProfile>) => {
+    const handleSelected = (selected: SingleValue<UserProfile>) => {
         if (onSelected) {
             onSelected(selected);
         }
@@ -117,8 +112,7 @@ export default function AutocompleteSelector(props: Props) {
         );
     }
 
-    //@ts-ignore
-    const Input = (inputProps) => (
+    const Input = (inputProps: InputProps<UserProfile, false>) => (
         <components.Input
             {...inputProps}
             maxLength={22}
@@ -138,7 +132,7 @@ export default function AutocompleteSelector(props: Props) {
                     loadOptions={loadOptions}
                     defaultOptions={true}
                     isClearable={true}
-                    disabled={disabled}
+                    isDisabled={disabled}
                     placeholder={placeholder}
                     getOptionLabel={(option: UserProfile) => option.username}
                     getOptionValue={(option: UserProfile) => option.id}

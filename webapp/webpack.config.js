@@ -6,7 +6,7 @@ const PLUGIN_ID = require('../plugin.json').id;
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 let mode = 'production';
-let devtool = '';
+let devtool = false;
 if (NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch') {
     mode = 'development';
     devtool = 'source-map';
@@ -44,7 +44,7 @@ module.exports = {
             'node_modules',
             path.resolve(__dirname),
         ],
-        extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
     },
     module: {
         rules: [
@@ -82,6 +82,9 @@ module.exports = {
     externals: {
         react: 'React',
         'react-dom': 'ReactDOM',
+        'react-dom/client': 'ReactDOM',
+        'react/jsx-runtime': 'ReactJSXRuntime',
+        'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
         redux: 'Redux',
         'react-redux': 'ReactRedux',
         'prop-types': 'PropTypes',
@@ -93,6 +96,7 @@ module.exports = {
         path: path.join(__dirname, '/dist'),
         publicPath: '/',
         filename: 'main.js',
+        clean: true,
     },
     devtool,
     mode,

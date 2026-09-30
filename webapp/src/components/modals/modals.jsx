@@ -17,6 +17,8 @@ export default class FullScreenModal extends React.PureComponent {
         onClose: PropTypes.func.isRequired,
     };
 
+    nodeRef = React.createRef();
+
     componentDidMount() {
         document.addEventListener('keydown', this.handleKeypress);
     }
@@ -44,8 +46,12 @@ export default class FullScreenModal extends React.PureComponent {
                 unmountOnExit={true}
                 timeout={ANIMATION_DURATION}
                 appear={true}
+                nodeRef={this.nodeRef}
             >
-                <div className='FullScreenModal'>
+                <div
+                    ref={this.nodeRef}
+                    className='FullScreenModal'
+                >
                     <CloseIcon
                         className='close-x'
                         onClick={this.close}

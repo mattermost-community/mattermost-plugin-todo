@@ -14,7 +14,7 @@ type Props = {
 export default class Menu extends React.PureComponent<Props> {
     static Text = TextOption
 
-    public render(): JSX.Element {
+    public render(): React.JSX.Element {
         const {position, children} = this.props;
 
         return (

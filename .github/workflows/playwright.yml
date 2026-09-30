@@ -1,6 +1,7 @@
 name: Playwright Tests
 on:
-  # <--- Disabling the playwright testcases for now as they are broken ---> 
+  # <--- Disabling the playwright testcases for now as they are broken --->
+  workflow_dispatch:
 
   # push:
   #   branches:
@@ -8,7 +9,6 @@ on:
   #   tags:
   #     - "v*"
   # pull_request:
-  # workflow_dispatch:
 
 env:
   TERM: xterm

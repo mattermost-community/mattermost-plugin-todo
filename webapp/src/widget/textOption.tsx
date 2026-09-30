@@ -10,7 +10,7 @@ type TextOptionProps = MenuOptionProps & {
     className?: string
 }
 
-function TextOption(props:TextOptionProps): JSX.Element {
+function TextOption(props:TextOptionProps): React.JSX.Element {
     const {name, icon, rightIcon} = props;
     let className = 'MenuOption TextOption menu-option';
 

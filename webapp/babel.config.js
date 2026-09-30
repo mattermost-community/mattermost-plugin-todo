@@ -25,9 +25,9 @@ const config = {
         }],
     ],
     plugins: [
-        '@babel/plugin-proposal-class-properties',
+        '@babel/plugin-transform-class-properties',
         '@babel/plugin-syntax-dynamic-import',
-        '@babel/proposal-object-rest-spread',
+        '@babel/plugin-transform-object-rest-spread',
         'babel-plugin-typescript-to-proptypes',
     ],
 };
